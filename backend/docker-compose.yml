@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: arckenites
+      POSTGRES_PASSWORD: arckenites
+      POSTGRES_DB: arckenites_portal
+    ports:
+      - "5433:5432"
+    volumes:
+      - arckenites_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arckenites -d arckenites_portal"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  arckenites_pg_data:

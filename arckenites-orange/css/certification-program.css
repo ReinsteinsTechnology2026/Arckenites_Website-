@@ -1,0 +1,154 @@
+/* ============================================================
+   CERTIFICATION PROGRAM PAGE
+   ============================================================ */
+
+/* ---------- Hero ---------- */
+.cert-hero{ text-align: left; padding: 170px 0 100px; }
+.cert-hero .breadcrumb-custom{ justify-content: flex-start; }
+.cert-hero h1{ font-size: 3rem; line-height: 1.15; margin-bottom: 18px; }
+.cert-hero h1 span{ color: var(--accent); }
+.cert-hero p{ margin: 0 0 32px; max-width: 520px; }
+.cert-hero .hero-actions{ display: flex; gap: 16px; flex-wrap: wrap; }
+
+.cert-hero-illustration-wrap{
+  width: 100%; max-width: 640px; margin: 0 auto;
+  filter: drop-shadow(0 25px 40px rgba(0,0,0,.4));
+  animation: cert-illustration-float 4s ease-in-out infinite;
+}
+.cert-hero-illustration{
+  display: block; width: 100%; height: auto; border-radius: var(--radius-lg);
+}
+@keyframes cert-illustration-float{
+  0%, 100%{ transform: translateY(0); }
+  50%{ transform: translateY(-14px); }
+}
+@media (prefers-reduced-motion: reduce){
+  .cert-hero-illustration-wrap{ animation: none; }
+}
+
+/* ---------- Section heading (shared look) ---------- */
+.cert-section-heading{ text-align: center; max-width: 680px; margin: 0 auto 50px; }
+.cert-section-heading .eyebrow-dark{ margin-bottom: 14px; }
+.cert-section-heading h2{ margin-bottom: 12px; }
+.cert-section-heading p{ color: var(--muted); margin: 0; }
+
+/* ---------- Section 2: Feature cards ---------- */
+.cert-feature-card{
+  background: var(--surface); border: 1px solid var(--border-c); border-radius: var(--radius-lg);
+  padding: 32px 26px; height: 100%; transition: var(--transition); position: relative; overflow: hidden;
+}
+.cert-feature-card:hover{ transform: translateY(-8px); box-shadow: var(--shadow-hover); border-color: var(--primary); }
+.cert-feature-card__icon{
+  width: 56px; height: 56px; border-radius: 16px; background: rgba(255,90,31,.14); color: var(--primary);
+  display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 20px;
+  transition: var(--transition);
+}
+.cert-feature-card:hover .cert-feature-card__icon{ background: var(--primary); color: #fff; transform: rotate(-6deg) scale(1.05); }
+.cert-feature-card h6{ font-size: 1.05rem; margin-bottom: 10px; }
+.cert-feature-card p{ color: var(--muted); font-size: .9rem; margin: 0; }
+
+/* ---------- Section 3 & 7: Connected process flow ---------- */
+.flow-steps{ display: flex; flex-wrap: wrap; gap: 14px 0; align-items: center; justify-content: center; }
+.flow-step{
+  flex: 1 1 150px; min-width: 150px; max-width: 190px; height: 150px; background: var(--surface);
+  border: 1px solid var(--border-c); border-radius: var(--radius-md); padding: 22px 16px;
+  text-align: center; position: relative; transition: var(--transition);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.flow-step:hover{ transform: translateY(-6px); box-shadow: var(--shadow-hover); border-color: var(--primary); }
+.flow-step__icon{
+  width: 46px; height: 46px; border-radius: 50%; margin: 0 auto 12px; background: rgba(255,90,31,.14); color: var(--primary);
+  display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;
+}
+.flow-step h6{ font-size: .85rem; margin: 0; line-height: 1.35; }
+.flow-arrow{
+  display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1rem;
+  flex: 0 0 auto; width: 34px; height: 150px; padding: 0; opacity: .6;
+}
+
+/* ---------- Section 4: Domain cards ---------- */
+.domain-card{
+  background: var(--surface); border: 1px solid var(--border-c); border-radius: var(--radius-lg);
+  padding: 28px 22px; text-align: center; height: 100%; transition: var(--transition);
+}
+.domain-card:hover{ transform: translateY(-8px); box-shadow: var(--shadow-hover); border-color: var(--primary); }
+.domain-card__icon{
+  width: 60px; height: 60px; margin: 0 auto 18px; border-radius: 50%; background: rgba(255,90,31,.14); color: var(--primary);
+  display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: var(--transition);
+}
+.domain-card:hover .domain-card__icon{ background: var(--primary); color: #fff; }
+.domain-card__icon--logo{ background: none; overflow: hidden; }
+.domain-card__icon--logo img{ width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.domain-card h6{ margin-bottom: 8px; }
+.domain-card p{ color: var(--muted); font-size: .85rem; margin-bottom: 18px; min-height: 40px; }
+.domain-card .domain-view-roadmap{ width: 100%; justify-content: center; display: inline-flex; align-items: center; gap: 8px; }
+
+/* ---------- Section 5: Roadmap (hero feature) ---------- */
+.roadmap-tabs{ display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 44px; }
+.roadmap-tab{
+  display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 2px solid var(--border-c);
+  color: var(--muted); font-weight: 600; font-size: .85rem; padding: 10px 18px; border-radius: 50px; transition: var(--transition);
+}
+.roadmap-tab:hover{ border-color: var(--primary); color: var(--ink); }
+.roadmap-tab.active{ background: var(--primary); border-color: var(--primary); color: #fff; }
+
+.roadmap-tree{ max-width: 920px; margin: 0 auto; }
+.roadmap-tier{
+  position: relative; padding-left: 30px; border-left: 3px solid var(--border-c); margin-bottom: 4px;
+}
+.roadmap-tier:last-child .roadmap-tier__body{ padding-bottom: 0; }
+.roadmap-tier__header{
+  width: 100%; display: flex; align-items: center; gap: 14px; background: var(--surface);
+  border: 1px solid var(--border-c); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 4px;
+  text-align: left; transition: var(--transition);
+}
+.roadmap-tier__header:hover{ border-color: var(--primary); }
+.roadmap-tier__dot{
+  width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 2px solid var(--primary);
+  position: absolute; left: -37px; flex-shrink: 0;
+}
+.roadmap-tier__label{ font-weight: 700; font-size: 1rem; }
+.roadmap-tier__count{ margin-left: auto; color: var(--muted); font-size: .8rem; }
+.roadmap-tier__chevron{ color: var(--primary); transition: transform .3s ease; }
+.roadmap-tier.open .roadmap-tier__chevron{ transform: rotate(180deg); }
+
+.roadmap-tier__body{ max-height: 0; overflow: hidden; transition: max-height .4s ease; }
+.roadmap-tier__body-inner{
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px;
+  padding: 6px 4px 24px;
+}
+
+.roadmap-cert-card{
+  background: var(--surface); border: 1px solid var(--border-c); border-radius: var(--radius-md);
+  padding: 20px; transition: var(--transition); position: relative;
+}
+.roadmap-cert-card:hover{ transform: translateY(-4px); box-shadow: var(--shadow-hover); border-color: var(--primary); }
+.roadmap-cert-card h6{ font-size: .95rem; margin-bottom: 4px; padding-right: 4px; }
+.roadmap-cert-code{ display: inline-block; color: var(--primary); font-size: .75rem; font-weight: 700; margin-bottom: 14px; }
+.roadmap-cert-meta{ list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 8px; }
+.roadmap-cert-meta li{ font-size: .78rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.roadmap-cert-meta i{ color: var(--primary); width: 14px; }
+.roadmap-view-btn{ width: 100%; text-align: center; font-size: .82rem; padding: 8px; }
+
+/* ---------- Modal ---------- */
+#certDetailsModal .modal-content{ background: var(--surface); border: 1px solid var(--border-c); color: var(--ink); border-radius: var(--radius-lg); }
+#certDetailsModal .modal-header, #certDetailsModal .modal-footer{ border-color: var(--border-c); }
+#certDetailsModal .btn-close{ filter: invert(1); }
+.cert-modal-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.cert-modal-grid div{ background: var(--bg-soft); border-radius: var(--radius-md); padding: 14px 16px; }
+.cert-modal-grid span{ display: block; color: var(--muted); font-size: .75rem; margin-bottom: 4px; }
+.cert-modal-grid strong{ font-size: .95rem; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 991px){
+  .cert-hero{ text-align: center; padding: 150px 0 70px; }
+  .cert-hero .breadcrumb-custom{ justify-content: center; }
+  .cert-hero p{ margin: 0 auto 32px; }
+  .cert-hero .hero-actions{ justify-content: center; }
+  .cert-flow{ margin-top: 50px; }
+}
+@media (max-width: 767px){
+  .flow-steps{ flex-direction: column; align-items: center; gap: 4px; }
+  .flow-arrow{ transform: rotate(90deg); width: 100%; height: 30px; }
+  .flow-step{ max-width: 260px; width: 100%; height: auto; min-height: 120px; }
+}

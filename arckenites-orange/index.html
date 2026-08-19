@@ -1,0 +1,380 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arckenites | Build Your Career in IT</title>
+<meta name="description" content="Arckenites is a premium IT training institute offering industry-ready courses in Cloud, DevOps, Data, AI and more, with placement assistance and expert trainers.">
+<meta name="keywords" content="IT training institute, AWS training, Azure training, DevOps course, Java Full Stack, MERN Stack, Data Analytics, Cyber Security course, placement training">
+
+<!-- Open Graph -->
+<meta property="og:title" content="Arckenites | Build Your Career in IT">
+<meta property="og:description" content="Industry-ready IT training designed by experts to help students and professionals land high-paying jobs.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/og-cover.jpg">
+
+<!-- Schema.org -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Arckenites",
+  "description": "IT Training Institute offering industry-ready courses with placement assistance.",
+  "url": "https://www.arckenites.com"
+}
+</script>
+
+<!-- Favicon -->
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Bootstrap 5 -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<!-- AOS Animation -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<!-- Custom CSS -->
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/depth-text.css">
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loader">
+  <div class="loader-mark"><img src="assets/logo.png" alt="Arckenites"></div>
+</div>
+
+<!-- Cookie Consent -->
+<div class="cookie-banner" id="cookieBanner">
+  <p>We use cookies to improve your experience on Arckenites. By continuing, you agree to our <a href="privacy-policy.html">Privacy Policy</a>.</p>
+  <button class="btn btn-accent btn-sm" id="cookieAccept">Accept</button>
+</div>
+
+<!-- ===================== NAVBAR ===================== -->
+<nav class="navbar navbar-expand-lg fixed-top" id="mainNavbar">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">
+      <img src="assets/logo.png" alt="Arckenites logo" class="brand-mark">
+      <span class="brand-text">Arckenites</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav mx-auto align-items-lg-center">
+        <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
+        <li class="nav-item dropdown mega-dropdown">
+          <a class="nav-link dropdown-toggle" href="index.html#courses" data-bs-toggle="dropdown">Programs</a>
+          <div class="dropdown-menu mega-menu">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <a href="certification-program.html">Official Certification Program</a>
+                <a href="corporate-training.html">Corporate Training Program</a>
+                <a href="about.html">Institutional Program</a>
+              </div>
+              <div class="col-md-6">
+                <a href="placements.html">Placement Training Program</a>
+                <a href="trainers.html">Arckenites Trainers Program</a>
+                <a href="careers.html">Internship Program</a>
+                <a href="interview-crack-program.html">Interview 'n' Crack Program</a>
+                <a href="job-assist-program.html">Arckenites Job Assist Program</a>
+                <a href="college-projects-program.html">College Projects Program</a>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="nav-item"><a class="nav-link" href="corporate-training.html">Training</a></li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+      </ul>
+
+      <div class="d-flex align-items-center gap-2 nav-actions">
+        <button class="icon-btn" id="searchToggle" aria-label="Search courses">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+        <a href="login.html" class="btn btn-primary-outline" id="loginBtn">Login</a>
+        <a href="free-demo.html" class="btn btn-accent">Book Free Demo</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-bar" id="searchBar">
+    <div class="container">
+      <input type="text" placeholder="Search courses e.g. AWS, Python, DevOps..." id="courseSearchInput">
+      <button id="searchClose"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<header class="hero">
+  <div class="hero-bg"></div>
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-5 order-lg-2" data-aos="fade-right">
+        <div class="hero-content-block">
+          <div class="logo-orbit">
+            <div class="logo-orbit__ring"></div>
+            <div class="logo-orbit__face"><img src="assets/logo.png" alt="Arckenites logo"></div>
+          </div>
+          <div class="depth-text"
+               data-depth-text
+               data-text="Arckenites"
+               data-layers="34"
+               data-depth="2.4"
+               data-face-color="#f8fafc"
+               data-depth-color="#E1470F"
+               data-tilt="3.5"
+               data-pointer-tracking="true"
+               data-smoothing="0.14"
+               data-perspective="1100"
+               data-auto-orbit="true"
+               data-orbit-speed="0.35"
+               data-font-size="clamp(3.2rem, 7.5vw, 5.8rem)"
+               data-font-weight="900"
+               data-shadow="true"></div>
+          <p class="hero-sub">We turn curious beginners into job-ready IT professionals not through dry lectures, but real stories, real projects, and the tech that's actually trending right now.</p>
+        </div>
+      </div>
+      <div class="col-lg-7 order-lg-1 align-self-end" data-aos="fade-left">
+        <div class="hero-image-wrap">
+          <img src="assets/student-lady.png" alt="Arckenites student" class="hero-image hero-cutout">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-scroll"><span></span></div>
+</header>
+
+<!-- ===================== STATISTICS ===================== -->
+<section class="stats-section">
+  <div class="container">
+    <div class="row text-center">
+      <div class="col-6 col-lg-3" data-aos="fade-up">
+        <h3 class="counter" data-target="5000">0</h3>
+        <p>Students Trained</p>
+      </div>
+      <div class="col-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
+        <h3 class="counter" data-target="120">0</h3>
+        <p>Corporate Clients</p>
+      </div>
+      <div class="col-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
+        <h3 class="counter" data-target="95">0</h3>
+        <p>Placement Support</p>
+      </div>
+      <div class="col-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
+        <h3 class="counter" data-target="50">0</h3>
+        <p>Industry Trainers</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== POPULAR COURSES ===================== -->
+<section class="courses-section" id="courses">
+  <div class="container">
+    <div class="section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">Our Programs</span>
+      <p>Hands-on, mentor-led programs built around what employers are hiring for right now.</p>
+    </div>
+
+    <div class="row g-4" id="courseGrid">
+      <!-- Cards injected by JS from data, see js/script.js -->
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== WHY CHOOSE US ===================== -->
+<section class="why-section">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-5" data-aos="fade-right">
+        <span class="eyebrow eyebrow-dark">Why Arckenites</span>
+        <h2>A Training Experience Built Around Outcomes</h2>
+        <p>Every course is designed backward from the job you want - not just the syllabus.</p>
+        <a href="about.html" class="btn btn-accent">Explore More</a>
+      </div>
+      <div class="col-lg-7">
+        <div class="row g-3">
+          <div class="col-md-6" data-aos="fade-up">
+            <div class="why-card"><i class="fa-solid fa-chalkboard-user"></i><h6>Professional Trainers</h6></div>
+          </div>
+          <div class="col-md-6" data-aos="fade-up" data-aos-delay="50">
+            <div class="why-card"><i class="fa-solid fa-diagram-project"></i><h6>Real Projects</h6></div>
+          </div>
+          <div class="col-md-6" data-aos="fade-up" data-aos-delay="100">
+            <div class="why-card"><i class="fa-solid fa-briefcase"></i><h6>Placement Assistance</h6></div>
+          </div>
+          <div class="col-md-6" data-aos="fade-up" data-aos-delay="150">
+            <div class="why-card"><i class="fa-solid fa-comments"></i><h6>Interview Preparation</h6></div>
+          </div>
+          <div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
+            <div class="why-card"><i class="fa-solid fa-file-lines"></i><h6>Resume Building</h6></div>
+          </div>
+          <div class="col-md-6" data-aos="fade-up" data-aos-delay="250">
+            <div class="why-card"><i class="fa-solid fa-award"></i><h6>Certification</h6></div>
+          </div>
+          <div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
+            <div class="why-card"><i class="fa-solid fa-video"></i><h6>Recorded Sessions</h6></div>
+          </div>
+          <div class="col-md-6" data-aos="fade-up" data-aos-delay="350">
+            <div class="why-card"><i class="fa-solid fa-headset"></i><h6>24/7 Support</h6></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TECH STACK ===================== -->
+<section class="techstack-section">
+  <div class="container">
+    <p class="trusted-label">Technologies you'll master</p>
+    <div class="techstack-marquee" data-aos="fade-up">
+      <div class="techstack-track">
+        <div class="techstack-logos">
+          <div class="tech-item"><i class="fa-brands fa-aws"></i><span>AWS</span></div>
+          <div class="tech-item"><i class="fa-brands fa-microsoft"></i><span>Azure</span></div>
+          <div class="tech-item"><i class="fa-solid fa-infinity"></i><span>DevOps</span></div>
+          <div class="tech-item"><i class="fa-brands fa-java"></i><span>Java</span></div>
+          <div class="tech-item"><i class="fa-brands fa-node-js"></i><span>Node.js</span></div>
+          <div class="tech-item"><i class="fa-brands fa-react"></i><span>React</span></div>
+          <div class="tech-item"><i class="fa-brands fa-python"></i><span>Python</span></div>
+          <div class="tech-item"><i class="fa-brands fa-docker"></i><span>Docker</span></div>
+          <div class="tech-item"><i class="fa-brands fa-linux"></i><span>Linux</span></div>
+          <div class="tech-item"><i class="fa-brands fa-git-alt"></i><span>Git</span></div>
+          <div class="tech-item"><i class="fa-brands fa-jenkins"></i><span>Jenkins</span></div>
+          <div class="tech-item"><i class="fa-solid fa-shield-halved"></i><span>Cyber Security</span></div>
+        </div>
+        <div class="techstack-logos" aria-hidden="true">
+          <div class="tech-item"><i class="fa-brands fa-aws"></i><span>AWS</span></div>
+          <div class="tech-item"><i class="fa-brands fa-microsoft"></i><span>Azure</span></div>
+          <div class="tech-item"><i class="fa-solid fa-infinity"></i><span>DevOps</span></div>
+          <div class="tech-item"><i class="fa-brands fa-java"></i><span>Java</span></div>
+          <div class="tech-item"><i class="fa-brands fa-node-js"></i><span>Node.js</span></div>
+          <div class="tech-item"><i class="fa-brands fa-react"></i><span>React</span></div>
+          <div class="tech-item"><i class="fa-brands fa-python"></i><span>Python</span></div>
+          <div class="tech-item"><i class="fa-brands fa-docker"></i><span>Docker</span></div>
+          <div class="tech-item"><i class="fa-brands fa-linux"></i><span>Linux</span></div>
+          <div class="tech-item"><i class="fa-brands fa-git-alt"></i><span>Git</span></div>
+          <div class="tech-item"><i class="fa-brands fa-jenkins"></i><span>Jenkins</span></div>
+          <div class="tech-item"><i class="fa-solid fa-shield-halved"></i><span>Cyber Security</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== NEWSLETTER ===================== -->
+<section class="newsletter-section" data-aos="fade-up">
+  <div class="container">
+    <div class="newsletter-box">
+      <div>
+        <h3>Get career tips &amp; course updates</h3>
+        <p>Join our newsletter - no spam, unsubscribe anytime.</p>
+      </div>
+      <form class="newsletter-form" id="newsletterForm">
+        <input type="email" placeholder="Enter your email" required>
+        <button type="submit" class="btn btn-accent">Subscribe</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CTA ===================== -->
+<section class="cta-section">
+  <div class="container text-center" data-aos="zoom-in">
+    <h2>Start Learning Today</h2>
+    <p>Talk to our counselors and find the right course for your career goals.</p>
+    <a href="free-demo.html" class="btn btn-accent btn-lg">Book Free Demo</a>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <a class="navbar-brand" href="index.html">
+          <img src="assets/logo.png" alt="Arckenites logo" class="brand-mark">
+          <span class="brand-text">Arckenites</span>
+        </a>
+        <p class="footer-about">Premium IT training institute helping students and professionals build careers in technology through industry-ready programs.</p>
+        <div class="social-icons">
+          <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+          <a href="#"><i class="fa-brands fa-youtube"></i></a>
+        </div>
+      </div>
+      <div class="col-lg-2 col-6">
+        <h6>Quick Links</h6>
+        <ul>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="courses.html">Courses</a></li>
+          <li><a href="placements.html">Placements</a></li>
+          <li><a href="trainers.html">Trainers</a></li>
+          <li><a href="blog.html">Blog</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-2 col-6">
+        <h6>Our Programs</h6>
+        <ul>
+          <li><a href="certification-program.html">Official Certification Program</a></li>
+          <li><a href="corporate-training.html">Corporate Training Program</a></li>
+          <li><a href="placements.html">Placement Training Program</a></li>
+          <li><a href="trainers.html">Arckenites Trainers Program</a></li>
+          <li><a href="careers.html">Internship Program</a></li>
+          <li><a href="interview-crack-program.html">Interview 'n' Crack Program</a></li>
+          <li><a href="job-assist-program.html">Arckenites Job Assist Program</a></li>
+          <li><a href="college-projects-program.html">College Projects Program</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-4">
+        <h6>Contact</h6>
+        <ul class="footer-contact">
+          <li><i class="fa-solid fa-location-dot"></i> Krishna Kutir, No. 6/24, Ramanathan Street, Mahalingapuram, Nungambakkam, Chennai, Tamil Nadu, 600034</li>
+          <li><i class="fa-solid fa-envelope"></i> contact@arckenites.com</li>
+          <li><i class="fa-solid fa-phone"></i> +91 98765 43210</li>
+        </ul>
+      </div>
+    </div>
+    <hr>
+    <div class="footer-bottom">
+      <p>&copy; <span id="year"></span> Arckenites. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="terms.html">Terms &amp; Conditions</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Floating WhatsApp -->
+<a href="https://wa.me/919876543210" class="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
+  <i class="fa-brands fa-whatsapp"></i>
+</a>
+
+<!-- Back to Top -->
+<button id="backToTop" aria-label="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- AOS JS -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<!-- Custom JS -->
+<script src="js/script.js"></script>
+<script src="js/depth-text.js"></script>
+</body>
+</html>

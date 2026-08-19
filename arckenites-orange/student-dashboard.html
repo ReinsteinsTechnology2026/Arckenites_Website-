@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Dashboard | Arckenites</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet" href="css/style.css?v=8">
+
+</head>
+<body>
+
+<header class="dashboard-topbar">
+  <a class="navbar-brand" href="index.html">
+    <img src="assets/logo.png" alt="Arckenites logo" class="brand-mark">
+    <span class="brand-text">Arckenites Student</span>
+  </a>
+  <div class="dashboard-topbar-user">
+    <span id="studentWelcome">Welcome</span>
+    <button class="btn btn-primary-outline" id="studentLogoutBtn">Logout</button>
+  </div>
+</header>
+
+<main class="dashboard-main">
+  <h1>Dashboard</h1>
+  <p>Your Arckenites learning overview.</p>
+
+  <div class="dashboard-notice">
+    <i class="fa-solid fa-circle-info"></i>
+    You're logged in and verified as a student. Course progress, attendance, assignments and the rest of the student portal ship in a later phase.
+  </div>
+</main>
+
+<button type="button" class="chat-float" id="chatFloatBtn" aria-label="Messages">
+  <i class="fa-solid fa-comments"></i>
+  <span class="admin-notif-badge" id="chatBadge" style="display:none;">0</span>
+</button>
+
+<div class="chat-backdrop" id="chatBackdrop"></div>
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-panel-header">
+    <button type="button" class="icon-btn chat-back" id="chatBack" style="display:none;" aria-label="Back to conversations"><i class="fa-solid fa-arrow-left"></i></button>
+    <strong id="chatTitle">Messages</strong>
+    <button type="button" class="icon-btn" id="chatClose" aria-label="Close chat"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="chat-body">
+    <div class="chat-list-view" id="chatListView">
+      <div class="chat-search-row">
+        <input type="text" class="form-control" id="chatSearchInput" placeholder="Search by username or name&hellip;" autocomplete="off">
+      </div>
+      <div id="chatSearchResults" class="chat-search-results" style="display:none;"></div>
+      <div class="chat-conversation-list" id="chatConversationList">
+        <div class="admin-panel-empty">Loading&hellip;</div>
+      </div>
+    </div>
+    <div class="chat-thread-view" id="chatThreadView" style="display:none;">
+      <div class="chat-messages" id="chatMessages"></div>
+      <form class="chat-input-row" id="chatForm">
+        <input type="text" class="form-control" id="chatInput" placeholder="Type a message&hellip;" autocomplete="off">
+        <button type="submit" class="btn btn-accent" id="chatSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js?v=1"></script>
+<script src="js/auth.js?v=1"></script>
+<script src="js/student-dashboard.js?v=1"></script>
+<script src="js/chat.js?v=1"></script>
+
+</body>
+</html>

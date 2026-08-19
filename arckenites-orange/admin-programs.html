@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programs | Arckenites Admin</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet" href="css/style.css?v=8">
+
+</head>
+<body>
+
+<div class="admin-shell">
+
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-sidebar-brand">
+      <img src="assets/logo.png" alt="Arckenites logo">
+      <span>Arckenites Admin</span>
+    </div>
+
+    <nav class="admin-sidebar-nav">
+      <a href="admin-dashboard.html" class="admin-sidebar-link" title="Dashboard">
+        <i class="fa-solid fa-gauge-high"></i><span class="label">Dashboard</span>
+      </a>
+
+      <div class="admin-sidebar-group is-open">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="true">
+          <span>Management</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><a href="admin-students.html" class="admin-sidebar-link" title="Students"><i class="fa-solid fa-user-graduate"></i><span class="label">Students</span></a></li>
+          <li><a href="admin-staff.html" class="admin-sidebar-link" title="Trainers"><i class="fa-solid fa-chalkboard-user"></i><span class="label">Trainers</span></a></li>
+          <li><a href="admin-programs.html" class="admin-sidebar-link is-active" aria-current="page" title="Programs"><i class="fa-solid fa-diagram-project"></i><span class="label">Programs</span></a></li>
+          <li><a href="admin-batches.html" class="admin-sidebar-link" title="Batches"><i class="fa-solid fa-people-group"></i><span class="label">Batches</span></a></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>Academic</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Class Schedule — coming soon"><i class="fa-solid fa-calendar-days"></i><span class="label">Class Schedule</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Attendance — coming soon"><i class="fa-solid fa-clipboard-check"></i><span class="label">Attendance</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Assignments — coming soon"><i class="fa-solid fa-file-pen"></i><span class="label">Assignments</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Assessments — coming soon"><i class="fa-solid fa-clipboard-list"></i><span class="label">Assessments</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Learning Materials — coming soon"><i class="fa-solid fa-book-open"></i><span class="label">Learning Materials</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Certificates — coming soon"><i class="fa-solid fa-certificate"></i><span class="label">Certificates</span><span class="soon-badge">Soon</span></button></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>Operations</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Enquiries — coming soon"><i class="fa-solid fa-envelope-open-text"></i><span class="label">Enquiries</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Admissions — coming soon"><i class="fa-solid fa-user-plus"></i><span class="label">Admissions</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Payments — coming soon"><i class="fa-solid fa-credit-card"></i><span class="label">Payments</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Announcements — coming soon"><i class="fa-solid fa-bullhorn"></i><span class="label">Announcements</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Notifications — coming soon"><i class="fa-solid fa-bell"></i><span class="label">Notifications</span><span class="soon-badge">Soon</span></button></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>Placement</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Placement Candidates — coming soon"><i class="fa-solid fa-user-tie"></i><span class="label">Placement Candidates</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Companies — coming soon"><i class="fa-solid fa-building"></i><span class="label">Companies</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Job Opportunities — coming soon"><i class="fa-solid fa-briefcase"></i><span class="label">Job Opportunities</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Interviews — coming soon"><i class="fa-solid fa-comments"></i><span class="label">Interviews</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Placement Statistics — coming soon"><i class="fa-solid fa-chart-pie"></i><span class="label">Placement Statistics</span><span class="soon-badge">Soon</span></button></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>Website</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Website Content — coming soon"><i class="fa-solid fa-file-lines"></i><span class="label">Website Content</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Programs — coming soon"><i class="fa-solid fa-diagram-project"></i><span class="label">Programs</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Courses — coming soon"><i class="fa-solid fa-book"></i><span class="label">Courses</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Blog — coming soon"><i class="fa-solid fa-newspaper"></i><span class="label">Blog</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Contact Enquiries — coming soon"><i class="fa-solid fa-envelope"></i><span class="label">Contact Enquiries</span><span class="soon-badge">Soon</span></button></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>System</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Admin Users — coming soon"><i class="fa-solid fa-user-shield"></i><span class="label">Admin Users</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Roles &amp; Permissions — coming soon"><i class="fa-solid fa-key"></i><span class="label">Roles &amp; Permissions</span><span class="soon-badge">Soon</span></button></li>
+          <li><a href="admin-dashboard.html#activityLog" class="admin-sidebar-link" title="Activity Logs"><i class="fa-solid fa-clock-rotate-left"></i><span class="label">Activity Logs</span></a></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Settings — coming soon"><i class="fa-solid fa-sliders"></i><span class="label">Settings</span><span class="soon-badge">Soon</span></button></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="admin-sidebar-logout">
+      <button type="button" class="admin-sidebar-link" id="adminSidebarLogout" title="Logout">
+        <i class="fa-solid fa-right-from-bracket"></i><span class="label">Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
+
+  <div class="admin-shell-main">
+    <header class="admin-topbar">
+      <div class="admin-topbar-left">
+        <button type="button" class="icon-btn admin-mobile-toggle" id="adminMobileToggle" aria-label="Open menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <button type="button" class="icon-btn" id="adminSidebarCollapseBtn" aria-label="Collapse sidebar">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <label class="admin-search-input">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Search — coming soon" disabled>
+        </label>
+      </div>
+
+      <div class="admin-topbar-actions">
+        <button type="button" class="icon-btn" id="chatTopbarTrigger" aria-label="Messages">
+          <i class="fa-solid fa-comments"></i>
+          <span class="admin-notif-badge" id="chatBadge" style="display:none;">0</span>
+        </button>
+
+        <div class="admin-dropdown">
+          <button type="button" class="admin-profile-trigger" id="adminProfileTrigger">
+            <span class="admin-avatar" id="adminAvatarInitials">A</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="admin-dropdown-panel" id="adminProfilePanel">
+            <div class="admin-profile-meta">
+              <strong id="adminProfileName">Admin</strong>
+              <span id="adminProfileRole">admin</span>
+            </div>
+            <a class="admin-dropdown-link" href="change-password.html"><i class="fa-solid fa-key"></i> Change Password</a>
+            <button type="button" class="admin-dropdown-link" id="adminProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <div class="admin-server-banner" id="adminServerBanner">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        Cannot reach the Arckenites server. Check that the backend is running, then refresh this page.
+      </div>
+
+      <div class="admin-page-header">
+        <div>
+          <h1>Programs</h1>
+          <p>Create, configure, and monitor every training program offered by the institute.</p>
+        </div>
+        <div class="admin-page-header-actions">
+          <button type="button" class="btn btn-accent" id="toggleAddProgramBtn"><i class="fa-solid fa-plus"></i> Create New Program</button>
+        </div>
+      </div>
+
+      <div class="admin-kpi-grid" id="programKpiGrid">
+        <div class="admin-kpi-card"><i class="fa-solid fa-diagram-project"></i><h3 id="kpiTotalPrograms">&mdash;</h3><p>Total Programs</p></div>
+        <div class="admin-kpi-card"><i class="fa-solid fa-circle-check"></i><h3 id="kpiActivePrograms">&mdash;</h3><p>Active Programs</p></div>
+        <div class="admin-kpi-card"><i class="fa-solid fa-circle-xmark"></i><h3 id="kpiInactivePrograms">&mdash;</h3><p>Inactive Programs</p></div>
+        <div class="admin-kpi-card"><i class="fa-solid fa-user-graduate"></i><h3 id="kpiTotalEnrolled">&mdash;</h3><p>Total Enrolled Students</p></div>
+        <div class="admin-kpi-card"><i class="fa-solid fa-clock"></i><h3 id="kpiUpcomingBatchPrograms">&mdash;</h3><p>Programs with Upcoming Batches</p></div>
+      </div>
+
+      <div class="form-card admin-inline-form" id="addProgramPanel" style="display:none;">
+        <h5>Create New Program</h5>
+        <form id="addProgramForm" novalidate>
+          <div class="admin-form-grid">
+            <div>
+              <label class="form-label">Program Name</label>
+              <input type="text" class="form-control" id="programName" required>
+            </div>
+            <div>
+              <label class="form-label">Program Code</label>
+              <input type="text" class="form-control" id="programCode" placeholder="e.g. OCP-02">
+            </div>
+            <div>
+              <label class="form-label">Category</label>
+              <input type="text" class="form-control" id="programCategory" placeholder="e.g. Certification">
+            </div>
+            <div>
+              <label class="form-label">Duration</label>
+              <input type="text" class="form-control" id="programDuration" placeholder="e.g. 12 weeks">
+            </div>
+            <div>
+              <label class="form-label">Mode</label>
+              <select class="form-select" id="programMode">
+                <option value="offline">Offline</option>
+                <option value="online">Online</option>
+                <option value="hybrid">Hybrid</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Maximum Capacity</label>
+              <input type="number" class="form-control" id="programCapacity" min="1" max="100000" placeholder="e.g. 60">
+            </div>
+          </div>
+          <div style="margin-top:16px;">
+            <label class="form-label">Short Description</label>
+            <textarea class="form-control" id="programDescription" rows="2"></textarea>
+          </div>
+          <div style="margin-top:16px;">
+            <label class="form-label">Eligibility</label>
+            <textarea class="form-control" id="programEligibility" rows="2"></textarea>
+          </div>
+          <div style="margin-top:16px;">
+            <label class="form-label">Program Objectives</label>
+            <textarea class="form-control" id="programObjectives" rows="2"></textarea>
+          </div>
+          <div class="login-error" id="addProgramError" style="display:none; margin-top:16px;"></div>
+          <div class="admin-form-actions">
+            <button type="submit" class="btn btn-accent" id="addProgramSubmitBtn">Create Program</button>
+            <button type="button" class="btn btn-primary-outline" id="cancelAddProgramBtn">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="form-card admin-inline-form" id="editProgramPanel" style="display:none;">
+        <h5>Edit Program</h5>
+        <form id="editProgramForm" novalidate>
+          <input type="hidden" id="editProgramId">
+          <div class="admin-form-grid">
+            <div>
+              <label class="form-label">Program Name</label>
+              <input type="text" class="form-control" id="editProgramName" required>
+            </div>
+            <div>
+              <label class="form-label">Program Code</label>
+              <input type="text" class="form-control" id="editProgramCode">
+            </div>
+            <div>
+              <label class="form-label">Category</label>
+              <input type="text" class="form-control" id="editProgramCategory">
+            </div>
+            <div>
+              <label class="form-label">Duration</label>
+              <input type="text" class="form-control" id="editProgramDuration">
+            </div>
+            <div>
+              <label class="form-label">Mode</label>
+              <select class="form-select" id="editProgramMode">
+                <option value="offline">Offline</option>
+                <option value="online">Online</option>
+                <option value="hybrid">Hybrid</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Maximum Capacity</label>
+              <input type="number" class="form-control" id="editProgramCapacity" min="1" max="100000">
+            </div>
+          </div>
+          <div style="margin-top:16px;">
+            <label class="form-label">Short Description</label>
+            <textarea class="form-control" id="editProgramDescription" rows="2"></textarea>
+          </div>
+          <div style="margin-top:16px;">
+            <label class="form-label">Eligibility</label>
+            <textarea class="form-control" id="editProgramEligibility" rows="2"></textarea>
+          </div>
+          <div style="margin-top:16px;">
+            <label class="form-label">Program Objectives</label>
+            <textarea class="form-control" id="editProgramObjectives" rows="2"></textarea>
+          </div>
+          <div class="login-error" id="editProgramError" style="display:none; margin-top:16px;"></div>
+          <div class="admin-form-actions">
+            <button type="submit" class="btn btn-accent" id="editProgramSubmitBtn">Save Changes</button>
+            <button type="button" class="btn btn-primary-outline" id="cancelEditProgramBtn">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="programCardGrid" class="program-card-grid">
+        <div class="admin-panel-empty">Loading&hellip;</div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="chat-backdrop" id="chatBackdrop"></div>
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-panel-header">
+    <button type="button" class="icon-btn chat-back" id="chatBack" style="display:none;" aria-label="Back to conversations"><i class="fa-solid fa-arrow-left"></i></button>
+    <strong id="chatTitle">Messages</strong>
+    <button type="button" class="icon-btn" id="chatClose" aria-label="Close chat"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="chat-body">
+    <div class="chat-list-view" id="chatListView">
+      <div class="chat-search-row">
+        <input type="text" class="form-control" id="chatSearchInput" placeholder="Search by username or name&hellip;" autocomplete="off">
+      </div>
+      <div id="chatSearchResults" class="chat-search-results" style="display:none;"></div>
+      <div class="chat-conversation-list" id="chatConversationList">
+        <div class="admin-panel-empty">Loading&hellip;</div>
+      </div>
+    </div>
+    <div class="chat-thread-view" id="chatThreadView" style="display:none;">
+      <div class="chat-messages" id="chatMessages"></div>
+      <form class="chat-input-row" id="chatForm">
+        <input type="text" class="form-control" id="chatInput" placeholder="Type a message&hellip;" autocomplete="off">
+        <button type="submit" class="btn btn-accent" id="chatSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js?v=1"></script>
+<script src="js/auth.js?v=1"></script>
+<script src="js/admin-programs.js?v=1"></script>
+<script src="js/chat.js?v=1"></script>
+
+</body>
+</html>

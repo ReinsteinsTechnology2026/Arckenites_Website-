@@ -1,0 +1,446 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Official Certification Program | Arckenites</title>
+<meta name="description" content="Become globally certified with Arckenites - instructor-led training, hands-on labs, mock exams and end-to-end certification support.">
+<meta name="keywords" content="IT certification, AWS certification, Azure certification, cybersecurity certification, certification training institute">
+
+<meta property="og:title" content="Official Certification Program | Arckenites">
+<meta property="og:description" content="Become globally certified with Arckenites - instructor-led training, hands-on labs, mock exams and end-to-end certification support.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/og-cover.jpg">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Arckenites",
+  "description": "IT Training Institute offering industry-ready courses with placement assistance.",
+  "url": "https://www.arckenites.com"
+}
+</script>
+
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/certification-program.css">
+
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-mark"><img src="assets/logo.png" alt="Arckenites"></div>
+</div>
+
+<div class="cookie-banner" id="cookieBanner">
+  <p>We use cookies to improve your experience on Arckenites. By continuing, you agree to our <a href="privacy-policy.html">Privacy Policy</a>.</p>
+  <button class="btn btn-accent btn-sm" id="cookieAccept">Accept</button>
+</div>
+
+<nav class="navbar navbar-expand-lg fixed-top" id="mainNavbar">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">
+      <img src="assets/logo.png" alt="Arckenites logo" class="brand-mark">
+      <span class="brand-text">Arckenites</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav mx-auto align-items-lg-center">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item dropdown mega-dropdown">
+          <a class="nav-link dropdown-toggle" href="index.html#courses" data-bs-toggle="dropdown">Programs</a>
+          <div class="dropdown-menu mega-menu">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <a href="certification-program.html">Official Certification Program</a>
+                <a href="corporate-training.html">Corporate Training Program</a>
+                <a href="about.html">Institutional Program</a>
+              </div>
+              <div class="col-md-6">
+                <a href="placements.html">Placement Training Program</a>
+                <a href="trainers.html">Arckenites Trainers Program</a>
+                <a href="careers.html">Internship Program</a>
+                <a href="interview-crack-program.html">Interview 'n' Crack Program</a>
+                <a href="job-assist-program.html">Arckenites Job Assist Program</a>
+                <a href="college-projects-program.html">College Projects Program</a>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="nav-item"><a class="nav-link" href="corporate-training.html">Training</a></li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+      </ul>
+
+      <div class="d-flex align-items-center gap-2 nav-actions">
+        <button class="icon-btn" id="searchToggle" aria-label="Search courses">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+        <a href="login.html" class="btn btn-primary-outline" id="loginBtn">Login</a>
+        <a href="free-demo.html" class="btn btn-accent">Book Free Demo</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-bar" id="searchBar">
+    <div class="container">
+      <input type="text" placeholder="Search courses e.g. AWS, Python, DevOps..." id="courseSearchInput">
+      <button id="searchClose"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<header class="page-hero cert-hero">
+  <div class="hero-bg"></div>
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6" data-aos="fade-right">
+        <div class="breadcrumb-custom"><a href="index.html">Home</a><span>/</span><span>Official Certification Program</span></div>
+        <h1>Become Globally Certified. <span>Build Your IT Career with Confidence.</span></h1>
+        <p>Learn from certified industry experts, gain real-world practical experience, prepare with official exam objectives, and receive complete guidance until you successfully earn your certification.</p>
+        <div class="hero-actions">
+          <a href="#roadmaps" class="btn btn-accent btn-lg">View Certification Roadmaps</a>
+          <a href="free-demo.html" class="btn btn-outline-light btn-lg">Book Free Counselling</a>
+        </div>
+      </div>
+      <div class="col-lg-6" data-aos="fade-left">
+        <div class="cert-hero-illustration-wrap">
+          <img src="assets/cert-hero-illustration.png" alt="Learn, Practice, Certify, Succeed" class="cert-hero-illustration">
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== WHY CHOOSE ARCKENITES ===================== -->
+<section class="content-section">
+  <div class="container">
+    <div class="cert-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">Why Arckenites</span>
+      <h2>Why Choose Arckenites?</h2>
+      <p>A certification-first learning experience, built end-to-end - not just a course.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4" data-aos="fade-up">
+        <div class="cert-feature-card">
+          <div class="cert-feature-card__icon"><i class="fa-solid fa-book-open-reader"></i></div>
+          <h6>Official Certification Curriculum</h6>
+          <p>Structured around the actual exam blueprint published by each certification body.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="cert-feature-card">
+          <div class="cert-feature-card__icon"><i class="fa-solid fa-flask"></i></div>
+          <h6>Hands-on Labs</h6>
+          <p>Practice in real, guided lab environments instead of just watching slides.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="cert-feature-card">
+          <div class="cert-feature-card__icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+          <h6>Live Instructor Training</h6>
+          <p>Learn from certified trainers in live, interactive sessions - not pre-recorded videos.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up">
+        <div class="cert-feature-card">
+          <div class="cert-feature-card__icon"><i class="fa-solid fa-vial"></i></div>
+          <h6>Mock Exams</h6>
+          <p>Timed, exam-pattern mock tests so the real exam never feels unfamiliar.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="cert-feature-card">
+          <div class="cert-feature-card__icon"><i class="fa-solid fa-clipboard-check"></i></div>
+          <h6>Exam Registration Guidance</h6>
+          <p>We walk you through booking, eligibility and scheduling your official exam.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="cert-feature-card">
+          <div class="cert-feature-card__icon"><i class="fa-solid fa-shield-heart"></i></div>
+          <h6>100% Certification Support</h6>
+          <p>End-to-end guidance - from enrollment to the moment you pass your exam.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CERTIFICATION JOURNEY ===================== -->
+<section class="content-section bg-soft">
+  <div class="container">
+    <div class="cert-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">How It Works</span>
+      <h2>Certification Journey</h2>
+      <p>Every learner follows the same proven path, from enrollment to official certification.</p>
+    </div>
+    <div class="flow-steps" data-aos="fade-up">
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-user-plus"></i></div><h6>Enrollment</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-diagram-project"></i></div><h6>Choose Technology</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-route"></i></div><h6>Learning Roadmap</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-chalkboard-user"></i></div><h6>Live Training</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-flask"></i></div><h6>Hands-on Labs</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-list-check"></i></div><h6>Assignments</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-vial"></i></div><h6>Mock Exams</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-file-pen"></i></div><h6>Certification Exam</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-certificate"></i></div><h6>Official Certification</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-compass"></i></div><h6>Career Guidance</h6></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CERTIFICATION DOMAINS ===================== -->
+<section class="content-section">
+  <div class="container">
+    <div class="cert-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">Choose Your Path</span>
+      <h2>Certification Domains</h2>
+      <p>Pick a technology track and jump straight to its certification roadmap.</p>
+    </div>
+    <div class="row g-4" id="domainGrid">
+      <!-- Rendered by js/certification-program.js -->
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CERTIFICATION ROADMAPS ===================== -->
+<section class="content-section bg-soft" id="roadmaps">
+  <div class="container">
+    <div class="cert-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">The Big Picture</span>
+      <h2>Certification Roadmaps</h2>
+      <p>An interactive tree of every certification tier - from foundational to specialty. Click a tier to expand it.</p>
+    </div>
+
+    <div class="roadmap-tabs" id="roadmapTabs">
+      <!-- Rendered by js/certification-program.js -->
+    </div>
+
+    <div class="roadmap-tree" id="roadmapTree" data-aos="fade-up">
+      <!-- Rendered by js/certification-program.js -->
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TRAINING FEATURES ===================== -->
+<section class="content-section">
+  <div class="container">
+    <div class="cert-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">What's Included</span>
+      <h2>Training Features</h2>
+      <p>Everything you need in one program - no add-ons, no hidden gaps.</p>
+    </div>
+    <div class="row g-3 text-center">
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up"><div class="value-card"><i class="fa-solid fa-book"></i><h6>Official Curriculum</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="50"><div class="value-card"><i class="fa-solid fa-video"></i><h6>Recorded Sessions</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="100"><div class="value-card"><i class="fa-solid fa-list-check"></i><h6>Assignments</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="150"><div class="value-card"><i class="fa-solid fa-flask"></i><h6>Hands-on Labs</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="200"><div class="value-card"><i class="fa-solid fa-diagram-project"></i><h6>Real-Time Scenarios</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="250"><div class="value-card"><i class="fa-solid fa-vial"></i><h6>Mock Exams</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up"><div class="value-card"><i class="fa-solid fa-graduation-cap"></i><h6>Exam Preparation</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="50"><div class="value-card"><i class="fa-solid fa-comments"></i><h6>Interview Preparation</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="100"><div class="value-card"><i class="fa-solid fa-file-lines"></i><h6>Resume Building</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="150"><div class="value-card"><i class="fa-solid fa-compass"></i><h6>Career Guidance</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="200"><div class="value-card"><i class="fa-solid fa-certificate"></i><h6>Certification Support</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="250"><div class="value-card"><i class="fa-solid fa-people-group"></i><h6>Community Support</h6></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STUDENT SUCCESS PROCESS ===================== -->
+<section class="content-section bg-soft">
+  <div class="container">
+    <div class="cert-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">The Outcome</span>
+      <h2>Student Success Process</h2>
+      <p>From day one to placement - every step is guided.</p>
+    </div>
+    <div class="flow-steps" data-aos="fade-up">
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-user"></i></div><h6>Student</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-chalkboard-user"></i></div><h6>Training</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-flask"></i></div><h6>Labs</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-vial"></i></div><h6>Mock Exams</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-file-pen"></i></div><h6>Official Exam</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-certificate"></i></div><h6>Certification</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-briefcase"></i></div><h6>Placement Support</h6></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FAQ ===================== -->
+<section class="content-section">
+  <div class="container">
+    <div class="cert-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">Questions</span>
+      <h2>Frequently Asked Questions</h2>
+    </div>
+    <div class="row justify-content-center">
+      <div class="col-lg-9" data-aos="fade-up">
+        <div class="accordion" id="certFaqAccordion">
+          <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#cf1">How long does training take?</button></h2>
+            <div id="cf1" class="accordion-collapse collapse show" data-bs-parent="#certFaqAccordion"><div class="accordion-body">Most tracks run 4â€“12 weeks depending on the certification tier, with flexible batch timings for working professionals and students.</div></div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#cf2">Will I receive recordings?</button></h2>
+            <div id="cf2" class="accordion-collapse collapse" data-bs-parent="#certFaqAccordion"><div class="accordion-body">Yes - every live session is recorded and available for lifetime access, so you can revisit any topic.</div></div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#cf3">Will you help with exam registration?</button></h2>
+            <div id="cf3" class="accordion-collapse collapse" data-bs-parent="#certFaqAccordion"><div class="accordion-body">Yes - we guide you through eligibility, booking and scheduling your official certification exam end-to-end.</div></div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#cf4">Do I need prior experience?</button></h2>
+            <div id="cf4" class="accordion-collapse collapse" data-bs-parent="#certFaqAccordion"><div class="accordion-body">No - foundational tracks start from scratch. Associate, Professional and Specialty tracks list recommended experience on each certification card.</div></div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#cf5">What if I fail the exam?</button></h2>
+            <div id="cf5" class="accordion-collapse collapse" data-bs-parent="#certFaqAccordion"><div class="accordion-body">We provide additional mock exams and doubt-clearing sessions until you're ready to reattempt with confidence.</div></div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#cf6">How are practical labs conducted?</button></h2>
+            <div id="cf6" class="accordion-collapse collapse" data-bs-parent="#certFaqAccordion"><div class="accordion-body">Labs run in guided, real cloud/software environments under trainer supervision, mirroring real exam and job scenarios.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FINAL CTA ===================== -->
+<section class="cta-section">
+  <div class="container text-center" data-aos="zoom-in">
+    <h2>Start Your Certification Journey Today</h2>
+    <p>Become globally certified with expert guidance and industry-recognized training.</p>
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+      <a href="free-demo.html" class="btn btn-accent btn-lg">Book Free Counselling</a>
+      <a href="#roadmaps" class="btn btn-outline-light btn-lg">Download Certification Roadmap</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CERT DETAILS MODAL ===================== -->
+<div class="modal fade" id="certDetailsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Certification Name</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-3"><span data-field="domain"></span> Â· <span data-field="tier"></span> Tier</p>
+        <div class="cert-modal-grid">
+          <div><span>Exam Code</span><strong data-field="code"></strong></div>
+          <div><span>Difficulty</span><strong data-field="difficulty"></strong></div>
+          <div><span>Recommended Experience</span><strong data-field="exp"></strong></div>
+          <div><span>Duration</span><strong data-field="duration"></strong></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="free-demo.html" class="btn btn-accent w-100">Book Free Counselling</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <a class="navbar-brand" href="index.html">
+          <img src="assets/logo.png" alt="Arckenites logo" class="brand-mark">
+          <span class="brand-text">Arckenites</span>
+        </a>
+        <p class="footer-about">Premium IT training institute helping students and professionals build careers in technology through industry-ready programs.</p>
+        <div class="social-icons">
+          <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+          <a href="#"><i class="fa-brands fa-youtube"></i></a>
+        </div>
+      </div>
+      <div class="col-lg-2 col-6">
+        <h6>Quick Links</h6>
+        <ul>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="courses.html">Courses</a></li>
+          <li><a href="placements.html">Placements</a></li>
+          <li><a href="trainers.html">Trainers</a></li>
+          <li><a href="blog.html">Blog</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-2 col-6">
+        <h6>Our Programs</h6>
+        <ul>
+          <li><a href="certification-program.html">Official Certification Program</a></li>
+          <li><a href="corporate-training.html">Corporate Training Program</a></li>
+          <li><a href="placements.html">Placement Training Program</a></li>
+          <li><a href="trainers.html">Arckenites Trainers Program</a></li>
+          <li><a href="careers.html">Internship Program</a></li>
+          <li><a href="interview-crack-program.html">Interview 'n' Crack Program</a></li>
+          <li><a href="job-assist-program.html">Arckenites Job Assist Program</a></li>
+          <li><a href="college-projects-program.html">College Projects Program</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-4">
+        <h6>Contact</h6>
+        <ul class="footer-contact">
+          <li><i class="fa-solid fa-location-dot"></i> Krishna Kutir, No. 6/24, Ramanathan Street, Mahalingapuram, Nungambakkam, Chennai, Tamil Nadu, 600034</li>
+          <li><i class="fa-solid fa-envelope"></i> contact@arckenites.com</li>
+          <li><i class="fa-solid fa-phone"></i> +91 98765 43210</li>
+        </ul>
+      </div>
+    </div>
+    <hr>
+    <div class="footer-bottom">
+      <p>&copy; <span id="year"></span> Arckenites. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="terms.html">Terms &amp; Conditions</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<a href="https://wa.me/919876543210" class="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
+  <i class="fa-brands fa-whatsapp"></i>
+</a>
+
+<button id="backToTop" aria-label="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="js/script.js"></script>
+<script src="js/certification-program.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,639 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IT 360 Max Program | Arckenites</title>
+<meta name="description" content="IT 360 Max - a 45-day hybrid, story-based placement readiness program by Arckenites for 3rd and 4th year students. Hands-on labs, trending tech domains and a complete 4-round interview simulation.">
+<meta name="keywords" content="IT 360 Max, placement training program, placement readiness, story-based learning, interview simulation, Arckenites">
+
+<meta property="og:title" content="IT 360 Max Program | Arckenites">
+<meta property="og:description" content="A 45-day hybrid, story-based placement readiness program for 3rd and 4th year students.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/og-cover.jpg">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Arckenites",
+  "description": "IT Training Institute offering industry-ready courses with placement assistance.",
+  "url": "https://www.arckenites.com"
+}
+</script>
+
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/it360-max.css">
+
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-mark"><img src="assets/logo.png" alt="Arckenites"></div>
+</div>
+
+<div class="cookie-banner" id="cookieBanner">
+  <p>We use cookies to improve your experience on Arckenites. By continuing, you agree to our <a href="privacy-policy.html">Privacy Policy</a>.</p>
+  <button class="btn btn-accent btn-sm" id="cookieAccept">Accept</button>
+</div>
+
+<nav class="navbar navbar-expand-lg fixed-top" id="mainNavbar">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">
+      <img src="assets/logo.png" alt="Arckenites logo" class="brand-mark">
+      <span class="brand-text">Arckenites</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav mx-auto align-items-lg-center">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item dropdown mega-dropdown">
+          <a class="nav-link dropdown-toggle" href="index.html#courses" data-bs-toggle="dropdown">Programs</a>
+          <div class="dropdown-menu mega-menu">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <a href="certification-program.html">Official Certification Program</a>
+                <a href="corporate-training.html">Corporate Training Program</a>
+                <a href="about.html">Institutional Program</a>
+              </div>
+              <div class="col-md-6">
+                <a href="placements.html">Placement Training Program</a>
+                <a href="trainers.html">Arckenites Trainers Program</a>
+                <a href="careers.html">Internship Program</a>
+                <a href="interview-crack-program.html">Interview 'n' Crack Program</a>
+                <a href="job-assist-program.html">Arckenites Job Assist Program</a>
+                <a href="college-projects-program.html">College Projects Program</a>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="nav-item"><a class="nav-link" href="corporate-training.html">Training</a></li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+      </ul>
+
+      <div class="d-flex align-items-center gap-2 nav-actions">
+        <button class="icon-btn" id="searchToggle" aria-label="Search courses">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+        <a href="login.html" class="btn btn-primary-outline" id="loginBtn">Login</a>
+        <a href="free-demo.html" class="btn btn-accent">Book Free Demo</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-bar" id="searchBar">
+    <div class="container">
+      <input type="text" placeholder="Search courses e.g. AWS, Python, DevOps..." id="courseSearchInput">
+      <button id="searchClose"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<header class="page-hero it-hero">
+  <div class="hero-bg"></div>
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7" data-aos="fade-right">
+        <div class="breadcrumb-custom"><a href="index.html">Home</a><span>/</span><a href="placements.html">Placement Training Program</a><span>/</span><span>IT 360 Max</span></div>
+        <h1>IT 360 Max <span>Go Beyond Placement Training</span></h1>
+        <p>A 45-day hybrid, story-based, hands-on placement readiness program designed to help you build practical skills, discover the right career path, and confidently face placement and interview processes.</p>
+        <div class="it-hero-highlights">
+          <span class="it-hero-highlight"><i class="fa-solid fa-calendar-days"></i> 45-Day Program</span>
+          <span class="it-hero-highlight"><i class="fa-solid fa-laptop"></i> Hybrid Learning</span>
+          <span class="it-hero-highlight"><i class="fa-solid fa-industry"></i> Industry-Oriented Training</span>
+          <span class="it-hero-highlight"><i class="fa-solid fa-flask"></i> Hands-On Labs</span>
+          <span class="it-hero-highlight"><i class="fa-solid fa-arrow-trend-up"></i> Trending Technology Domains</span>
+          <span class="it-hero-highlight"><i class="fa-solid fa-comments"></i> Complete Interview Preparation</span>
+        </div>
+        <div class="hero-actions">
+          <a href="#snapshot" class="btn btn-accent btn-lg">Explore the Program</a>
+          <a href="free-demo.html" class="btn btn-outline-light btn-lg">Start Your Placement Journey</a>
+        </div>
+      </div>
+      <div class="col-lg-5" data-aos="fade-left">
+        <div class="it-hero-panel">
+          <span class="eyebrow eyebrow-dark">Program Snapshot</span>
+          <h3>IT 360 Max</h3>
+          <p>By Arckenites - for 3rd &amp; 4th year students</p>
+          <div class="it-hero-panel-stats">
+            <div><strong>45 Days</strong><span>Duration</span></div>
+            <div><strong>Hybrid</strong><span>Mode</span></div>
+            <div><strong>9</strong><span>Tech Domains</span></div>
+            <div><strong>4</strong><span>Interview Rounds</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== ABOUT IT 360 MAX ===================== -->
+<section class="content-section">
+  <div class="container">
+    <div class="it-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">About the Program</span>
+      <h2>About IT 360 Max</h2>
+      <p>An expert-designed placement training program created to prepare students for today's rapidly changing technology and recruitment landscape.</p>
+    </div>
+    <div class="highlight-quote" data-aos="zoom-in">
+      <p>Say goodbye to <span>traditional theory-heavy</span> placement training.</p>
+    </div>
+    <p class="text-center" style="max-width:760px;margin:-20px auto 44px;color:var(--muted);" data-aos="fade-up">
+      IT 360 Max uses a <strong style="color:var(--ink);">story-based learning model</strong>, where students understand technology and career concepts through practical scenarios instead of simply memorizing theories and definitions.
+    </p>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4" data-aos="fade-up">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-hands"></i></div><h6>Practical Learning</h6><p>Learn by doing, not by memorizing slides and definitions.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-diagram-project"></i></div><h6>Real-World Scenarios</h6><p>Every concept is framed around situations you'll actually face.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-flask"></i></div><h6>Hands-On Lab Experience</h6><p>Practice in guided labs instead of only watching demonstrations.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-arrow-trend-up"></i></div><h6>Trending Technology Exposure</h6><p>Work with current, relevant tools - not outdated ones.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-briefcase"></i></div><h6>Placement Preparation</h6><p>Structured preparation built around real recruitment processes.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-comments"></i></div><h6>Interview Simulations</h6><p>Face realistic interview rounds before you face a company.</p></div>
+      </div>
+    </div>
+    <div class="row g-4 mt-1 justify-content-center">
+      <div class="col-md-6 col-lg-4" data-aos="fade-up">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-compass"></i></div><h6>Career Guidance</h6><p>Get clarity on the technology and career path that fits you.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== WHY IT 360 MAX ===================== -->
+<section class="content-section bg-soft">
+  <div class="container">
+    <div class="it-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">The Difference</span>
+      <h2>Why IT 360 Max?</h2>
+      <p>Traditional placement coaching focuses mainly on aptitude, theory and basic interview preparation. IT 360 Max focuses on practical, industry-ready skills and complete placement readiness.</p>
+    </div>
+    <div class="row g-3 text-center">
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up"><div class="value-card"><i class="fa-solid fa-screwdriver-wrench"></i><h6>Practical Over Theoretical Learning</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="50"><div class="value-card"><i class="fa-solid fa-book-open"></i><h6>Story-Based Learning</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="100"><div class="value-card"><i class="fa-solid fa-flask"></i><h6>Hands-On Lab Practice</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="150"><div class="value-card"><i class="fa-solid fa-diagram-project"></i><h6>Real-World Scenarios</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="200"><div class="value-card"><i class="fa-solid fa-arrow-trend-up"></i><h6>Trending Technology Domains</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="250"><div class="value-card"><i class="fa-solid fa-industry"></i><h6>Industry-Oriented Preparation</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up"><div class="value-card"><i class="fa-solid fa-comments"></i><h6>Complete Interview Simulation</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="50"><div class="value-card"><i class="fa-solid fa-compass"></i><h6>Career Path Guidance</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="100"><div class="value-card"><i class="fa-solid fa-chart-simple"></i><h6>Performance-Based Evaluation</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="150"><div class="value-card"><i class="fa-solid fa-people-group"></i><h6>Continuous Placement Community Support</h6></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TRENDING TECHNOLOGY DOMAINS ===================== -->
+<section class="content-section">
+  <div class="container">
+    <div class="it-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">What You'll Explore</span>
+      <h2>Trending Technology Domains</h2>
+      <p>Students are trained using relevant and trending tools and technologies rather than outdated tools and approaches.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4" data-aos="fade-up">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-brain"></i></div><h6>Aptitude</h6><p>Build quantitative, logical, analytical and problem-solving abilities required for placement assessments.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="50">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-microchip"></i></div><h6>Computing</h6><p>Develop a strong practical understanding of computing fundamentals and modern technology environments.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-cloud"></i></div><h6>Cloud</h6><p>Understand modern cloud technologies, concepts, services and practical applications used across today's IT industry.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-database"></i></div><h6>Storage &amp; Database</h6><p>Learn how modern applications store, manage, process and retrieve data using current database and storage technologies.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="50">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-code"></i></div><h6>Software Engineering</h6><p>Understand how real-world software is designed, developed, tested, deployed and maintained.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-chart-line"></i></div><h6>Data Science &amp; Analysis</h6><p>Explore modern approaches to data analysis, data-driven decision making and industry-relevant data tools.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-network-wired"></i></div><h6>Networking</h6><p>Build practical knowledge of networking concepts, connectivity, communication, infrastructure and troubleshooting.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="50">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-shield-halved"></i></div><h6>Cyber Security</h6><p>Develop awareness of modern cybersecurity practices, threats, security concepts and protection strategies.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-bullhorn"></i></div><h6>Digital Marketing</h6><p>Understand modern digital marketing concepts, platforms, strategies, analytics and online business growth.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STORY-BASED LEARNING METHODOLOGY ===================== -->
+<section class="content-section bg-soft">
+  <div class="container">
+    <div class="it-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">Our Methodology</span>
+      <h2>Learn Through Stories. Practice Through Scenarios. Prepare for Reality.</h2>
+      <p>Students are not expected to simply memorize concepts. Technical concepts are introduced through story-based situations and real-world scenarios, followed by practical exploration and hands-on activities.</p>
+    </div>
+    <div class="flow-steps" data-aos="fade-up">
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-book"></i></div><h6>Story</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-lightbulb"></i></div><h6>Understanding</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-flask"></i></div><h6>Hands-On Practice</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-diagram-project"></i></div><h6>Real-World Scenario</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-clipboard-check"></i></div><h6>Assessment</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-briefcase"></i></div><h6>Placement Readiness</h6></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== HANDS-ON LAB EXPERIENCE ===================== -->
+<section class="content-section">
+  <div class="container">
+    <div class="it-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">Practice, Not Just Theory</span>
+      <h2>Hands-On Lab Experience</h2>
+      <p>Students receive practical lab exposure throughout the program - working with trending industry tools and technologies, performing hands-on exercises, and solving practical scenarios rather than relying only on classroom theory.</p>
+    </div>
+    <div class="row g-3 text-center">
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up"><div class="value-card"><i class="fa-solid fa-flask"></i><h6>Practical Lab Sessions</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="50"><div class="value-card"><i class="fa-solid fa-diagram-project"></i><h6>Scenario-Based Exercises</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="100"><div class="value-card"><i class="fa-solid fa-magnifying-glass"></i><h6>Technology Exploration</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="150"><div class="value-card"><i class="fa-solid fa-puzzle-piece"></i><h6>Real-World Problem Solving</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="200"><div class="value-card"><i class="fa-solid fa-clipboard-check"></i><h6>Practical Assessments</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="250"><div class="value-card"><i class="fa-solid fa-toolbox"></i><h6>Industry-Relevant Tools</h6></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 45-DAY PROGRAM STRUCTURE ===================== -->
+<section class="content-section bg-soft">
+  <div class="container">
+    <div class="it-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">The Journey</span>
+      <h2>45-Day Program Structure</h2>
+      <p>A structured 45-day hybrid learning experience that gradually moves students from foundational understanding toward practical application and placement readiness.</p>
+    </div>
+    <div class="flow-steps" data-aos="fade-up">
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-book-open"></i></div><h6>Learn</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-dumbbell"></i></div><h6>Practice</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-diagram-project"></i></div><h6>Apply</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-clipboard-check"></i></div><h6>Assess</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-comments"></i></div><h6>Interview</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-arrow-trend-up"></i></div><h6>Improve</h6></div>
+      <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="flow-step"><div class="flow-step__icon"><i class="fa-solid fa-flag-checkered"></i></div><h6>Prepare</h6></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== COMPLETE 4-ROUND PLACEMENT SIMULATION ===================== -->
+<section class="content-section">
+  <div class="container">
+    <div class="it-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">Interview Simulation</span>
+      <h2>Complete 4-Round Placement Simulation</h2>
+      <p>A realistic placement simulation designed to give students actual interview experience before facing companies.</p>
+    </div>
+    <div class="row g-4 align-items-stretch">
+      <div class="col-md-6 col-lg-3" data-aos="fade-up">
+        <div class="round-card">
+          <div class="round-card__number">01</div>
+          <div class="round-card__icon"><i class="fa-solid fa-clipboard-list"></i></div>
+          <span class="eyebrow eyebrow-dark">Round 1</span>
+          <h6>Mock Round</h6>
+          <p>Initial assessment and overall placement readiness evaluation.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
+        <div class="round-card">
+          <div class="round-card__number">02</div>
+          <div class="round-card__icon"><i class="fa-solid fa-filter"></i></div>
+          <span class="eyebrow eyebrow-dark">Round 2</span>
+          <h6>Screening Round</h6>
+          <p>Simulate the initial screening process used during recruitment.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
+        <div class="round-card">
+          <div class="round-card__number">03</div>
+          <div class="round-card__icon"><i class="fa-solid fa-laptop-code"></i></div>
+          <span class="eyebrow eyebrow-dark">Round 3</span>
+          <h6>Technical Round</h6>
+          <p>Evaluate technical understanding, practical knowledge, problem-solving ability and domain awareness.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
+        <div class="round-card">
+          <div class="round-card__number">04</div>
+          <div class="round-card__icon"><i class="fa-solid fa-user-tie"></i></div>
+          <span class="eyebrow eyebrow-dark">Round 4</span>
+          <h6>HR &amp; MR Round</h6>
+          <p>Prepare for HR and Managerial Round interactions, communication, confidence, decision-making and professional behavior.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PLACEMENT PREPARATION ===================== -->
+<section class="content-section bg-soft">
+  <div class="container">
+    <div class="it-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">Getting You Ready</span>
+      <h2>Placement Preparation</h2>
+      <p>IT 360 Max prepares students for different types of placements and interviews - not just a single recruitment format. Students also receive an Interview Preparation Guide through portal access.</p>
+    </div>
+    <div class="row g-3 text-center">
+      <div class="col-6 col-md-4 col-lg-3" data-aos="fade-up"><div class="value-card"><i class="fa-solid fa-clipboard-check"></i><h6>Placement Assessment Preparation</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-3" data-aos="fade-up" data-aos-delay="50"><div class="value-card"><i class="fa-solid fa-comments"></i><h6>Interview Preparation</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-3" data-aos="fade-up" data-aos-delay="100"><div class="value-card"><i class="fa-solid fa-laptop-code"></i><h6>Technical Interview Preparation</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-3" data-aos="fade-up" data-aos-delay="150"><div class="value-card"><i class="fa-solid fa-user-tie"></i><h6>HR Interview Preparation</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-3" data-aos="fade-up"><div class="value-card"><i class="fa-solid fa-people-arrows"></i><h6>Managerial Interview Preparation</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-3" data-aos="fade-up" data-aos-delay="50"><div class="value-card"><i class="fa-solid fa-filter"></i><h6>Screening Preparation</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-3" data-aos="fade-up" data-aos-delay="100"><div class="value-card"><i class="fa-solid fa-file-lines"></i><h6>Resume Preparation</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-3" data-aos="fade-up" data-aos-delay="150"><div class="value-card"><i class="fa-solid fa-face-smile"></i><h6>Interview Confidence Building</h6></div></div>
+      <div class="col-12 col-lg-3 mx-auto" data-aos="fade-up"><div class="value-card"><i class="fa-solid fa-building"></i><h6>Company-Oriented Interview Preparation</h6></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STUDENT PERKS & OPPORTUNITIES ===================== -->
+<section class="content-section">
+  <div class="container">
+    <div class="it-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">Beyond the Curriculum</span>
+      <h2>Student Perks &amp; Opportunities</h2>
+      <p>What you gain from being part of IT 360 Max.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4" data-aos="fade-up">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-file-lines"></i></div><h6>Resume Preparation</h6><p>Help creating a professional, placement-ready resume.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-comments"></i></div><h6>Real-Time Interview Experience</h6><p>Experience realistic interview situations before the real thing.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-flask"></i></div><h6>Hands-On Lab Experience</h6><p>Develop practical skills through industry-oriented exercises.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up">
+        <div class="it-feature-card">
+          <span class="perk-badge">Prize for Top Performer</span>
+          <div class="it-feature-card__icon"><i class="fa-solid fa-trophy"></i></div>
+          <h6>Student Tournament</h6><p>Take part in a performance-based tournament - the best-performing student receives a prize.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-arrow-trend-up"></i></div><h6>Trending Domain Exposure</h6><p>Explore current technology domains and modern industry tools.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-handshake"></i></div><h6>Partner Company Referral Opportunity</h6><p>Top-performing students may be referred through our partner-company network, subject to applicable requirements and opportunities.</p></div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up">
+        <div class="it-feature-card">
+          <span class="perk-badge">Worth ₹20,000</span>
+          <div class="it-feature-card__icon"><i class="fa-solid fa-gift"></i></div>
+          <h6>Course for Top Performers</h6><p>Top-performing students can receive access to a course worth ₹20,000 as a performance-based reward.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="it-feature-card"><div class="it-feature-card__icon"><i class="fa-solid fa-people-group"></i></div><h6>Placement Community Access</h6><p>Every participating student is enrolled into the WhatsApp Placement Community Group for continued guidance, updates and opportunities.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== REAL-WORLD SCENARIO LEARNING ===================== -->
+<section class="content-section bg-soft">
+  <div class="container">
+    <div class="it-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">Beyond the Textbook</span>
+      <h2>Real-World Scenario Learning</h2>
+      <p>Students work with real-world scenarios rather than purely academic examples. Scenario-based learning helps students understand:</p>
+    </div>
+    <div class="row g-3 text-center">
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up"><div class="value-card"><i class="fa-solid fa-building"></i><h6>How Technologies Are Used in Organizations</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="50"><div class="value-card"><i class="fa-solid fa-diagram-project"></i><h6>How Different IT Domains Connect</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="100"><div class="value-card"><i class="fa-solid fa-puzzle-piece"></i><h6>How to Approach Practical Problems</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="150"><div class="value-card"><i class="fa-solid fa-lightbulb"></i><h6>How to Identify Suitable Solutions</h6></div></div>
+      <div class="col-12 col-md-8 col-lg-4 mx-auto" data-aos="fade-up" data-aos-delay="200"><div class="value-card"><i class="fa-solid fa-comments"></i><h6>How to Communicate Technical Understanding During Interviews</h6></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CAREER PATH CLARITY ===================== -->
+<section class="content-section">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6" data-aos="fade-right">
+        <span class="eyebrow eyebrow-dark">Find Your Direction</span>
+        <h2 style="margin:14px 0 18px;">Career Path Clarity</h2>
+        <p style="color:var(--muted);">One of the key objectives of IT 360 Max is to help students develop a clear mindset about which technology or career path they should pursue. Students receive guidance and structured support through the program portal to help them understand different technology domains and make more informed career decisions.</p>
+      </div>
+      <div class="col-lg-6" data-aos="fade-left">
+        <div class="it-feature-card">
+          <div class="it-feature-card__icon"><i class="fa-solid fa-compass"></i></div>
+          <h6>Guided Career Direction</h6>
+          <p>Portal-based support to explore domains, understand fit, and make informed, confident career decisions - not guesswork.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PERFORMANCE EVALUATION ===================== -->
+<section class="content-section bg-soft">
+  <div class="container">
+    <div class="it-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">Measured Progress</span>
+      <h2>Performance Evaluation</h2>
+      <p>Students don't simply complete the program and receive a certificate - performance is evaluated throughout, and students receive a performance-based grade report along with their program completion certificate.</p>
+    </div>
+    <div class="row g-3 text-center justify-content-center">
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up"><div class="value-card"><i class="fa-solid fa-flask"></i><h6>Practical Performance</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="50"><div class="value-card"><i class="fa-solid fa-clipboard-check"></i><h6>Assessments</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="100"><div class="value-card"><i class="fa-solid fa-comments"></i><h6>Interview Performance</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="150"><div class="value-card"><i class="fa-solid fa-users"></i><h6>Participation</h6></div></div>
+      <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="200"><div class="value-card"><i class="fa-solid fa-chart-line"></i><h6>Overall Progress</h6></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CERTIFICATE ===================== -->
+<section class="content-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 text-center" data-aos="zoom-in">
+        <div class="it-feature-card" style="padding:46px 34px;">
+          <div class="it-feature-card__icon" style="margin:0 auto 20px;"><i class="fa-solid fa-certificate"></i></div>
+          <span class="eyebrow eyebrow-dark">Recognition</span>
+          <h2 style="margin:12px 0 14px;">IT 360 Max Program Certificate</h2>
+          <p style="color:var(--muted);margin:0;">Students who successfully complete the program receive a valid IT 360 Max Program Certificate - recognition of their participation and completion of this structured placement training program.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== POST-TRAINING PLACEMENT COMMUNITY ===================== -->
+<section class="content-section bg-soft">
+  <div class="container">
+    <div class="it-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">The Support Continues</span>
+      <h2>Post-Training Placement Community</h2>
+      <p>Support doesn't end when the 45-day program ends. Students are added to the Placement Community, where they can continue receiving guidance, placement-related direction, relevant updates and opportunities.</p>
+    </div>
+    <div class="highlight-quote" data-aos="zoom-in">
+      <p>Training may end, but the <span>placement journey continues.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== WHO CAN JOIN ===================== -->
+<section class="content-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-9 text-center" data-aos="fade-up">
+        <span class="eyebrow eyebrow-dark">Eligibility</span>
+        <h2 style="margin:14px 0 18px;">Who Can Join?</h2>
+        <p style="color:var(--muted);font-size:1.05rem;">IT 360 Max is specially designed for <strong style="color:var(--ink);">3rd and 4th year students</strong> who want to strengthen their practical technology skills, understand their career direction, and prepare confidently for placements and interviews.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PROGRAM SNAPSHOT ===================== -->
+<section class="content-section bg-soft" id="snapshot">
+  <div class="container">
+    <div class="it-section-heading" data-aos="fade-up">
+      <span class="eyebrow eyebrow-dark">At a Glance</span>
+      <h2>Program Snapshot</h2>
+    </div>
+    <div class="snapshot-card" data-aos="fade-up">
+      <div class="snapshot-grid">
+        <div class="snapshot-row"><span>Program</span><strong>IT 360 Max</strong></div>
+        <div class="snapshot-row"><span>Institution</span><strong>Arckenites</strong></div>
+        <div class="snapshot-row"><span>Duration</span><strong>45 Days</strong></div>
+        <div class="snapshot-row"><span>Mode</span><strong>Hybrid</strong></div>
+        <div class="snapshot-row"><span>Target Students</span><strong>3rd &amp; 4th Year Students</strong></div>
+        <div class="snapshot-row"><span>Learning Model</span><strong>Story-Based + Hands-On</strong></div>
+        <div class="snapshot-row"><span>Focus</span><strong>Industry-Oriented Placement Readiness</strong></div>
+        <div class="snapshot-row"><span>Domains</span><strong>Aptitude, Computing, Cloud, Storage &amp; Database, Software Engineering, Data Science &amp; Analysis, Networking, Cyber Security, Digital Marketing</strong></div>
+        <div class="snapshot-row"><span>Interview Simulation</span><strong>Mock &rarr; Screening &rarr; Technical &rarr; HR &amp; MR</strong></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FINAL CTA ===================== -->
+<section class="cta-section">
+  <div class="container text-center" data-aos="zoom-in">
+    <h2>Don't Just Prepare for Placements. Prepare for the Industry.</h2>
+    <p>Placement preparation shouldn't begin with memorizing answers - it should begin with building the right skills, confidence, clarity and practical exposure.</p>
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+      <a href="free-demo.html" class="btn btn-accent btn-lg">Join IT 360 Max</a>
+      <a href="#snapshot" class="btn btn-outline-light btn-lg">Explore the Program</a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <a class="navbar-brand" href="index.html">
+          <img src="assets/logo.png" alt="Arckenites logo" class="brand-mark">
+          <span class="brand-text">Arckenites</span>
+        </a>
+        <p class="footer-about">Premium IT training institute helping students and professionals build careers in technology through industry-ready programs.</p>
+        <div class="social-icons">
+          <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+          <a href="#"><i class="fa-brands fa-youtube"></i></a>
+        </div>
+      </div>
+      <div class="col-lg-2 col-6">
+        <h6>Quick Links</h6>
+        <ul>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="courses.html">Courses</a></li>
+          <li><a href="placements.html">Placements</a></li>
+          <li><a href="trainers.html">Trainers</a></li>
+          <li><a href="blog.html">Blog</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-2 col-6">
+        <h6>Our Programs</h6>
+        <ul>
+          <li><a href="certification-program.html">Official Certification Program</a></li>
+          <li><a href="corporate-training.html">Corporate Training Program</a></li>
+          <li><a href="placements.html">Placement Training Program</a></li>
+          <li><a href="trainers.html">Arckenites Trainers Program</a></li>
+          <li><a href="careers.html">Internship Program</a></li>
+          <li><a href="interview-crack-program.html">Interview 'n' Crack Program</a></li>
+          <li><a href="job-assist-program.html">Arckenites Job Assist Program</a></li>
+          <li><a href="college-projects-program.html">College Projects Program</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-4">
+        <h6>Contact</h6>
+        <ul class="footer-contact">
+          <li><i class="fa-solid fa-location-dot"></i> Krishna Kutir, No. 6/24, Ramanathan Street, Mahalingapuram, Nungambakkam, Chennai, Tamil Nadu, 600034</li>
+          <li><i class="fa-solid fa-envelope"></i> contact@arckenites.com</li>
+          <li><i class="fa-solid fa-phone"></i> +91 98765 43210</li>
+        </ul>
+      </div>
+    </div>
+    <hr>
+    <div class="footer-bottom">
+      <p>&copy; <span id="year"></span> Arckenites. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="terms.html">Terms &amp; Conditions</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<a href="https://wa.me/919876543210" class="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
+  <i class="fa-brands fa-whatsapp"></i>
+</a>
+
+<button id="backToTop" aria-label="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="js/script.js"></script>
+
+</body>
+</html>
