@@ -13,31 +13,328 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=8">
+<link rel="stylesheet" href="css/style.css?v=9">
 
 </head>
 <body>
 
-<header class="dashboard-topbar">
-  <a class="navbar-brand" href="index.html">
-    <img src="assets/logo.png" alt="Arckenites logo" class="brand-mark">
-    <span class="brand-text">Arckenites Student</span>
-  </a>
-  <div class="dashboard-topbar-user">
-    <span id="studentWelcome">Welcome</span>
-    <button class="btn btn-primary-outline" id="studentLogoutBtn">Logout</button>
-  </div>
-</header>
+<!-- Simple layout: shown to any student without a program-specific dashboard yet -->
+<div id="simpleLayout" style="display:none;">
+  <header class="dashboard-topbar">
+    <a class="navbar-brand" href="index.html">
+      <img src="assets/logo.png" alt="Arckenites logo" class="brand-mark">
+      <span class="brand-text">Arckenites Hub</span>
+    </a>
+    <div class="dashboard-topbar-user">
+      <span id="simpleWelcome">Welcome</span>
+      <button class="btn btn-primary-outline" id="simpleLogoutBtn">Logout</button>
+    </div>
+  </header>
 
-<main class="dashboard-main">
-  <h1>Dashboard</h1>
-  <p>Your Arckenites learning overview.</p>
+  <main class="dashboard-main">
+    <h1>Dashboard</h1>
+    <p>Your Arckenites learning overview.</p>
 
-  <div class="dashboard-notice">
-    <i class="fa-solid fa-circle-info"></i>
-    You're logged in and verified as a student. Course progress, attendance, assignments and the rest of the student portal ship in a later phase.
+    <div class="dashboard-notice">
+      <i class="fa-solid fa-circle-info"></i>
+      You're logged in and verified as a student. Course progress, attendance, assignments and the rest of the student portal ship in a later phase.
+    </div>
+  </main>
+</div>
+
+<!-- Sidebar layout: Institutional Program students -->
+<div class="admin-shell" id="sidebarLayout" style="display:none;">
+
+  <aside class="admin-sidebar" id="studentSidebar">
+    <div class="admin-sidebar-brand">
+      <img src="assets/logo.png" alt="Arckenites logo">
+      <span>Arckenites Hub</span>
+    </div>
+
+    <nav class="admin-sidebar-nav">
+      <button type="button" class="admin-sidebar-link is-active" data-panel="overview"><i class="fa-solid fa-gauge-high"></i><span class="label">Dashboard</span></button>
+      <button type="button" class="admin-sidebar-link" data-panel="schedule"><i class="fa-solid fa-calendar-days"></i><span class="label">Class Schedule</span></button>
+      <button type="button" class="admin-sidebar-link" data-panel="lab"><i class="fa-solid fa-flask"></i><span class="label">Lab Access</span></button>
+      <button type="button" class="admin-sidebar-link" data-panel="videos"><i class="fa-solid fa-video"></i><span class="label">Class Videos</span></button>
+      <button type="button" class="admin-sidebar-link" data-panel="materials"><i class="fa-solid fa-book-open"></i><span class="label">Study Materials</span></button>
+      <button type="button" class="admin-sidebar-link" data-panel="interviews"><i class="fa-solid fa-user-tie"></i><span class="label">Interview Schedule</span></button>
+      <button type="button" class="admin-sidebar-link" data-panel="support"><i class="fa-solid fa-life-ring"></i><span class="label">Support</span><span class="admin-notif-badge" id="supportSidebarBadge" style="display:none; position:static; margin-left:auto;">0</span></button>
+    </nav>
+
+    <div class="admin-sidebar-logout">
+      <button type="button" class="admin-sidebar-link" id="studentLogoutBtn" title="Logout">
+        <i class="fa-solid fa-right-from-bracket"></i><span class="label">Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
+
+  <div class="admin-shell-main">
+    <header class="admin-topbar">
+      <div class="admin-topbar-left">
+        <button type="button" class="icon-btn admin-mobile-toggle" id="adminMobileToggle" aria-label="Open menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+      <div class="admin-topbar-actions">
+        <span id="studentWelcome">Welcome</span>
+      </div>
+    </header>
+
+    <main class="admin-main">
+
+      <section data-panel="overview">
+        <div class="admin-page-header">
+          <div>
+            <h1 id="overviewGreeting">Welcome back</h1>
+            <p id="overviewSubline">Continue your learning journey and stay on track with your training.</p>
+          </div>
+        </div>
+
+        <div class="admin-kpi-grid">
+          <div class="admin-kpi-card"><i class="fa-solid fa-people-group"></i><h3 id="kpiBatches">—</h3><p>Active Batches</p></div>
+          <div class="admin-kpi-card"><i class="fa-solid fa-calendar-day"></i><h3 id="kpiNextClass">—</h3><p>Next Class</p></div>
+          <div class="admin-kpi-card"><i class="fa-solid fa-life-ring"></i><h3 id="kpiOpenTickets">—</h3><p>Open Support Tickets</p></div>
+          <div class="admin-kpi-card"><i class="fa-solid fa-chart-line"></i><h3 id="kpiClassesProgress">—</h3><p>Classes Progress</p></div>
+        </div>
+
+        <div class="overview-grid-2">
+          <div class="admin-panel">
+            <div class="admin-panel-header"><h2><i class="fa-solid fa-play"></i> Continue Learning</h2></div>
+            <div id="continueLearningBody" class="admin-panel-empty">Loading&hellip;</div>
+          </div>
+          <div class="admin-panel">
+            <div class="admin-panel-header"><h2><i class="fa-solid fa-video"></i> Next Class</h2></div>
+            <div id="nextClassBody" class="admin-panel-empty">Loading&hellip;</div>
+          </div>
+        </div>
+
+        <div class="overview-grid-2">
+          <div class="admin-panel">
+            <div class="admin-panel-header"><h2><i class="fa-solid fa-list-check"></i> Today's Tasks</h2></div>
+            <div id="todaysTasksBody" class="admin-panel-empty">Task tracking is coming soon.</div>
+          </div>
+          <div class="admin-panel">
+            <div class="admin-panel-header"><h2><i class="fa-solid fa-calendar-days"></i> Upcoming Schedule</h2></div>
+            <div id="upcomingScheduleBody" class="admin-panel-empty">Loading&hellip;</div>
+          </div>
+        </div>
+
+        <div class="admin-panel" style="margin-top:20px;">
+          <div class="admin-panel-header"><h2><i class="fa-solid fa-graduation-cap"></i> My Learning Progress</h2></div>
+          <div id="learningProgressBody" style="padding:20px;" class="admin-panel-empty">Loading&hellip;</div>
+        </div>
+
+        <div class="overview-grid-2" style="margin-top:20px;">
+          <div class="admin-panel">
+            <div class="admin-panel-header"><h2><i class="fa-solid fa-bullhorn"></i> Announcements</h2></div>
+            <div id="announcementsBody" class="admin-panel-empty">No announcements yet.</div>
+          </div>
+          <div class="admin-panel">
+            <div class="admin-panel-header"><h2><i class="fa-solid fa-life-ring"></i> Need Help?</h2></div>
+            <div id="supportCardBody" style="padding:20px;">Loading&hellip;</div>
+          </div>
+        </div>
+
+        <div class="overview-grid-2" style="margin-top:20px;">
+          <div class="admin-panel">
+            <div class="admin-panel-header"><h2><i class="fa-solid fa-id-card"></i> Profile Summary</h2></div>
+            <div id="profileSummaryBody" class="detail-list" style="padding:20px;"></div>
+          </div>
+          <div class="admin-panel">
+            <div class="admin-panel-header"><h2><i class="fa-solid fa-bolt"></i> Quick Actions</h2></div>
+            <div id="quickActionsBody" style="padding:20px; display:flex; flex-wrap:wrap; gap:12px;"></div>
+          </div>
+        </div>
+
+        <div class="admin-panel" style="margin-top:20px;">
+          <div class="admin-panel-header"><h2><i class="fa-solid fa-trophy"></i> Achievements</h2></div>
+          <div id="achievementsBody" class="admin-panel-empty">Complete your training to unlock your certificate.</div>
+        </div>
+      </section>
+
+      <section data-panel="schedule" style="display:none;">
+        <div class="admin-page-header">
+          <div><h1>Class Schedule</h1></div>
+          <div class="admin-page-header-actions">
+            <button type="button" class="btn btn-accent" id="startInstantMeetingBtn"><i class="fa-solid fa-video"></i> Start a Meeting</button>
+          </div>
+        </div>
+        <div class="admin-panel" style="margin-bottom:20px;">
+          <div class="admin-panel-header"><h2>My Batch Meetings</h2></div>
+          <div id="myBatchMeetingsList" style="padding:16px 20px;">Loading&hellip;</div>
+        </div>
+
+        <div class="admin-panel">
+          <table class="admin-activity-table">
+            <thead>
+              <tr><th>Title</th><th>Batch</th><th>Date</th><th>Time</th><th>Meeting Link</th><th>Video Call</th><th>Notes</th></tr>
+            </thead>
+            <tbody id="scheduleTableBody">
+              <tr><td colspan="7" class="admin-panel-empty">Loading&hellip;</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section data-panel="lab" style="display:none;">
+        <div class="admin-page-header"><div><h1>Lab Access</h1></div></div>
+        <div class="admin-panel"><div class="admin-panel-empty" style="padding:40px;">Content coming soon.</div></div>
+      </section>
+
+      <section data-panel="videos" style="display:none;">
+        <div class="admin-page-header"><div><h1>Class Videos</h1></div></div>
+        <div class="admin-panel">
+          <table class="admin-activity-table">
+            <thead>
+              <tr><th>Batch</th><th>Title</th><th>Link</th><th>Description</th><th>Uploaded</th></tr>
+            </thead>
+            <tbody id="videosTableBody">
+              <tr><td colspan="5" class="admin-panel-empty">Loading&hellip;</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section data-panel="materials" style="display:none;">
+        <div class="admin-page-header"><div><h1>Study Materials</h1></div></div>
+        <div class="admin-panel">
+          <table class="admin-activity-table">
+            <thead>
+              <tr><th>Batch</th><th>Title</th><th>Link</th><th>Description</th><th>Uploaded</th></tr>
+            </thead>
+            <tbody id="materialsTableBody">
+              <tr><td colspan="5" class="admin-panel-empty">Loading&hellip;</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section data-panel="interviews" style="display:none;">
+        <div class="admin-page-header"><div><h1>Interview Schedule</h1></div></div>
+        <div class="admin-panel"><div class="admin-panel-empty" style="padding:40px;">Content coming soon.</div></div>
+      </section>
+
+      <section data-panel="support" style="display:none;">
+
+        <div id="ticketListView">
+          <div class="admin-page-header">
+            <div><h1>Support</h1><p>Need help? Create a support request and our team will assist you.</p></div>
+            <div class="admin-page-header-actions">
+              <button type="button" class="btn btn-accent" id="showCreateTicketBtn"><i class="fa-solid fa-plus"></i> Create Support Ticket</button>
+            </div>
+          </div>
+          <div class="admin-panel">
+            <table class="admin-activity-table">
+              <thead>
+                <tr><th>Ticket ID</th><th>Subject</th><th>Category</th><th>Priority</th><th>Status</th><th>Last Updated</th></tr>
+              </thead>
+              <tbody id="myTicketsBody">
+                <tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="ticketCreateView" style="display:none;">
+          <div class="admin-page-header">
+            <div><h1>Create Support Ticket</h1></div>
+            <div class="admin-page-header-actions">
+              <button type="button" class="btn btn-primary-outline" id="cancelCreateTicketBtn"><i class="fa-solid fa-arrow-left"></i> Back</button>
+            </div>
+          </div>
+          <div class="admin-panel">
+            <form id="createTicketForm" novalidate style="padding:20px;">
+              <div>
+                <label class="form-label">Subject</label>
+                <input type="text" class="form-control" id="ticketSubject" placeholder="Short description of the issue" required>
+              </div>
+              <div class="admin-form-grid" style="margin-top:16px;">
+                <div>
+                  <label class="form-label">Category</label>
+                  <select class="form-select" id="ticketCategory" required>
+                    <option value="account_login">Account / Login</option>
+                    <option value="course_access">Course Access</option>
+                    <option value="batch">Batch</option>
+                    <option value="classes_schedule">Classes / Schedule</option>
+                    <option value="assignments">Assignments</option>
+                    <option value="assessments">Assessments</option>
+                    <option value="certificates">Certificates</option>
+                    <option value="payment_fees">Payment / Fees</option>
+                    <option value="technical_issue">Technical Issue</option>
+                    <option value="trainer_training">Trainer / Training</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label">Priority</label>
+                  <select class="form-select" id="ticketPriority">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+              </div>
+              <div style="margin-top:16px;">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" id="ticketDescription" rows="4" placeholder="Explain the issue in detail&hellip;" required></textarea>
+              </div>
+              <div style="margin-top:16px;">
+                <label class="form-label">Attachment (optional)</label>
+                <input type="file" class="form-control" id="ticketAttachment">
+              </div>
+              <div class="login-error" id="createTicketError" style="display:none; margin-top:16px;"></div>
+              <div class="admin-form-actions">
+                <button type="submit" class="btn btn-accent" id="createTicketSubmitBtn">Submit Ticket</button>
+              </div>
+            </form>
+            <div style="padding:0 20px 20px;">
+              <p style="color:var(--muted); font-size:.85rem;">Prefer to talk directly? <button type="button" id="openSupportChatBtn" style="background:none; border:none; color:var(--primary); font-weight:600; cursor:pointer; padding:0;">Message Support</button></p>
+            </div>
+          </div>
+        </div>
+
+        <div id="ticketDetailView" style="display:none;">
+          <div class="admin-page-header">
+            <div>
+              <div class="admin-breadcrumb"><a href="#" id="backToTicketListLink">Support</a><span>/</span><span id="ticketDetailBreadcrumb">Ticket</span></div>
+              <h1 id="ticketDetailSubject">Loading&hellip;</h1>
+            </div>
+            <div class="admin-page-header-actions">
+              <button type="button" class="btn btn-primary-outline" id="reopenMyTicketBtn" style="display:none;"><i class="fa-solid fa-rotate-left"></i> Reopen Ticket</button>
+            </div>
+          </div>
+          <div class="admin-panel" style="margin-bottom:20px;">
+            <div class="detail-list" style="padding:16px 20px;">
+              <div class="detail-row"><span class="form-label">Status</span><span id="ticketDetailStatus">—</span></div>
+              <div class="detail-row"><span class="form-label">Priority</span><span id="ticketDetailPriority">—</span></div>
+              <div class="detail-row"><span class="form-label">Category</span><span id="ticketDetailCategory">—</span></div>
+            </div>
+          </div>
+          <div class="admin-panel" style="margin-bottom:20px;">
+            <div class="admin-panel-header"><h2>Conversation</h2></div>
+            <div id="studentConversationThread" style="padding:20px; display:flex; flex-direction:column; gap:16px; max-height:500px; overflow-y:auto;"></div>
+          </div>
+          <div class="admin-panel" id="studentReplyPanel">
+            <div class="admin-panel-header"><h2>Reply</h2></div>
+            <form id="studentReplyForm" style="padding:20px;" novalidate>
+              <textarea class="form-control" id="studentReplyMessage" rows="3" placeholder="Type your message&hellip;" required></textarea>
+              <div style="margin-top:10px;"><input type="file" id="studentReplyAttachment" class="form-control"></div>
+              <div class="login-error" id="studentReplyError" style="display:none; margin-top:12px;"></div>
+              <div class="admin-form-actions">
+                <button type="submit" class="btn btn-accent" id="studentReplySubmitBtn">Send Reply</button>
+              </div>
+            </form>
+          </div>
+          <div class="admin-panel-empty" id="ticketClosedNotice" style="display:none; padding:20px;">This ticket is closed. Reopen it if you still need help.</div>
+        </div>
+
+      </section>
+
+    </main>
   </div>
-</main>
+</div>
 
 <button type="button" class="chat-float" id="chatFloatBtn" aria-label="Messages">
   <i class="fa-solid fa-comments"></i>
@@ -71,8 +368,25 @@
   </div>
 </div>
 
+<div class="modal-backdrop" id="batchChatModalBackdrop">
+  <div class="modal" style="width:520px;">
+    <div class="modal-header">
+      <h3 id="batchChatModalTitle">Batch Chat</h3>
+      <button type="button" class="icon-btn" id="batchChatModalCloseBtn" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="batch-chat-body" style="height:420px;">
+      <div class="batch-chat-messages" id="batchChatMessages"></div>
+      <form class="batch-chat-input-row" id="batchChatForm">
+        <input type="text" class="form-control" id="batchChatInput" placeholder="Message the whole batch&hellip;" autocomplete="off">
+        <button type="submit" class="btn btn-accent" id="batchChatSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script src="js/api.js?v=1"></script>
 <script src="js/auth.js?v=1"></script>
+<script src="js/video-conference.js?v=1"></script>
 <script src="js/student-dashboard.js?v=1"></script>
 <script src="js/chat.js?v=1"></script>
 

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roles &amp; Permissions | Arckenites Hub</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet" href="css/style.css?v=9">
+
+</head>
+<body>
+
+<div class="admin-shell">
+
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-sidebar-brand">
+      <img src="assets/logo.png" alt="Arckenites logo">
+      <span>Arckenites Hub</span>
+    </div>
+
+    <nav class="admin-sidebar-nav">
+      <a href="admin-dashboard.html" class="admin-sidebar-link" title="Dashboard">
+        <i class="fa-solid fa-gauge-high"></i><span class="label">Dashboard</span>
+      </a>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>Management</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><a href="admin-students.html" class="admin-sidebar-link" title="Students"><i class="fa-solid fa-user-graduate"></i><span class="label">Students</span></a></li>
+          <li><a href="admin-staff.html" class="admin-sidebar-link" title="Trainers"><i class="fa-solid fa-chalkboard-user"></i><span class="label">Trainers</span></a></li>
+          <li><a href="admin-programs.html" class="admin-sidebar-link" title="Programs"><i class="fa-solid fa-diagram-project"></i><span class="label">Programs</span></a></li>
+          <li><a href="admin-batches.html" class="admin-sidebar-link" title="Batches"><i class="fa-solid fa-people-group"></i><span class="label">Batches</span></a></li>
+          <li><a href="admin-class-schedule.html" class="admin-sidebar-link" title="Class Schedule"><i class="fa-solid fa-calendar-days"></i><span class="label">Class Schedule</span></a></li>
+          <li><a href="admin-support.html" class="admin-sidebar-link" title="Support Tickets"><i class="fa-solid fa-headset"></i><span class="label">Support Tickets</span></a></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>Placement</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Placement Candidates — coming soon"><i class="fa-solid fa-user-tie"></i><span class="label">Placement Candidates</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Companies — coming soon"><i class="fa-solid fa-building"></i><span class="label">Companies</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Job Opportunities — coming soon"><i class="fa-solid fa-briefcase"></i><span class="label">Job Opportunities</span><span class="soon-badge">Soon</span></button></li>
+          <li><a href="admin-interviews.html" class="admin-sidebar-link" title="Interviews"><i class="fa-solid fa-comments"></i><span class="label">Interviews</span></a></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Placement Statistics — coming soon"><i class="fa-solid fa-chart-pie"></i><span class="label">Placement Statistics</span><span class="soon-badge">Soon</span></button></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>Website</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Website Content — coming soon"><i class="fa-solid fa-file-lines"></i><span class="label">Website Content</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Careers — coming soon"><i class="fa-solid fa-suitcase"></i><span class="label">Careers</span><span class="soon-badge">Soon</span></button></li>
+          <li><a href="admin-contact-enquiries.html" class="admin-sidebar-link" title="Contact Enquiries"><i class="fa-solid fa-envelope"></i><span class="label">Contact Enquiries</span></a></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group is-open">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="true">
+          <span>System</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><a href="admin-users.html" class="admin-sidebar-link" title="Admin Users"><i class="fa-solid fa-user-shield"></i><span class="label">Admin Users</span></a></li>
+          <li><a href="admin-roles.html" class="admin-sidebar-link is-active" aria-current="page" title="Roles &amp; Permissions"><i class="fa-solid fa-key"></i><span class="label">Roles &amp; Permissions</span></a></li>
+          <li><a href="admin-activity-logs.html" class="admin-sidebar-link" title="Activity Logs"><i class="fa-solid fa-clock-rotate-left"></i><span class="label">Activity Logs</span></a></li>
+          <li><a href="admin-settings.html" class="admin-sidebar-link" title="Settings"><i class="fa-solid fa-sliders"></i><span class="label">Settings</span></a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="admin-sidebar-logout">
+      <button type="button" class="admin-sidebar-link" id="adminSidebarLogout" title="Logout">
+        <i class="fa-solid fa-right-from-bracket"></i><span class="label">Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
+
+  <div class="admin-shell-main">
+    <header class="admin-topbar">
+      <div class="admin-topbar-left">
+        <button type="button" class="icon-btn admin-mobile-toggle" id="adminMobileToggle" aria-label="Open menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <button type="button" class="icon-btn" id="adminSidebarCollapseBtn" aria-label="Collapse sidebar">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <label class="admin-search-input">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Search — coming soon" disabled>
+        </label>
+      </div>
+
+      <div class="admin-topbar-actions">
+        <button type="button" class="icon-btn" id="chatTopbarTrigger" aria-label="Messages">
+          <i class="fa-solid fa-comments"></i>
+          <span class="admin-notif-badge" id="chatBadge" style="display:none;">0</span>
+        </button>
+
+        <div class="admin-dropdown">
+          <button type="button" class="admin-profile-trigger" id="adminProfileTrigger">
+            <span class="admin-avatar" id="adminAvatarInitials">A</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="admin-dropdown-panel" id="adminProfilePanel">
+            <div class="admin-profile-meta">
+              <strong id="adminProfileName">Admin</strong>
+              <span id="adminProfileRole">admin</span>
+            </div>
+            <a class="admin-dropdown-link" href="change-password.html"><i class="fa-solid fa-key"></i> Change Password</a>
+            <button type="button" class="admin-dropdown-link" id="adminProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <div class="admin-server-banner" id="adminServerBanner">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        Cannot reach the Arckenites server. Check that the backend is running, then refresh this page.
+      </div>
+
+      <div class="admin-page-header">
+        <div>
+          <h1>Roles &amp; Permissions</h1>
+          <p>Control what each admin role is allowed to do across the portal.</p>
+        </div>
+        <div class="admin-page-header-actions">
+          <button type="button" class="btn btn-accent" id="toggleAddRoleBtn"><i class="fa-solid fa-plus"></i> Add Role</button>
+        </div>
+      </div>
+
+      <div class="form-card admin-inline-form" id="addRolePanel" style="display:none;">
+        <h5>Add Custom Role</h5>
+        <form id="addRoleForm" novalidate>
+          <div class="admin-form-grid">
+            <div>
+              <label class="form-label">Role Name</label>
+              <input type="text" class="form-control" id="newRoleName" required>
+            </div>
+            <div>
+              <label class="form-label">Description</label>
+              <input type="text" class="form-control" id="newRoleDescription" placeholder="Optional">
+            </div>
+          </div>
+          <div class="login-error" id="addRoleError" style="display:none; margin-top:14px;"></div>
+          <div class="admin-form-actions">
+            <button type="submit" class="btn btn-accent" id="addRoleSubmitBtn">Create Role</button>
+            <button type="button" class="btn btn-primary-outline" id="cancelAddRoleBtn">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="admin-panel">
+        <div class="admin-panel-header"><h2>All Roles</h2></div>
+        <table class="admin-activity-table">
+          <thead>
+            <tr><th>Role</th><th style="text-align:right;">Users</th><th style="text-align:right;">Permissions</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="rolesTableBody">
+            <tr><td colspan="5" class="admin-panel-empty">Loading&hellip;</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="row-action-menu" id="rowActionMenu">
+  <button type="button" class="admin-dropdown-link" data-action="permissions"><i class="fa-solid fa-shield-halved"></i> View / Edit Permissions</button>
+  <button type="button" class="admin-dropdown-link" data-action="edit"><i class="fa-solid fa-pen"></i> Rename / Edit</button>
+  <div class="row-action-menu-divider"></div>
+  <button type="button" class="admin-dropdown-link is-danger" data-action="delete"><i class="fa-solid fa-trash"></i> Delete Role</button>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Title</h3>
+      <button type="button" class="icon-btn" id="modalClose" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+
+<div class="chat-backdrop" id="chatBackdrop"></div>
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-panel-header">
+    <button type="button" class="icon-btn chat-back" id="chatBack" style="display:none;" aria-label="Back to conversations"><i class="fa-solid fa-arrow-left"></i></button>
+    <strong id="chatTitle">Messages</strong>
+    <button type="button" class="icon-btn" id="chatClose" aria-label="Close chat"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="chat-body">
+    <div class="chat-list-view" id="chatListView">
+      <div class="chat-search-row">
+        <input type="text" class="form-control" id="chatSearchInput" placeholder="Search by username or name&hellip;" autocomplete="off">
+      </div>
+      <div id="chatSearchResults" class="chat-search-results" style="display:none;"></div>
+      <div class="chat-conversation-list" id="chatConversationList">
+        <div class="admin-panel-empty">Loading&hellip;</div>
+      </div>
+    </div>
+    <div class="chat-thread-view" id="chatThreadView" style="display:none;">
+      <div class="chat-messages" id="chatMessages"></div>
+      <form class="chat-input-row" id="chatForm">
+        <input type="text" class="form-control" id="chatInput" placeholder="Type a message&hellip;" autocomplete="off">
+        <button type="submit" class="btn btn-accent" id="chatSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js?v=1"></script>
+<script src="js/auth.js?v=1"></script>
+<script src="js/admin-roles.js?v=1"></script>
+<script src="js/chat.js?v=1"></script>
+
+</body>
+</html>

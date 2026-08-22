@@ -139,7 +139,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     return null;
   });
 
-  const [, activityData] = await Promise.all([loadStats, loadActivity]);
+  const loadSystemHealth = ArckAPI.request('/admin/system/health').then((health) => {
+    const badge = (v) => v === 'healthy'
+      ? '<span class="admin-activity-badge is-success">Healthy</span>'
+      : `<span class="admin-activity-badge is-danger">${v}</span>`;
+    document.getElementById('dashboardSystemHealth').innerHTML = `
+      <span>Database ${badge(health.database)}</span>
+      <span>Authentication ${badge(health.authentication)}</span>
+      <span>API ${badge(health.api)}</span>
+    `;
+  }).catch(() => {
+    document.getElementById('dashboardSystemHealth').textContent = "Couldn't load system health.";
+  });
+
+  const [, activityData] = await Promise.all([loadStats, loadActivity, loadSystemHealth]);
 
   const notifList = document.getElementById('adminNotifList');
   const securityItems = (activityData?.items || []).filter((i) => SECURITY_EVENTS.has(i.event_type)).slice(0, 5);

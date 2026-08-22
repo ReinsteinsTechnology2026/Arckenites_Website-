@@ -6,6 +6,14 @@ class LoginRequest(BaseModel):
     password: str = Field(min_length=1, max_length=128)
 
 
+class AdminRoleSummary(BaseModel):
+    id: int
+    name: str
+    slug: str
+
+    model_config = {"from_attributes": True}
+
+
 class UserOut(BaseModel):
     id: int
     username: str
@@ -13,6 +21,11 @@ class UserOut(BaseModel):
     role: str
     must_change_password: bool
     program: str | None = None
+    profile_completed: bool = True
+    # Populated explicitly by the route (not bare from_attributes) since it
+    # needs a fresh permissions-table query — see crud/permissions.py.
+    admin_role: AdminRoleSummary | None = None
+    permissions: list[str] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}
 

@@ -11,7 +11,10 @@ Run with: python seed.py   (from the backend/ directory, venv active)
 """
 
 from app.core.security import hash_password
+from app.crud.permissions import DEFAULT_GRANTS, PERMISSION_CATALOG
 from app.database import SessionLocal
+from app.models.admin_profile import AdminProfile
+from app.models.admin_role import AdminRole, AdminRolePermission, Permission, SUPER_ADMIN_ROLE_ID
 from app.models.staff import StaffProfile
 from app.models.student import StudentProfile
 from app.models.user import RoleEnum, User
@@ -43,9 +46,9 @@ def reset_admin_password(db, *, username, password, full_name):
     an admin credential without a provisioning UI or DB shell access."""
     user = db.query(User).filter(User.username == username).first()
     if user is None:
-        user = User(username=username, full_name=full_name, role=RoleEnum.admin)
+        user = User(username=username, full_name=full_name, role=RoleEnum.admin, admin_role_id=SUPER_ADMIN_ROLE_ID)
         db.add(user)
-        print(f"  created: {username} (admin)")
+        print(f"  created: {username} (admin, Super Admin)")
     else:
         print(f"  reset password: {username} (admin)")
 
@@ -58,24 +61,54 @@ def reset_admin_password(db, *, username, password, full_name):
     return user
 
 
+def seed_rbac(db):
+    """Upserts the full permission catalog and the default grants for the
+    Admin / Support Admin system roles. Super Admin is never granted rows
+    here — its access is computed in code (see crud/permissions.py)."""
+    print("Seeding permission catalog...")
+    existing_keys = {p.key for p in db.query(Permission).all()}
+    for perm in PERMISSION_CATALOG:
+        if perm["key"] in existing_keys:
+            continue
+        db.add(Permission(**perm))
+        print(f"  created permission: {perm['key']}")
+    db.flush()
+
+    print("Seeding default role grants...")
+    roles_by_slug = {r.slug: r for r in db.query(AdminRole).all()}
+    for slug, keys in DEFAULT_GRANTS.items():
+        role = roles_by_slug.get(slug)
+        if role is None:
+            print(f"  skip (role not found): {slug}")
+            continue
+        already_granted = {
+            g.permission_key for g in db.query(AdminRolePermission).filter(AdminRolePermission.admin_role_id == role.id)
+        }
+        added = 0
+        for key in keys:
+            if key in already_granted:
+                continue
+            db.add(AdminRolePermission(admin_role_id=role.id, permission_key=key))
+            added += 1
+        print(f"  {slug}: granted {added} new permission(s) (already had {len(already_granted)})")
+    db.flush()
+
+
 def main():
     db = SessionLocal()
     try:
-        print("Seeding bootstrap admin accounts...")
-        # These credentials previously lived in plaintext in js/admin-login.js.
-        # Treat them as already-known/compromised: must_change_password=True
+        seed_rbac(db)
+        db.commit()
+
+        print("Seeding bootstrap admin account...")
+        # This credential previously lived in plaintext in js/admin-login.js.
+        # Treat it as already-known/compromised: must_change_password=True
         # forces rotation on first real login.
         reset_admin_password(
             db,
             username=settings.seed_admin1_username,
             password=settings.seed_admin1_password,
             full_name="Admin One",
-        )
-        reset_admin_password(
-            db,
-            username=settings.seed_admin2_username,
-            password=settings.seed_admin2_password,
-            full_name="Admin Two",
         )
 
         print("Seeding dev-only demo student/staff accounts...")

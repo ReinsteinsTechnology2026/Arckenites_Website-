@@ -6,7 +6,6 @@ from pydantic import BaseModel, Field, field_validator
 from app.models.staff import PERMISSION_KEYS
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-_USERNAME_RE = re.compile(r"^[a-zA-Z0-9._@-]{3,120}$")
 
 
 def _clean_permissions(value: dict | None) -> dict:
@@ -18,18 +17,12 @@ def _clean_permissions(value: dict | None) -> dict:
 
 
 class CreateStaffRequest(BaseModel):
+    """No username field — it's auto-generated (AKT@Name) the same way a
+    student's is, so every trainer's login id follows the same naming rule
+    regardless of which admin creates the account."""
     full_name: str = Field(min_length=1, max_length=200)
-    username: str
     email: str | None = None
     temp_password: str = Field(min_length=8, max_length=128)
-
-    @field_validator("username")
-    @classmethod
-    def validate_username(cls, value: str) -> str:
-        value = value.strip()
-        if not _USERNAME_RE.match(value):
-            raise ValueError("Username must be 3-120 characters (letters, numbers, . _ @ - only).")
-        return value
 
     @field_validator("email")
     @classmethod

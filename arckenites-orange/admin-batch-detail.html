@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Batch Details | Arckenites Admin</title>
+<title>Batch Details | Arckenites Hub</title>
 <meta name="robots" content="noindex, nofollow">
 
 <link rel="icon" href="assets/favicon.png" type="image/png">
@@ -13,7 +13,7 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=8">
+<link rel="stylesheet" href="css/style.css?v=9">
 
 </head>
 <body>
@@ -23,7 +23,7 @@
   <aside class="admin-sidebar" id="adminSidebar">
     <div class="admin-sidebar-brand">
       <img src="assets/logo.png" alt="Arckenites logo">
-      <span>Arckenites Admin</span>
+      <span>Arckenites Hub</span>
     </div>
 
     <nav class="admin-sidebar-nav">
@@ -40,33 +40,8 @@
           <li><a href="admin-staff.html" class="admin-sidebar-link" title="Trainers"><i class="fa-solid fa-chalkboard-user"></i><span class="label">Trainers</span></a></li>
           <li><a href="admin-programs.html" class="admin-sidebar-link" title="Programs"><i class="fa-solid fa-diagram-project"></i><span class="label">Programs</span></a></li>
           <li><a href="admin-batches.html" class="admin-sidebar-link is-active" aria-current="page" title="Batches"><i class="fa-solid fa-people-group"></i><span class="label">Batches</span></a></li>
-        </ul>
-      </div>
-
-      <div class="admin-sidebar-group">
-        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
-          <span>Academic</span><i class="fa-solid fa-chevron-right"></i>
-        </button>
-        <ul class="admin-sidebar-group-list">
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Class Schedule — coming soon"><i class="fa-solid fa-calendar-days"></i><span class="label">Class Schedule</span><span class="soon-badge">Soon</span></button></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Attendance — coming soon"><i class="fa-solid fa-clipboard-check"></i><span class="label">Attendance</span><span class="soon-badge">Soon</span></button></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Assignments — coming soon"><i class="fa-solid fa-file-pen"></i><span class="label">Assignments</span><span class="soon-badge">Soon</span></button></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Assessments — coming soon"><i class="fa-solid fa-clipboard-list"></i><span class="label">Assessments</span><span class="soon-badge">Soon</span></button></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Learning Materials — coming soon"><i class="fa-solid fa-book-open"></i><span class="label">Learning Materials</span><span class="soon-badge">Soon</span></button></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Certificates — coming soon"><i class="fa-solid fa-certificate"></i><span class="label">Certificates</span><span class="soon-badge">Soon</span></button></li>
-        </ul>
-      </div>
-
-      <div class="admin-sidebar-group">
-        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
-          <span>Operations</span><i class="fa-solid fa-chevron-right"></i>
-        </button>
-        <ul class="admin-sidebar-group-list">
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Enquiries — coming soon"><i class="fa-solid fa-envelope-open-text"></i><span class="label">Enquiries</span><span class="soon-badge">Soon</span></button></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Admissions — coming soon"><i class="fa-solid fa-user-plus"></i><span class="label">Admissions</span><span class="soon-badge">Soon</span></button></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Payments — coming soon"><i class="fa-solid fa-credit-card"></i><span class="label">Payments</span><span class="soon-badge">Soon</span></button></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Announcements — coming soon"><i class="fa-solid fa-bullhorn"></i><span class="label">Announcements</span><span class="soon-badge">Soon</span></button></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Notifications — coming soon"><i class="fa-solid fa-bell"></i><span class="label">Notifications</span><span class="soon-badge">Soon</span></button></li>
+          <li><a href="admin-class-schedule.html" class="admin-sidebar-link" title="Class Schedule"><i class="fa-solid fa-calendar-days"></i><span class="label">Class Schedule</span></a></li>
+          <li><a href="admin-support.html" class="admin-sidebar-link" title="Support Tickets"><i class="fa-solid fa-headset"></i><span class="label">Support Tickets</span></a></li>
         </ul>
       </div>
 
@@ -78,7 +53,7 @@
           <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Placement Candidates — coming soon"><i class="fa-solid fa-user-tie"></i><span class="label">Placement Candidates</span><span class="soon-badge">Soon</span></button></li>
           <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Companies — coming soon"><i class="fa-solid fa-building"></i><span class="label">Companies</span><span class="soon-badge">Soon</span></button></li>
           <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Job Opportunities — coming soon"><i class="fa-solid fa-briefcase"></i><span class="label">Job Opportunities</span><span class="soon-badge">Soon</span></button></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Interviews — coming soon"><i class="fa-solid fa-comments"></i><span class="label">Interviews</span><span class="soon-badge">Soon</span></button></li>
+          <li><a href="admin-interviews.html" class="admin-sidebar-link" title="Interviews"><i class="fa-solid fa-comments"></i><span class="label">Interviews</span></a></li>
           <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Placement Statistics — coming soon"><i class="fa-solid fa-chart-pie"></i><span class="label">Placement Statistics</span><span class="soon-badge">Soon</span></button></li>
         </ul>
       </div>
@@ -89,10 +64,8 @@
         </button>
         <ul class="admin-sidebar-group-list">
           <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Website Content — coming soon"><i class="fa-solid fa-file-lines"></i><span class="label">Website Content</span><span class="soon-badge">Soon</span></button></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Programs — coming soon"><i class="fa-solid fa-diagram-project"></i><span class="label">Programs</span><span class="soon-badge">Soon</span></button></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Courses — coming soon"><i class="fa-solid fa-book"></i><span class="label">Courses</span><span class="soon-badge">Soon</span></button></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Blog — coming soon"><i class="fa-solid fa-newspaper"></i><span class="label">Blog</span><span class="soon-badge">Soon</span></button></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Contact Enquiries — coming soon"><i class="fa-solid fa-envelope"></i><span class="label">Contact Enquiries</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Careers — coming soon"><i class="fa-solid fa-suitcase"></i><span class="label">Careers</span><span class="soon-badge">Soon</span></button></li>
+          <li><a href="admin-contact-enquiries.html" class="admin-sidebar-link" title="Contact Enquiries"><i class="fa-solid fa-envelope"></i><span class="label">Contact Enquiries</span></a></li>
         </ul>
       </div>
 
@@ -101,10 +74,10 @@
           <span>System</span><i class="fa-solid fa-chevron-right"></i>
         </button>
         <ul class="admin-sidebar-group-list">
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Admin Users — coming soon"><i class="fa-solid fa-user-shield"></i><span class="label">Admin Users</span><span class="soon-badge">Soon</span></button></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Roles &amp; Permissions — coming soon"><i class="fa-solid fa-key"></i><span class="label">Roles &amp; Permissions</span><span class="soon-badge">Soon</span></button></li>
-          <li><a href="admin-dashboard.html#activityLog" class="admin-sidebar-link" title="Activity Logs"><i class="fa-solid fa-clock-rotate-left"></i><span class="label">Activity Logs</span></a></li>
-          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Settings — coming soon"><i class="fa-solid fa-sliders"></i><span class="label">Settings</span><span class="soon-badge">Soon</span></button></li>
+          <li><a href="admin-users.html" class="admin-sidebar-link" title="Admin Users"><i class="fa-solid fa-user-shield"></i><span class="label">Admin Users</span></a></li>
+          <li><a href="admin-roles.html" class="admin-sidebar-link" title="Roles &amp; Permissions"><i class="fa-solid fa-key"></i><span class="label">Roles &amp; Permissions</span></a></li>
+          <li><a href="admin-activity-logs.html" class="admin-sidebar-link" title="Activity Logs"><i class="fa-solid fa-clock-rotate-left"></i><span class="label">Activity Logs</span></a></li>
+          <li><a href="admin-settings.html" class="admin-sidebar-link" title="Settings"><i class="fa-solid fa-sliders"></i><span class="label">Settings</span></a></li>
         </ul>
       </div>
     </nav>
@@ -168,6 +141,7 @@
           <h1 id="batchDetailName">Loading&hellip;</h1>
         </div>
         <div class="admin-page-header-actions">
+          <button type="button" class="btn btn-accent" id="joinBatchVideoBtn"><i class="fa-solid fa-video"></i> Video Conference Room</button>
           <button type="button" class="btn btn-primary-outline" id="editBatchBtn"><i class="fa-solid fa-pen"></i> Edit Batch</button>
           <button type="button" class="btn btn-primary-outline is-danger" id="deleteBatchBtn"><i class="fa-solid fa-trash"></i> Delete Batch</button>
         </div>
@@ -186,13 +160,10 @@
 
         <div class="admin-panel">
           <div class="admin-panel-header"><h2>Batch Information</h2></div>
-          <div class="admin-form-grid" id="batchInfoDetails">
+          <div class="admin-form-grid" id="batchInfoDetails" style="grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); padding:20px;">
             <div><span class="form-label">Program</span><p id="detailProgram">—</p></div>
             <div><span class="form-label">Batch Type</span><p id="detailType">—</p></div>
             <div><span class="form-label">Start Date</span><p id="detailStartDate">—</p></div>
-            <div><span class="form-label">End Date</span><p id="detailEndDate">—</p></div>
-            <div><span class="form-label">Class Days</span><p id="detailDays">—</p></div>
-            <div><span class="form-label">Time</span><p id="detailTime">—</p></div>
             <div><span class="form-label">Max Capacity</span><p id="detailCapacity">—</p></div>
           </div>
         </div>
@@ -247,22 +218,6 @@
                 <label class="form-label">Start Date</label>
                 <input type="date" class="form-control" id="editBatchStartDate">
               </div>
-              <div>
-                <label class="form-label">End Date</label>
-                <input type="date" class="form-control" id="editBatchEndDate">
-              </div>
-              <div>
-                <label class="form-label">Start Time</label>
-                <input type="time" class="form-control" id="editBatchStartTime">
-              </div>
-              <div>
-                <label class="form-label">End Time</label>
-                <input type="time" class="form-control" id="editBatchEndTime">
-              </div>
-            </div>
-            <div style="margin-top:16px;">
-              <label class="form-label">Class Days</label>
-              <div class="batch-days-row" id="editBatchDaysRow"></div>
             </div>
             <div class="login-error" id="editBatchError" style="display:none; margin-top:16px;"></div>
             <div class="admin-form-actions">
@@ -270,6 +225,135 @@
               <button type="button" class="btn btn-primary-outline" id="cancelEditBatchBtn">Cancel</button>
             </div>
           </form>
+        </div>
+
+        <div class="admin-panel">
+          <div class="admin-panel-header">
+            <h2>Class Schedule</h2>
+            <button type="button" class="btn btn-primary-outline" id="toggleAddSessionBtn"><i class="fa-solid fa-calendar-plus"></i> Add Class Session</button>
+          </div>
+
+          <div class="form-card admin-inline-form" id="addSessionPanel" style="display:none;">
+            <form id="addSessionForm" novalidate>
+              <div class="admin-form-grid">
+                <div>
+                  <label class="form-label">Title</label>
+                  <input type="text" class="form-control" id="sessionTitle" placeholder="e.g. Intro to Python" required>
+                </div>
+                <div>
+                  <label class="form-label">Date</label>
+                  <input type="date" class="form-control" id="sessionDate" required>
+                </div>
+                <div>
+                  <label class="form-label">Start Time</label>
+                  <input type="time" class="form-control" id="sessionStartTime">
+                </div>
+                <div>
+                  <label class="form-label">End Time</label>
+                  <input type="time" class="form-control" id="sessionEndTime">
+                </div>
+                <div>
+                  <label class="form-label">Meeting Link</label>
+                  <input type="url" class="form-control" id="sessionMeetingLink" placeholder="https://&hellip;">
+                </div>
+              </div>
+              <div style="margin-top:16px;">
+                <label class="form-label">Notes</label>
+                <textarea class="form-control" id="sessionNotes" rows="2"></textarea>
+              </div>
+              <div class="login-error" id="addSessionError" style="display:none; margin-top:16px;"></div>
+              <div class="admin-form-actions">
+                <button type="submit" class="btn btn-accent" id="addSessionSubmitBtn">Add Session</button>
+                <button type="button" class="btn btn-primary-outline" id="cancelAddSessionBtn">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+          <table class="admin-activity-table">
+            <thead>
+              <tr><th>Title</th><th>Date</th><th>Time</th><th>Meeting Link</th><th>Notes</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="sessionsTableBody">
+              <tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="admin-panel">
+          <div class="admin-panel-header">
+            <h2>Lab Access</h2>
+            <button type="button" class="btn btn-primary-outline" id="toggleAddLabAccessBtn"><i class="fa-solid fa-plus"></i> Add Lab Access</button>
+          </div>
+          <div class="form-card admin-inline-form" id="addLabAccessPanel" style="display:none;">
+            <form id="addLabAccessForm" novalidate>
+              <div class="admin-form-grid">
+                <div><label class="form-label">Title</label><input type="text" class="form-control" id="labTitle" placeholder="e.g. AWS Sandbox" required></div>
+                <div><label class="form-label">Access URL</label><input type="url" class="form-control" id="labUrl" placeholder="https://&hellip;" required></div>
+                <div><label class="form-label">Username</label><input type="text" class="form-control" id="labUsername"></div>
+                <div><label class="form-label">Password</label><input type="text" class="form-control" id="labPassword"></div>
+              </div>
+              <div style="margin-top:16px;"><label class="form-label">Notes</label><textarea class="form-control" id="labNotes" rows="2"></textarea></div>
+              <div class="login-error" id="addLabAccessError" style="display:none; margin-top:16px;"></div>
+              <div class="admin-form-actions">
+                <button type="submit" class="btn btn-accent" id="addLabAccessSubmitBtn">Add</button>
+                <button type="button" class="btn btn-primary-outline" id="cancelAddLabAccessBtn">Cancel</button>
+              </div>
+            </form>
+          </div>
+          <table class="admin-activity-table">
+            <thead><tr><th>Title</th><th>URL</th><th>Username</th><th>Password</th><th>Notes</th><th>Actions</th></tr></thead>
+            <tbody id="labAccessTableBody"><tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
+          </table>
+        </div>
+
+        <div class="admin-panel">
+          <div class="admin-panel-header">
+            <h2>Class Videos</h2>
+            <button type="button" class="btn btn-primary-outline" id="toggleAddVideoBtn"><i class="fa-solid fa-plus"></i> Add Video</button>
+          </div>
+          <div class="form-card admin-inline-form" id="addVideoPanel" style="display:none;">
+            <form id="addVideoForm" novalidate>
+              <div class="admin-form-grid">
+                <div><label class="form-label">Title</label><input type="text" class="form-control" id="videoTitle" placeholder="e.g. Session 1 Recording" required></div>
+                <div><label class="form-label">Video URL</label><input type="url" class="form-control" id="videoUrl" placeholder="https://&hellip;" required></div>
+              </div>
+              <div style="margin-top:16px;"><label class="form-label">Description</label><textarea class="form-control" id="videoDescription" rows="2"></textarea></div>
+              <div class="login-error" id="addVideoError" style="display:none; margin-top:16px;"></div>
+              <div class="admin-form-actions">
+                <button type="submit" class="btn btn-accent" id="addVideoSubmitBtn">Add</button>
+                <button type="button" class="btn btn-primary-outline" id="cancelAddVideoBtn">Cancel</button>
+              </div>
+            </form>
+          </div>
+          <table class="admin-activity-table">
+            <thead><tr><th>Title</th><th>Link</th><th>Description</th><th>Actions</th></tr></thead>
+            <tbody id="videosTableBody"><tr><td colspan="4" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
+          </table>
+        </div>
+
+        <div class="admin-panel">
+          <div class="admin-panel-header">
+            <h2>Study Materials</h2>
+            <button type="button" class="btn btn-primary-outline" id="toggleAddMaterialBtn"><i class="fa-solid fa-plus"></i> Add Material</button>
+          </div>
+          <div class="form-card admin-inline-form" id="addMaterialPanel" style="display:none;">
+            <form id="addMaterialForm" novalidate>
+              <div class="admin-form-grid">
+                <div><label class="form-label">Title</label><input type="text" class="form-control" id="materialTitle" placeholder="e.g. Week 1 Slides" required></div>
+                <div><label class="form-label">File URL</label><input type="url" class="form-control" id="materialUrl" placeholder="https://&hellip;" required></div>
+              </div>
+              <div style="margin-top:16px;"><label class="form-label">Description</label><textarea class="form-control" id="materialDescription" rows="2"></textarea></div>
+              <div class="login-error" id="addMaterialError" style="display:none; margin-top:16px;"></div>
+              <div class="admin-form-actions">
+                <button type="submit" class="btn btn-accent" id="addMaterialSubmitBtn">Add</button>
+                <button type="button" class="btn btn-primary-outline" id="cancelAddMaterialBtn">Cancel</button>
+              </div>
+            </form>
+          </div>
+          <table class="admin-activity-table">
+            <thead><tr><th>Title</th><th>Link</th><th>Description</th><th>Actions</th></tr></thead>
+            <tbody id="materialsTableBody"><tr><td colspan="4" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
+          </table>
         </div>
 
         <div class="admin-panel">
@@ -334,6 +418,7 @@
 
 <script src="js/api.js?v=1"></script>
 <script src="js/auth.js?v=1"></script>
+<script src="js/video-conference.js?v=1"></script>
 <script src="js/admin-batch-detail.js?v=1"></script>
 <script src="js/chat.js?v=1"></script>
 

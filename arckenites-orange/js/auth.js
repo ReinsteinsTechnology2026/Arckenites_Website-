@@ -42,6 +42,17 @@ const ArckAuth = {
   },
 
   /**
+   * Client-side check only — pure UX polish (hide/disable a button the
+   * user isn't allowed to use). The real enforcement is server-side on
+   * every endpoint via require_permission; this never gates anything the
+   * backend wouldn't independently reject.
+   */
+  hasPermission(key) {
+    const user = ArckAPI.getStoredUser();
+    return !!(user && Array.isArray(user.permissions) && user.permissions.includes(key));
+  },
+
+  /**
    * Call at the top of every dashboard page. Redirects away (and returns
    * null) if the user isn't authenticated, isn't the expected role, or
    * still has a temporary password. Returns the user object otherwise.
@@ -65,7 +76,7 @@ const ArckAuth = {
       return null;
     }
 
-    if (user.role === 'student' && !user.program) {
+    if (user.role === 'student' && !user.profile_completed) {
       window.location.href = 'complete-profile.html';
       return null;
     }

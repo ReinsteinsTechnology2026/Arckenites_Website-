@@ -12,8 +12,6 @@ class Settings(BaseSettings):
 
     seed_admin1_username: str = "akadmin@001"
     seed_admin1_password: str = "admin#001"
-    seed_admin2_username: str = "akadmin@002"
-    seed_admin2_password: str = "admin#002"
 
     @property
     def cors_origin_list(self) -> list[str]:

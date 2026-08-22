@@ -221,7 +221,13 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (_) {
         return;
       }
-      if (data.type !== 'message') return;
+      if (data.type !== 'message') {
+        // Not a 1:1 chat frame (e.g. batch group chat) — hand it off via a
+        // DOM event so other pages can react without opening a second
+        // socket; this one connection is shared org-wide.
+        window.dispatchEvent(new CustomEvent('arck-ws-message', { detail: data }));
+        return;
+      }
 
       const peerId = data.peer_id;
       let c = conversations.find((x) => x.other_user_id === peerId);

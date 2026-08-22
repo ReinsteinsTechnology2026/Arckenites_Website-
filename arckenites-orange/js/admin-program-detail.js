@@ -84,7 +84,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('toggleStatusLabel').textContent = program.status === 'active' ? 'Deactivate' : 'Activate';
 
-    document.getElementById('detailCode').textContent = program.code || '—';
     document.getElementById('detailCategory').textContent = program.category || '—';
     document.getElementById('detailDuration').textContent = program.duration || '—';
     document.getElementById('detailMode').textContent = MODE_LABEL[program.mode];
@@ -189,7 +188,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('editProgramBtn').addEventListener('click', () => {
     document.getElementById('editProgramName').value = program.name;
-    document.getElementById('editProgramCode').value = program.code || '';
     document.getElementById('editProgramCategory').value = program.category || '';
     document.getElementById('editProgramDuration').value = program.duration || '';
     document.getElementById('editProgramMode').value = program.mode;
@@ -210,7 +208,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const body = {
       name: document.getElementById('editProgramName').value.trim(),
-      code: document.getElementById('editProgramCode').value.trim() || null,
       category: document.getElementById('editProgramCategory').value.trim() || null,
       duration: document.getElementById('editProgramDuration').value.trim() || null,
       mode: document.getElementById('editProgramMode').value,

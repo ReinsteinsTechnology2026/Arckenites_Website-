@@ -70,10 +70,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cardHtml = (p) => `
     <div class="program-card ${p.status === 'inactive' ? 'is-inactive' : ''}" data-id="${p.id}">
       <div class="program-card-header">
-        <div>
-          <h3>${escapeHtml(p.name)}</h3>
-          ${p.code ? `<span class="program-card-code">${escapeHtml(p.code)}</span>` : ''}
-        </div>
+        <h3>${escapeHtml(p.name)}</h3>
         <span class="admin-activity-badge ${p.status === 'active' ? 'is-success' : 'is-muted'}">${p.status === 'active' ? 'Active' : 'Inactive'}</span>
       </div>
       <p class="program-card-desc">${escapeHtml(p.description) || 'No description yet.'}</p>
@@ -116,6 +113,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const addErrorBox = document.getElementById('addProgramError');
   const addSubmitBtn = document.getElementById('addProgramSubmitBtn');
 
+  if (!ArckAuth.hasPermission('programs.create')) document.getElementById('toggleAddProgramBtn').style.display = 'none';
+
   document.getElementById('toggleAddProgramBtn').addEventListener('click', () => {
     const isHidden = addPanel.style.display === 'none';
     addPanel.style.display = isHidden ? 'block' : 'none';
@@ -134,7 +133,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const body = {
       name: document.getElementById('programName').value.trim(),
-      code: document.getElementById('programCode').value.trim() || null,
       category: document.getElementById('programCategory').value.trim() || null,
       duration: document.getElementById('programDuration').value.trim() || null,
       mode: document.getElementById('programMode').value,
@@ -167,7 +165,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     addPanel.style.display = 'none';
     document.getElementById('editProgramId').value = program.id;
     document.getElementById('editProgramName').value = program.name;
-    document.getElementById('editProgramCode').value = program.code || '';
     document.getElementById('editProgramCategory').value = program.category || '';
     document.getElementById('editProgramDuration').value = program.duration || '';
     document.getElementById('editProgramMode').value = program.mode;
@@ -189,7 +186,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const body = {
       name: document.getElementById('editProgramName').value.trim(),
-      code: document.getElementById('editProgramCode').value.trim() || null,
       category: document.getElementById('editProgramCategory').value.trim() || null,
       duration: document.getElementById('editProgramDuration').value.trim() || null,
       mode: document.getElementById('editProgramMode').value,

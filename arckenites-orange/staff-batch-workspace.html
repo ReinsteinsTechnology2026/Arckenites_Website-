@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Batch Workspace | Arckenites</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet" href="css/style.css?v=9">
+
+</head>
+<body>
+
+<header class="dashboard-topbar">
+  <a class="navbar-brand" href="staff-dashboard.html">
+    <img src="assets/logo.png" alt="Arckenites logo" class="brand-mark">
+    <span class="brand-text">Arckenites Hub</span>
+  </a>
+  <div class="dashboard-topbar-user">
+    <span id="staffWelcome">Welcome</span>
+    <button class="btn btn-primary-outline" id="staffLogoutBtn">Logout</button>
+  </div>
+</header>
+
+<main class="dashboard-main">
+  <a href="staff-dashboard.html" class="workspace-back"><i class="fa-solid fa-arrow-left"></i> All Batches</a>
+
+  <div class="workspace-header">
+    <div>
+      <h1 id="workspaceBatchName">Loading&hellip;</h1>
+      <div class="workspace-header-meta">
+        <span id="workspaceBatchProgram">—</span>
+        <span id="workspaceBatchStatus"></span>
+        <span id="workspaceBatchStudents">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="workspace-tabs">
+    <button type="button" class="workspace-tab is-active" data-tab="schedule"><i class="fa-solid fa-calendar-days"></i> Schedule</button>
+    <button type="button" class="workspace-tab" data-tab="chat"><i class="fa-solid fa-comments"></i> Chat<span class="admin-notif-badge" id="workspaceChatBadge" style="display:none;">0</span></button>
+    <button type="button" class="workspace-tab" data-tab="meeting"><i class="fa-solid fa-video"></i> Meeting</button>
+    <button type="button" class="workspace-tab" data-tab="details"><i class="fa-solid fa-book-open"></i> Class Details Updation</button>
+    <button type="button" class="workspace-tab" id="workspaceSupportTab"><i class="fa-solid fa-life-ring"></i> Support</button>
+  </div>
+
+  <section data-tab-panel="schedule">
+    <div class="admin-panel">
+      <div class="calendar-toolbar">
+        <h2 style="margin:0; font-size:1.05rem;"><i class="fa-solid fa-calendar-days"></i> Class Schedule</h2>
+        <div class="calendar-toolbar-nav">
+          <button type="button" class="icon-btn" id="calPrevBtn" aria-label="Previous month"><i class="fa-solid fa-chevron-left"></i></button>
+          <h3 id="calMonthLabel">Month Year</h3>
+          <button type="button" class="icon-btn" id="calNextBtn" aria-label="Next month"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <button type="button" class="btn btn-accent" id="calTodayBtn">Today</button>
+      </div>
+      <div class="calendar-grid" id="calendarWeekdays"></div>
+      <div class="calendar-grid" id="calendarDays"></div>
+    </div>
+  </section>
+
+  <section data-tab-panel="chat" style="display:none;">
+    <div class="admin-panel">
+      <div class="admin-panel-header"><h2><i class="fa-solid fa-comments"></i> Batch Chat</h2></div>
+      <div class="batch-chat-body">
+        <div class="batch-chat-messages" id="batchChatMessages"></div>
+        <form class="batch-chat-input-row" id="batchChatForm">
+          <input type="text" class="form-control" id="batchChatInput" placeholder="Message the whole batch&hellip;" autocomplete="off">
+          <button type="submit" class="btn btn-accent" id="batchChatSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section data-tab-panel="meeting" style="display:none;">
+    <div class="admin-panel">
+      <div class="admin-panel-header"><h2><i class="fa-solid fa-video"></i> Batch Meeting</h2></div>
+      <div style="padding:24px; display:flex; flex-direction:column; align-items:flex-start; gap:16px;">
+        <p style="color:var(--muted); margin:0;">This batch has one permanent video room — join anytime, and share the invite link with your students.</p>
+        <button type="button" class="btn btn-accent" id="joinBatchMeetingBtn"><i class="fa-solid fa-video"></i> Join Batch Meeting</button>
+      </div>
+    </div>
+  </section>
+
+  <section data-tab-panel="details" style="display:none;">
+    <div class="admin-panel" style="margin-bottom:20px;">
+      <div class="admin-panel-header"><h2><i class="fa-solid fa-book-open"></i> Study Materials</h2></div>
+      <div style="padding:20px;">
+        <p style="color:var(--muted); margin-bottom:16px;">Once a class is done, upload the notes/materials here — they show up on the students' dashboard immediately.</p>
+        <form id="uploadMaterialForm" novalidate>
+          <div class="admin-form-grid">
+            <div><label class="form-label">Title</label><input type="text" class="form-control" id="materialTitle" placeholder="e.g. Class 5 Notes" required></div>
+            <div><label class="form-label">Link (Drive, OneDrive, etc.)</label><input type="url" class="form-control" id="materialUrl" placeholder="https://..." required></div>
+            <div><label class="form-label">Description (optional)</label><input type="text" class="form-control" id="materialDescription" placeholder="What this covers"></div>
+          </div>
+          <div class="login-error" id="materialFormError" style="display:none; margin-top:16px;"></div>
+          <div class="admin-form-actions"><button type="submit" class="btn btn-accent" id="materialSubmitBtn">Upload</button></div>
+        </form>
+        <table class="admin-activity-table" style="margin-top:20px;">
+          <thead><tr><th>Title</th><th>Link</th><th>Description</th><th>Uploaded</th><th>Actions</th></tr></thead>
+          <tbody id="materialsTableBody"><tr><td colspan="5" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="admin-panel">
+      <div class="admin-panel-header"><h2><i class="fa-solid fa-video"></i> Class Videos</h2></div>
+      <div style="padding:20px;">
+        <p style="color:var(--muted); margin-bottom:16px;">Recorded a class? Upload it here once it's on Drive/YouTube-unlisted/OneDrive — it shows up on the students' dashboard immediately.</p>
+        <form id="uploadVideoForm" novalidate>
+          <div class="admin-form-grid">
+            <div><label class="form-label">Title</label><input type="text" class="form-control" id="videoTitle" placeholder="e.g. Class 5 Recording" required></div>
+            <div><label class="form-label">Link (Drive, YouTube, OneDrive, etc.)</label><input type="url" class="form-control" id="videoUrl" placeholder="https://..." required></div>
+            <div><label class="form-label">Description (optional)</label><input type="text" class="form-control" id="videoDescription" placeholder="What this covers"></div>
+          </div>
+          <div class="login-error" id="videoFormError" style="display:none; margin-top:16px;"></div>
+          <div class="admin-form-actions"><button type="submit" class="btn btn-accent" id="videoSubmitBtn">Upload</button></div>
+        </form>
+        <table class="admin-activity-table" style="margin-top:20px;">
+          <thead><tr><th>Title</th><th>Link</th><th>Description</th><th>Uploaded</th><th>Actions</th></tr></thead>
+          <tbody id="videosTableBody"><tr><td colspan="5" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<button type="button" class="chat-float" id="chatFloatBtn" aria-label="Messages">
+  <i class="fa-solid fa-comments"></i>
+  <span class="admin-notif-badge" id="chatBadge" style="display:none;">0</span>
+</button>
+
+<div class="chat-backdrop" id="chatBackdrop"></div>
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-panel-header">
+    <button type="button" class="icon-btn chat-back" id="chatBack" style="display:none;" aria-label="Back to conversations"><i class="fa-solid fa-arrow-left"></i></button>
+    <strong id="chatTitle">Messages</strong>
+    <button type="button" class="icon-btn" id="chatClose" aria-label="Close chat"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="chat-body">
+    <div class="chat-list-view" id="chatListView">
+      <div class="chat-search-row">
+        <input type="text" class="form-control" id="chatSearchInput" placeholder="Search by username or name&hellip;" autocomplete="off">
+      </div>
+      <div id="chatSearchResults" class="chat-search-results" style="display:none;"></div>
+      <div class="chat-conversation-list" id="chatConversationList">
+        <div class="admin-panel-empty">Loading&hellip;</div>
+      </div>
+    </div>
+    <div class="chat-thread-view" id="chatThreadView" style="display:none;">
+      <div class="chat-messages" id="chatMessages"></div>
+      <form class="chat-input-row" id="chatForm">
+        <input type="text" class="form-control" id="chatInput" placeholder="Type a message&hellip;" autocomplete="off">
+        <button type="submit" class="btn btn-accent" id="chatSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="sessionModalBackdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="sessionModalTitle">Schedule Class</h3>
+      <button type="button" class="icon-btn" id="sessionModalCloseBtn" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="sessionForm" novalidate>
+        <div><label class="form-label">Title</label><input type="text" class="form-control" id="sessionTitle" required></div>
+        <div style="margin-top:14px;"><label class="form-label">Date</label><input type="date" class="form-control" id="sessionDate" required></div>
+        <div class="admin-form-grid" style="margin-top:14px;">
+          <div><label class="form-label">Start Time</label><input type="time" class="form-control" id="sessionStartTime"></div>
+          <div><label class="form-label">End Time</label><input type="time" class="form-control" id="sessionEndTime"></div>
+        </div>
+        <div style="margin-top:14px;"><label class="form-label">Meeting Link (optional)</label><input type="url" class="form-control" id="sessionMeetingLink" placeholder="https://..."></div>
+        <div style="margin-top:14px;"><label class="form-label">Notes (optional)</label><textarea class="form-control" id="sessionNotes" rows="2"></textarea></div>
+        <div class="login-error" id="sessionFormError" style="display:none; margin-top:14px;"></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary-outline is-danger" id="sessionDeleteBtn" style="display:none; margin-right:auto;">Delete</button>
+      <button type="button" class="btn btn-primary-outline" id="sessionCancelBtn">Cancel</button>
+      <button type="button" class="btn btn-accent" id="sessionSaveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js?v=1"></script>
+<script src="js/auth.js?v=1"></script>
+<script src="js/video-conference.js?v=1"></script>
+<script src="js/staff-batch-workspace.js?v=1"></script>
+<script src="js/chat.js?v=1"></script>
+
+</body>
+</html>

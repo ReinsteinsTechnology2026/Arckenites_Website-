@@ -192,8 +192,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  /* ---------- Generic form submit stubs (Contact, Free Demo, Corporate, Careers) ---------- */
-  document.querySelectorAll('.demo-form, .contact-form, .inquiry-form, .apply-form').forEach(form => {
+  /* ---------- Generic form submit stubs (Free Demo, Corporate, Careers) ---------- */
+  document.querySelectorAll('.demo-form, .inquiry-form, .apply-form').forEach(form => {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const btn = form.querySelector('button[type="submit"]');
@@ -203,5 +203,39 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => { btn.textContent = originalText; btn.disabled = false; form.reset(); }, 2500);
     });
   });
+
+  /* ---------- Contact form: live submission to the backend ---------- */
+  const contactForm = document.getElementById('contactForm');
+  if (contactForm && window.ArckAPI) {
+    const contactErrorBox = document.getElementById('contactFormError');
+    const contactSubmitBtn = document.getElementById('contactFormSubmitBtn');
+
+    contactForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      contactErrorBox.style.display = 'none';
+
+      const body = {
+        full_name: document.getElementById('contactFullName').value.trim(),
+        phone: document.getElementById('contactPhone').value.trim(),
+        email: document.getElementById('contactEmail').value.trim(),
+        subject: document.getElementById('contactSubject').value.trim() || null,
+        message: document.getElementById('contactMessage').value.trim(),
+      };
+
+      const originalText = contactSubmitBtn.textContent;
+      contactSubmitBtn.disabled = true;
+
+      try {
+        await ArckAPI.request('/contact/enquiries', { method: 'POST', body, auth: false });
+        contactSubmitBtn.textContent = 'Submitted ✓';
+        setTimeout(() => { contactSubmitBtn.textContent = originalText; contactSubmitBtn.disabled = false; contactForm.reset(); }, 2500);
+      } catch (err) {
+        contactErrorBox.textContent = err.detail || 'Could not send your message. Please try again.';
+        contactErrorBox.style.display = 'block';
+        contactSubmitBtn.textContent = originalText;
+        contactSubmitBtn.disabled = false;
+      }
+    });
+  }
 
 });

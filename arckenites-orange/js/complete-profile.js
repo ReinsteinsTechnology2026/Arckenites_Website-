@@ -1,16 +1,3 @@
-/* Keep in sync with PROGRAM_LABELS in backend/app/models/student.py */
-const PROGRAMS = [
-  { value: 'official_certification', label: 'Official Certification Program' },
-  { value: 'corporate_training', label: 'Corporate Training Program' },
-  { value: 'institutional', label: 'Institutional Program' },
-  { value: 'placement_training', label: 'Placement Training Program' },
-  { value: 'trainers_program', label: 'Arckenites Trainers Program' },
-  { value: 'internship', label: 'Internship Program' },
-  { value: 'interview_crack', label: "Interview 'n' Crack Program" },
-  { value: 'job_assist', label: 'Arckenites Job Assist Program' },
-  { value: 'college_projects', label: 'College Projects Program' },
-];
-
 document.addEventListener('DOMContentLoaded', async () => {
 
   let user;
@@ -29,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = 'change-password.html';
     return;
   }
-  if (user.program) {
+  if (user.profile_completed) {
     window.location.href = 'student-dashboard.html';
     return;
   }
@@ -37,20 +24,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const nameInput = document.getElementById('profileName');
   const mobileInput = document.getElementById('profileMobile');
   const emailInput = document.getElementById('profileEmail');
-  const programSelect = document.getElementById('profileProgram');
   const roleToggle = document.getElementById('roleToggle');
   const errorBox = document.getElementById('completeProfileError');
   const form = document.getElementById('completeProfileForm');
   const submitBtn = form.querySelector('button[type="submit"]');
 
   nameInput.value = user.full_name || '';
-
-  PROGRAMS.forEach((p) => {
-    const opt = document.createElement('option');
-    opt.value = p.value;
-    opt.textContent = p.label;
-    programSelect.appendChild(opt);
-  });
 
   let selectedRole = null;
   roleToggle.querySelectorAll('.role-toggle-btn').forEach((btn) => {
@@ -70,11 +49,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       errorBox.style.display = 'block';
       return;
     }
-    if (!programSelect.value) {
-      errorBox.textContent = 'Please choose a program to continue.';
-      errorBox.style.display = 'block';
-      return;
-    }
 
     submitBtn.disabled = true;
     try {
@@ -85,7 +59,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           mobile_number: mobileInput.value.trim(),
           email: emailInput.value.trim(),
           current_role: selectedRole,
-          program: programSelect.value,
         },
       });
       ArckAuth.redirectToRoleEntryPoint(updatedUser);

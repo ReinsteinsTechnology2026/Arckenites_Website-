@@ -1,4 +1,3 @@
-const BATCH_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const BATCH_STATUS_BADGE = { upcoming: 'is-info', active: 'is-success', paused: 'is-pending', completed: 'is-muted', cancelled: 'is-danger' };
 const BATCH_STATUS_LABEL = { upcoming: 'Upcoming', active: 'Active', paused: 'Paused', completed: 'Completed', cancelled: 'Cancelled' };
 const BATCH_TYPE_LABEL = { online: 'Online', offline: 'Offline', hybrid: 'Hybrid' };
@@ -90,21 +89,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (_) { /* dropdown just stays at "No program linked" */ }
   };
 
-  /* ---------- Edit-form class days chips ---------- */
-  const editSelectedDays = new Set();
-  const editDaysRow = document.getElementById('editBatchDaysRow');
-  BATCH_DAYS.forEach((day) => {
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.className = 'batch-day-chip';
-    chip.textContent = day;
-    chip.addEventListener('click', () => {
-      if (editSelectedDays.has(day)) { editSelectedDays.delete(day); chip.classList.remove('is-selected'); }
-      else { editSelectedDays.add(day); chip.classList.add('is-selected'); }
-    });
-    editDaysRow.appendChild(chip);
-  });
-
   let batch = null;
 
   /* ---------- Render batch info ---------- */
@@ -121,10 +105,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       ? `<a href="admin-program-detail.html?id=${batch.program.id}">${escapeHtml(batch.program.name)}</a>` : 'Not linked';
     document.getElementById('detailType').textContent = BATCH_TYPE_LABEL[batch.batch_type];
     document.getElementById('detailStartDate').textContent = formatDate(batch.start_date);
-    document.getElementById('detailEndDate').textContent = formatDate(batch.end_date);
-    document.getElementById('detailDays').textContent = batch.class_days.length ? batch.class_days.join(', ') : '—';
-    document.getElementById('detailTime').textContent = (batch.start_time && batch.end_time)
-      ? `${formatTime(batch.start_time)} – ${formatTime(batch.end_time)}` : '—';
     document.getElementById('detailCapacity').textContent = batch.max_capacity || 'No limit set';
 
     const tbody = document.getElementById('batchStudentsTableBody');
@@ -190,21 +170,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     editProgramSelect.value = batch.program ? String(batch.program.id) : '';
     document.getElementById('editBatchCapacity').value = batch.max_capacity || '';
     document.getElementById('editBatchStartDate').value = batch.start_date || '';
-    document.getElementById('editBatchEndDate').value = batch.end_date || '';
-    document.getElementById('editBatchStartTime').value = batch.start_time || '';
-    document.getElementById('editBatchEndTime').value = batch.end_time || '';
-
-    editSelectedDays.clear();
-    editDaysRow.querySelectorAll('.batch-day-chip').forEach((chip) => {
-      const isOn = batch.class_days.includes(chip.textContent);
-      chip.classList.toggle('is-selected', isOn);
-      if (isOn) editSelectedDays.add(chip.textContent);
-    });
 
     editErrorBox.style.display = 'none';
     editPanel.style.display = 'block';
     editPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
+
+  document.getElementById('joinBatchVideoBtn').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    try {
+      const room = await ArckAPI.request(`/admin/batches/${batchId}/video`);
+      ArckVideo.openRoom({ roomName: room.room_name, displayName: room.display_name, subject: room.subject, shareable: true });
+    } catch (err) {
+      window.alert(err.detail || 'Could not open this batch\'s video room.');
+    } finally {
+      btn.disabled = false;
+    }
+  });
 
   document.getElementById('editBatchBtn').addEventListener('click', openEditPanel);
   document.getElementById('cancelEditBatchBtn').addEventListener('click', () => { editPanel.style.display = 'none'; });
@@ -227,10 +210,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       clear_program: !programValue,
       max_capacity: document.getElementById('editBatchCapacity').value ? Number(document.getElementById('editBatchCapacity').value) : null,
       start_date: document.getElementById('editBatchStartDate').value || null,
-      end_date: document.getElementById('editBatchEndDate').value || null,
-      start_time: document.getElementById('editBatchStartTime').value || null,
-      end_time: document.getElementById('editBatchEndTime').value || null,
-      class_days: [...editSelectedDays],
     };
 
     try {
@@ -355,6 +334,224 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  await Promise.all([loadTrainers(), loadPrograms(), loadBatch()]);
+  /* ---------- Class sessions ---------- */
+  const sessionsTableBody = document.getElementById('sessionsTableBody');
+  const addSessionPanel = document.getElementById('addSessionPanel');
+  const addSessionForm = document.getElementById('addSessionForm');
+  const addSessionErrorBox = document.getElementById('addSessionError');
+  const addSessionSubmitBtn = document.getElementById('addSessionSubmitBtn');
+
+  const renderSessions = (sessions) => {
+    sessionsTableBody.innerHTML = sessions.length
+      ? sessions.map((s) => `
+          <tr>
+            <td>${escapeHtml(s.title)}</td>
+            <td>${formatDate(s.session_date)}</td>
+            <td>${(s.start_time && s.end_time) ? `${formatTime(s.start_time)} – ${formatTime(s.end_time)}` : '—'}</td>
+            <td>${s.meeting_link ? `<a href="${escapeHtml(s.meeting_link)}" target="_blank" rel="noopener">Join</a>` : '—'}</td>
+            <td>${s.notes ? escapeHtml(s.notes) : '—'}</td>
+            <td>
+              <button type="button" class="table-action-btn is-danger" data-remove-session="${s.id}" title="Delete ${escapeHtml(s.title)}">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `).join('')
+      : '<tr><td colspan="6" class="admin-panel-empty">No class sessions scheduled yet.</td></tr>';
+  };
+
+  const loadSessions = async () => {
+    try {
+      const sessions = await ArckAPI.request(`/admin/batches/${batchId}/sessions`);
+      renderSessions(sessions);
+    } catch (err) {
+      if (err.status === 0) showServerBanner();
+      sessionsTableBody.innerHTML = '<tr><td colspan="6" class="admin-panel-empty">Couldn\'t load the class schedule.</td></tr>';
+    }
+  };
+
+  document.getElementById('toggleAddSessionBtn').addEventListener('click', () => {
+    const isHidden = addSessionPanel.style.display === 'none';
+    addSessionPanel.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) document.getElementById('sessionTitle').focus();
+  });
+  document.getElementById('cancelAddSessionBtn').addEventListener('click', () => {
+    addSessionPanel.style.display = 'none';
+    addSessionForm.reset();
+    addSessionErrorBox.style.display = 'none';
+  });
+
+  addSessionForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    addSessionErrorBox.style.display = 'none';
+    addSessionSubmitBtn.disabled = true;
+
+    const body = {
+      title: document.getElementById('sessionTitle').value.trim(),
+      session_date: document.getElementById('sessionDate').value,
+      start_time: document.getElementById('sessionStartTime').value || null,
+      end_time: document.getElementById('sessionEndTime').value || null,
+      meeting_link: document.getElementById('sessionMeetingLink').value.trim() || null,
+      notes: document.getElementById('sessionNotes').value.trim() || null,
+    };
+
+    try {
+      await ArckAPI.request(`/admin/batches/${batchId}/sessions`, { method: 'POST', body });
+      addSessionPanel.style.display = 'none';
+      addSessionForm.reset();
+      await loadSessions();
+    } catch (err) {
+      addSessionErrorBox.textContent = err.detail || 'Could not add the class session.';
+      addSessionErrorBox.style.display = 'block';
+    } finally {
+      addSessionSubmitBtn.disabled = false;
+    }
+  });
+
+  sessionsTableBody.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-remove-session]');
+    if (!btn) return;
+    if (!window.confirm('Delete this class session? This cannot be undone.')) return;
+
+    btn.disabled = true;
+    try {
+      await ArckAPI.request(`/admin/batches/${batchId}/sessions/${btn.dataset.removeSession}`, { method: 'DELETE' });
+      await loadSessions();
+    } catch (err) {
+      window.alert(err.detail || 'Could not delete the class session.');
+      btn.disabled = false;
+    }
+  });
+
+  /* ---------- Lab Access / Class Videos / Study Materials (same shape, generic wiring) ---------- */
+  const setupSimpleResourcePanel = ({ endpoint, toggleBtnId, panelId, formId, errorBoxId, submitBtnId, cancelBtnId, tableBodyId, focusFieldId, buildBody, renderRow, colspan, emptyText }) => {
+    const panel = document.getElementById(panelId);
+    const form = document.getElementById(formId);
+    const errorBox = document.getElementById(errorBoxId);
+    const submitBtn = document.getElementById(submitBtnId);
+    const tableBody = document.getElementById(tableBodyId);
+
+    const load = async () => {
+      try {
+        const items = await ArckAPI.request(`/admin/batches/${batchId}/${endpoint}`);
+        tableBody.innerHTML = items.length
+          ? items.map(renderRow).join('')
+          : `<tr><td colspan="${colspan}" class="admin-panel-empty">${emptyText}</td></tr>`;
+      } catch (err) {
+        if (err.status === 0) showServerBanner();
+        tableBody.innerHTML = `<tr><td colspan="${colspan}" class="admin-panel-empty">Couldn't load this.</td></tr>`;
+      }
+    };
+
+    document.getElementById(toggleBtnId).addEventListener('click', () => {
+      const isHidden = panel.style.display === 'none';
+      panel.style.display = isHidden ? 'block' : 'none';
+      if (isHidden) document.getElementById(focusFieldId).focus();
+    });
+    document.getElementById(cancelBtnId).addEventListener('click', () => {
+      panel.style.display = 'none';
+      form.reset();
+      errorBox.style.display = 'none';
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.style.display = 'none';
+      submitBtn.disabled = true;
+      try {
+        await ArckAPI.request(`/admin/batches/${batchId}/${endpoint}`, { method: 'POST', body: buildBody() });
+        panel.style.display = 'none';
+        form.reset();
+        await load();
+      } catch (err) {
+        errorBox.textContent = err.detail || 'Could not save.';
+        errorBox.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    tableBody.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-remove-id]');
+      if (!btn) return;
+      if (!window.confirm('Delete this entry? This cannot be undone.')) return;
+      btn.disabled = true;
+      try {
+        await ArckAPI.request(`/admin/batches/${batchId}/${endpoint}/${btn.dataset.removeId}`, { method: 'DELETE' });
+        await load();
+      } catch (err) {
+        window.alert(err.detail || 'Could not delete this entry.');
+        btn.disabled = false;
+      }
+    });
+
+    return load;
+  };
+
+  const loadLabAccess = setupSimpleResourcePanel({
+    endpoint: 'lab-access', toggleBtnId: 'toggleAddLabAccessBtn', panelId: 'addLabAccessPanel',
+    formId: 'addLabAccessForm', errorBoxId: 'addLabAccessError', submitBtnId: 'addLabAccessSubmitBtn',
+    cancelBtnId: 'cancelAddLabAccessBtn', tableBodyId: 'labAccessTableBody', focusFieldId: 'labTitle',
+    colspan: 6, emptyText: 'No lab access posted yet.',
+    buildBody: () => ({
+      title: document.getElementById('labTitle').value.trim(),
+      access_url: document.getElementById('labUrl').value.trim(),
+      username: document.getElementById('labUsername').value.trim() || null,
+      password: document.getElementById('labPassword').value.trim() || null,
+      notes: document.getElementById('labNotes').value.trim() || null,
+    }),
+    renderRow: (r) => `
+      <tr>
+        <td>${escapeHtml(r.title)}</td>
+        <td><a href="${escapeHtml(r.access_url)}" target="_blank" rel="noopener">Open</a></td>
+        <td>${r.username ? escapeHtml(r.username) : '—'}</td>
+        <td>${r.password ? escapeHtml(r.password) : '—'}</td>
+        <td>${r.notes ? escapeHtml(r.notes) : '—'}</td>
+        <td><button type="button" class="table-action-btn is-danger" data-remove-id="${r.id}" title="Delete"><i class="fa-solid fa-trash"></i></button></td>
+      </tr>
+    `,
+  });
+
+  const loadVideos = setupSimpleResourcePanel({
+    endpoint: 'videos', toggleBtnId: 'toggleAddVideoBtn', panelId: 'addVideoPanel',
+    formId: 'addVideoForm', errorBoxId: 'addVideoError', submitBtnId: 'addVideoSubmitBtn',
+    cancelBtnId: 'cancelAddVideoBtn', tableBodyId: 'videosTableBody', focusFieldId: 'videoTitle',
+    colspan: 4, emptyText: 'No videos posted yet.',
+    buildBody: () => ({
+      title: document.getElementById('videoTitle').value.trim(),
+      video_url: document.getElementById('videoUrl').value.trim(),
+      description: document.getElementById('videoDescription').value.trim() || null,
+    }),
+    renderRow: (r) => `
+      <tr>
+        <td>${escapeHtml(r.title)}</td>
+        <td><a href="${escapeHtml(r.video_url)}" target="_blank" rel="noopener">Watch</a></td>
+        <td>${r.description ? escapeHtml(r.description) : '—'}</td>
+        <td><button type="button" class="table-action-btn is-danger" data-remove-id="${r.id}" title="Delete"><i class="fa-solid fa-trash"></i></button></td>
+      </tr>
+    `,
+  });
+
+  const loadMaterials = setupSimpleResourcePanel({
+    endpoint: 'materials', toggleBtnId: 'toggleAddMaterialBtn', panelId: 'addMaterialPanel',
+    formId: 'addMaterialForm', errorBoxId: 'addMaterialError', submitBtnId: 'addMaterialSubmitBtn',
+    cancelBtnId: 'cancelAddMaterialBtn', tableBodyId: 'materialsTableBody', focusFieldId: 'materialTitle',
+    colspan: 4, emptyText: 'No study materials posted yet.',
+    buildBody: () => ({
+      title: document.getElementById('materialTitle').value.trim(),
+      file_url: document.getElementById('materialUrl').value.trim(),
+      description: document.getElementById('materialDescription').value.trim() || null,
+    }),
+    renderRow: (r) => `
+      <tr>
+        <td>${escapeHtml(r.title)}</td>
+        <td><a href="${escapeHtml(r.file_url)}" target="_blank" rel="noopener">Open</a></td>
+        <td>${r.description ? escapeHtml(r.description) : '—'}</td>
+        <td><button type="button" class="table-action-btn is-danger" data-remove-id="${r.id}" title="Delete"><i class="fa-solid fa-trash"></i></button></td>
+      </tr>
+    `,
+  });
+
+  await Promise.all([loadTrainers(), loadPrograms(), loadBatch(), loadSessions(), loadLabAccess(), loadVideos(), loadMaterials()]);
 
 });

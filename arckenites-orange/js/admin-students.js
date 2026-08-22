@@ -93,11 +93,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   /* ---------- Add-student panel toggle ---------- */
   const addPanel = document.getElementById('addStudentPanel');
   const toggleBtn = document.getElementById('toggleAddStudentBtn');
+  if (!ArckAuth.hasPermission('students.create')) toggleBtn.style.display = 'none';
   const cancelBtn = document.getElementById('cancelAddStudentBtn');
   const form = document.getElementById('addStudentForm');
   const nameInput = document.getElementById('newStudentName');
   const passwordInput = document.getElementById('newStudentPassword');
+  const newProgramSelect = document.getElementById('newStudentProgram');
   const errorBox = document.getElementById('addStudentError');
+
+  const populateProgramSelect = (select) => {
+    Object.entries(PROGRAM_LABELS).forEach(([value, label]) => {
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = label;
+      select.appendChild(opt);
+    });
+  };
+  populateProgramSelect(newProgramSelect);
   const submitBtn = document.getElementById('addStudentSubmitBtn');
   const notice = document.getElementById('newStudentNotice');
 
@@ -127,6 +139,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     ? `<span class="admin-activity-badge is-muted">${PROGRAM_LABELS[program] || program}</span>`
     : '<span class="admin-activity-badge is-pending">Not selected yet</span>';
 
+  const canDeleteStudents = ArckAuth.hasPermission('students.delete');
+
   const rowHtml = (student) => `
     <tr>
       <td>${student.username}</td>
@@ -137,7 +151,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <td>
         <div class="admin-row-actions">
           <button type="button" class="table-action-btn" data-action="edit" data-id="${student.id}" title="Edit ${student.full_name}"><i class="fa-solid fa-pen"></i></button>
-          <button type="button" class="table-action-btn is-danger" data-action="delete" data-id="${student.id}" title="Delete ${student.full_name}"><i class="fa-solid fa-trash"></i></button>
+          ${canDeleteStudents ? `<button type="button" class="table-action-btn is-danger" data-action="delete" data-id="${student.id}" title="Delete ${student.full_name}"><i class="fa-solid fa-trash"></i></button>` : ''}
         </div>
       </td>
     </tr>
@@ -173,7 +187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const created = await ArckAPI.request('/admin/students', {
         method: 'POST',
-        body: { full_name: nameInput.value.trim(), temp_password: passwordInput.value },
+        body: { full_name: nameInput.value.trim(), temp_password: passwordInput.value, program: newProgramSelect.value || null },
       });
       students = [created, ...students];
       renderStudents(students);

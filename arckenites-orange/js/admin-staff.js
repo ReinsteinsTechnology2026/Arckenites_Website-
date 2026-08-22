@@ -218,21 +218,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   /* ---------- Add trainer ---------- */
   const addPanel = document.getElementById('addStaffPanel');
   const toggleBtn = document.getElementById('toggleAddStaffBtn');
+  if (!ArckAuth.hasPermission('trainers.create')) toggleBtn.style.display = 'none';
+  if (!ArckAuth.hasPermission('trainers.delete')) {
+    const deleteMenuItem = rowMenu.querySelector('[data-action="delete"]');
+    if (deleteMenuItem) deleteMenuItem.style.display = 'none';
+  }
   const cancelBtn = document.getElementById('cancelAddStaffBtn');
   const form = document.getElementById('addStaffForm');
   const nameInput = document.getElementById('newStaffName');
-  const usernameInput = document.getElementById('newStaffUsername');
-  const emailInput = document.getElementById('newStaffEmail');
   const passwordInput = document.getElementById('newStaffPassword');
-  const passwordConfirmInput = document.getElementById('newStaffPasswordConfirm');
   const errorBox = document.getElementById('addStaffError');
   const submitBtn = document.getElementById('addStaffSubmitBtn');
   const notice = document.getElementById('newStaffNotice');
 
   document.getElementById('generateStaffPasswordBtn').addEventListener('click', () => {
-    const pwd = generatePassword();
-    passwordInput.value = pwd;
-    passwordConfirmInput.value = pwd;
+    passwordInput.value = generatePassword();
   });
 
   const openAddPanel = () => { addPanel.style.display = 'block'; nameInput.focus(); };
@@ -251,20 +251,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     errorBox.style.display = 'none';
     notice.style.display = 'none';
 
-    if (passwordInput.value !== passwordConfirmInput.value) {
-      errorBox.textContent = 'Temporary password and confirmation do not match.';
-      errorBox.style.display = 'block';
-      return;
-    }
-
     submitBtn.disabled = true;
     try {
       const created = await ArckAPI.request('/admin/staff', {
         method: 'POST',
         body: {
           full_name: nameInput.value.trim(),
-          username: usernameInput.value.trim(),
-          email: emailInput.value.trim() || null,
           temp_password: passwordInput.value,
         },
       });

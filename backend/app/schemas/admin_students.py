@@ -15,6 +15,12 @@ PROGRAM_CHOICES: list[dict[str, str]] = [
 class CreateStudentRequest(BaseModel):
     full_name: str = Field(min_length=1, max_length=200)
     temp_password: str = Field(min_length=8, max_length=128)
+    program: str | None = None
+
+    @field_validator("program")
+    @classmethod
+    def validate_program(cls, value: str | None) -> str | None:
+        return value if value is None else _validate_program_value(value)
 
 
 class StudentAdminOut(BaseModel):
@@ -43,7 +49,6 @@ class CompleteProfileRequest(BaseModel):
     mobile_number: str = Field(min_length=7, max_length=30)
     email: str = Field(min_length=3, max_length=255)
     current_role: str
-    program: str
 
     @field_validator("email")
     @classmethod
@@ -59,11 +64,6 @@ class CompleteProfileRequest(BaseModel):
             allowed = ", ".join(r.value for r in CurrentRoleEnum)
             raise ValueError(f"current_role must be one of: {allowed}")
         return value
-
-    @field_validator("program")
-    @classmethod
-    def validate_program(cls, value: str) -> str:
-        return _validate_program_value(value)
 
 
 class UpdateStudentRequest(BaseModel):

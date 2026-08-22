@@ -1,24 +1,34 @@
 import io
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from sqlalchemy import delete, or_, select, update
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.deps import require_role
+from app.core.deps import require_permission
 from app.core.security import hash_password
+from app.crud.audit import write_audit_event
 from app.crud.user import generate_username
 from app.database import get_db
-from app.models.audit_log import AuthAuditLog
+from app.models.audit_log import AuthAuditLog, AuthEventType
+from app.models.batch import BatchEnrollment
 from app.models.chat import Conversation, DirectMessage
+from app.models.interview_schedule import InterviewSchedule
+from app.models.program import ProgramEnrollment
 from app.models.session import AuthSession
 from app.models.student import PROGRAM_LABELS, ProgramEnum, StudentProfile
 from app.models.user import RoleEnum, User
 from app.schemas.admin_students import CreateStudentRequest, StudentAdminOut, UpdateStudentRequest
 
 router = APIRouter(prefix="/admin", tags=["admin-students"])
+
+
+def _client_meta(request: Request) -> tuple[str, str]:
+    ip = request.client.host if request.client else "unknown"
+    ua = request.headers.get("user-agent", "unknown")
+    return ip, ua
 
 
 def _get_student_or_404(db: Session, student_id: int) -> User:
@@ -31,8 +41,9 @@ def _get_student_or_404(db: Session, student_id: int) -> User:
 @router.post("/students", response_model=StudentAdminOut, status_code=201)
 def create_student(
     payload: CreateStudentRequest,
+    request: Request,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_role("admin")),
+    actor: User = Depends(require_permission("students.create")),
 ):
     username = generate_username(db, payload.full_name, RoleEnum.student)
 
@@ -46,9 +57,16 @@ def create_student(
     db.add(user)
     db.flush()
 
-    db.add(StudentProfile(user_id=user.id))
+    program = ProgramEnum(payload.program) if payload.program else None
+    db.add(StudentProfile(user_id=user.id, program=program))
     db.commit()
     db.refresh(user)
+
+    ip, ua = _client_meta(request)
+    write_audit_event(
+        db, AuthEventType.student_created, ip, ua, user=actor, detail=f"Created student {username}",
+        module="students", target=username, status="success",
+    )
 
     return StudentAdminOut.model_validate(user)
 
@@ -56,7 +74,7 @@ def create_student(
 @router.get("/students", response_model=list[StudentAdminOut])
 def list_students(
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_role("admin")),
+    _actor: User = Depends(require_permission("students.view")),
 ):
     users = db.scalars(
         select(User)
@@ -70,7 +88,7 @@ def list_students(
 @router.get("/students/export")
 def export_students(
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_role("admin")),
+    _actor: User = Depends(require_permission("students.export")),
 ):
     """On-demand snapshot for the admin to keep outside the app — the
     database (not this file) remains the source of truth for login/auth,
@@ -127,14 +145,22 @@ def export_students(
 def update_student(
     student_id: int,
     payload: UpdateStudentRequest,
+    request: Request,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_role("admin")),
+    actor: User = Depends(require_permission("students.edit")),
 ):
     user = _get_student_or_404(db, student_id)
+    ip, ua = _client_meta(request)
 
     if payload.full_name is not None:
         user.full_name = payload.full_name
     if payload.is_active is not None:
+        if payload.is_active != user.is_active:
+            write_audit_event(
+                db, AuthEventType.student_enabled if payload.is_active else AuthEventType.student_disabled,
+                ip, ua, user=actor, detail=f"{'Enabled' if payload.is_active else 'Disabled'} student {user.username}",
+                module="students", target=user.username, status="success",
+            )
         user.is_active = payload.is_active
     if payload.program is not None:
         user.student_profile.program = ProgramEnum(payload.program)
@@ -143,6 +169,17 @@ def update_student(
         user.must_change_password = True
         user.failed_login_count = 0
         user.locked_until = None
+        write_audit_event(
+            db, AuthEventType.student_password_reset, ip, ua, user=actor,
+            detail=f"Reset password for student {user.username}", module="students", target=user.username,
+            status="success",
+        )
+
+    if payload.full_name is not None or payload.program is not None:
+        write_audit_event(
+            db, AuthEventType.student_updated, ip, ua, user=actor, detail=f"Edited student {user.username}",
+            module="students", target=user.username, status="success",
+        )
 
     db.add(user)
     db.commit()
@@ -154,10 +191,12 @@ def update_student(
 @router.delete("/students/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_student(
     student_id: int,
+    request: Request,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_role("admin")),
+    actor: User = Depends(require_permission("students.delete")),
 ):
     user = _get_student_or_404(db, student_id)
+    username = user.username
 
     # Detach (don't delete) audit history so security records survive account
     # removal — auth_audit_log.user_id is nullable for exactly this reason.
@@ -174,6 +213,19 @@ def delete_student(
         db.execute(delete(DirectMessage).where(DirectMessage.conversation_id.in_(convo_ids)))
         db.execute(delete(Conversation).where(Conversation.id.in_(convo_ids)))
 
+    # Same story for batch/program enrollments — no ON DELETE CASCADE to
+    # users.id, so a student who's allocated to any batch or enrolled in any
+    # program must be detached from both before the user row can go.
+    db.execute(delete(BatchEnrollment).where(BatchEnrollment.student_id == user.id))
+    db.execute(delete(ProgramEnrollment).where(ProgramEnrollment.student_id == user.id))
+    db.execute(delete(InterviewSchedule).where(InterviewSchedule.student_id == user.id))
+
     db.delete(user)  # cascades to student_profile via the User.student_profile relationship
     db.commit()
+
+    ip, ua = _client_meta(request)
+    write_audit_event(
+        db, AuthEventType.student_deleted, ip, ua, user=actor, detail=f"Deleted student {username}",
+        module="students", target=username, status="success",
+    )
     return None

@@ -137,14 +137,15 @@
       <div class="col-lg-7" data-aos="fade-left">
         <div class="form-card">
           <h5 class="mb-3">Send Us a Message</h5>
-          <form class="contact-form">
+          <form class="contact-form" id="contactForm">
             <div class="row g-3">
-              <div class="col-md-6"><label class="form-label">Full Name</label><input type="text" class="form-control" required></div>
-              <div class="col-md-6"><label class="form-label">Phone Number</label><input type="tel" class="form-control" required></div>
-              <div class="col-12"><label class="form-label">Email</label><input type="email" class="form-control" required></div>
-              <div class="col-12"><label class="form-label">Subject</label><input type="text" class="form-control"></div>
-              <div class="col-12"><label class="form-label">Message</label><textarea class="form-control" rows="4" required></textarea></div>
-              <div class="col-12"><button type="submit" class="btn btn-accent w-100">Send Message</button></div>
+              <div class="col-md-6"><label class="form-label">Full Name</label><input type="text" class="form-control" id="contactFullName" required></div>
+              <div class="col-md-6"><label class="form-label">Phone Number</label><input type="tel" class="form-control" id="contactPhone" required></div>
+              <div class="col-12"><label class="form-label">Email</label><input type="email" class="form-control" id="contactEmail" required></div>
+              <div class="col-12"><label class="form-label">Subject</label><input type="text" class="form-control" id="contactSubject"></div>
+              <div class="col-12"><label class="form-label">Message</label><textarea class="form-control" rows="4" id="contactMessage" required></textarea></div>
+              <div class="col-12"><div class="login-error" id="contactFormError" style="display:none;"></div></div>
+              <div class="col-12"><button type="submit" class="btn btn-accent w-100" id="contactFormSubmitBtn">Send Message</button></div>
             </div>
           </form>
         </div>
@@ -247,6 +248,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="js/api.js?v=1"></script>
 <script src="js/script.js"></script>
 
 </body>

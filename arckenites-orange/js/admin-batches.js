@@ -1,4 +1,3 @@
-const BATCH_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const BATCH_STATUS_BADGE = { upcoming: 'is-info', active: 'is-success', paused: 'is-pending', completed: 'is-muted', cancelled: 'is-danger' };
 const BATCH_STATUS_LABEL = { upcoming: 'Upcoming', active: 'Active', paused: 'Paused', completed: 'Completed', cancelled: 'Cancelled' };
 const BATCH_TYPE_LABEL = { online: 'Online', offline: 'Offline', hybrid: 'Hybrid' };
@@ -6,13 +5,6 @@ const BATCH_TYPE_LABEL = { online: 'Online', offline: 'Offline', hybrid: 'Hybrid
 const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 const formatDate = (iso) => iso ? new Date(iso + 'T00:00:00').toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
-const formatTime = (t) => t ? new Date(`1970-01-01T${t}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
-
-const scheduleSummary = (batch) => {
-  const days = batch.class_days.length ? batch.class_days.join('/') : '';
-  const time = (batch.start_time && batch.end_time) ? `${formatTime(batch.start_time)}–${formatTime(batch.end_time)}` : '';
-  return [days, time].filter(Boolean).join(' &middot; ') || '&mdash;';
-};
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -107,21 +99,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (_) { /* program dropdown just stays at "No program linked" */ }
   };
 
-  /* ---------- Class days chips ---------- */
-  const selectedDays = new Set();
-  const daysRow = document.getElementById('batchDaysRow');
-  BATCH_DAYS.forEach((day) => {
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.className = 'batch-day-chip';
-    chip.textContent = day;
-    chip.addEventListener('click', () => {
-      if (selectedDays.has(day)) { selectedDays.delete(day); chip.classList.remove('is-selected'); }
-      else { selectedDays.add(day); chip.classList.add('is-selected'); }
-    });
-    daysRow.appendChild(chip);
-  });
-
   /* ---------- Student allocation picker ---------- */
   const selectedStudents = new Map();
   const studentSearchInput = document.getElementById('batchStudentSearch');
@@ -186,13 +163,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const resetForm = () => {
     form.reset();
-    selectedDays.clear();
-    daysRow.querySelectorAll('.batch-day-chip').forEach((c) => c.classList.remove('is-selected'));
     selectedStudents.clear();
     renderSelectedStudents();
     studentResultsEl.innerHTML = '';
     errorBox.style.display = 'none';
   };
+
+  if (!ArckAuth.hasPermission('batches.create')) toggleBtn.style.display = 'none';
 
   toggleBtn.addEventListener('click', () => {
     const isHidden = addPanel.style.display === 'none';
@@ -203,6 +180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ---------- Table rendering ---------- */
   const tbody = document.getElementById('batchesTableBody');
+  const canDeleteBatches = ArckAuth.hasPermission('batches.delete');
 
   const rowHtml = (batch) => `
     <tr>
@@ -212,13 +190,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       <td>${batch.trainer ? escapeHtml(batch.trainer.full_name) : '<span class="admin-activity-badge is-pending">Unassigned</span>'}</td>
       <td>${batch.student_count}${batch.max_capacity ? ` / ${batch.max_capacity}` : ''}</td>
       <td>${formatDate(batch.start_date)}</td>
-      <td>${formatDate(batch.end_date)}</td>
-      <td>${scheduleSummary(batch)}</td>
       <td><span class="admin-activity-badge ${BATCH_STATUS_BADGE[batch.status]}">${BATCH_STATUS_LABEL[batch.status]}</span></td>
       <td>
         <div class="admin-row-actions">
           <a class="table-action-btn" href="admin-batch-detail.html?id=${batch.id}" title="View ${escapeHtml(batch.name)}"><i class="fa-solid fa-eye"></i></a>
-          <button type="button" class="table-action-btn is-danger" data-action="delete" data-id="${batch.id}" title="Delete ${escapeHtml(batch.name)}"><i class="fa-solid fa-trash"></i></button>
+          ${canDeleteBatches ? `<button type="button" class="table-action-btn is-danger" data-action="delete" data-id="${batch.id}" title="Delete ${escapeHtml(batch.name)}"><i class="fa-solid fa-trash"></i></button>` : ''}
         </div>
       </td>
     </tr>
@@ -228,7 +204,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const renderBatches = () => {
     tbody.innerHTML = batches.length
       ? batches.map(rowHtml).join('')
-      : '<tr><td colspan="10" class="admin-panel-empty">No batches yet. Click "Create New Batch" to add the first one.</td></tr>';
+      : '<tr><td colspan="8" class="admin-panel-empty">No batches yet. Click "Create New Batch" to add the first one.</td></tr>';
   };
 
   const loadBatches = async () => {
@@ -237,7 +213,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderBatches();
     } catch (err) {
       if (err.status === 0) showServerBanner();
-      tbody.innerHTML = '<tr><td colspan="10" class="admin-panel-empty">Couldn\'t load batches.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="admin-panel-empty">Couldn\'t load batches.</td></tr>';
     }
   };
 
@@ -276,10 +252,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       program_id: programSelect.value ? Number(programSelect.value) : null,
       max_capacity: document.getElementById('batchCapacity').value ? Number(document.getElementById('batchCapacity').value) : null,
       start_date: document.getElementById('batchStartDate').value || null,
-      end_date: document.getElementById('batchEndDate').value || null,
-      start_time: document.getElementById('batchStartTime').value || null,
-      end_time: document.getElementById('batchEndTime').value || null,
-      class_days: [...selectedDays],
       student_ids: [...selectedStudents.keys()],
     };
 

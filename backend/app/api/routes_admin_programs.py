@@ -1,11 +1,13 @@
 import re
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.deps import require_role
+from app.core.deps import require_permission
+from app.crud.audit import write_audit_event
 from app.database import get_db
+from app.models.audit_log import AuthEventType
 from app.models.batch import Batch, BatchEnrollment, BatchStatusEnum
 from app.models.program import EnrollmentStatusEnum, Program, ProgramEnrollment, ProgramModeEnum, ProgramStatusEnum
 from app.models.user import RoleEnum, User
@@ -49,6 +51,12 @@ def _unique_slug(db: Session, name: str) -> str:
     return slug
 
 
+def _client_meta(request: Request) -> tuple[str, str]:
+    ip = request.client.host if request.client else "unknown"
+    ua = request.headers.get("user-agent", "unknown")
+    return ip, ua
+
+
 def _get_program_or_404(db: Session, program_id: int) -> Program:
     program = db.get(Program, program_id)
     if program is None:
@@ -82,7 +90,7 @@ def _list_item(db: Session, program: Program) -> ProgramListItemOut:
 
 
 @router.get("/stats", response_model=ProgramStatsOut)
-def program_stats(db: Session = Depends(get_db), _admin: User = Depends(require_role("admin"))):
+def program_stats(db: Session = Depends(get_db), _actor: User = Depends(require_permission("programs.view"))):
     total_programs = db.scalar(select(func.count()).select_from(Program)) or 0
     active_programs = db.scalar(
         select(func.count()).select_from(Program).where(Program.status == ProgramStatusEnum.active)
@@ -105,7 +113,7 @@ def program_stats(db: Session = Depends(get_db), _admin: User = Depends(require_
 
 
 @router.get("", response_model=list[ProgramListItemOut])
-def list_programs(db: Session = Depends(get_db), _admin: User = Depends(require_role("admin"))):
+def list_programs(db: Session = Depends(get_db), _actor: User = Depends(require_permission("programs.view"))):
     programs = db.scalars(select(Program).order_by(Program.id)).all()
     return [_list_item(db, p) for p in programs]
 
@@ -113,8 +121,9 @@ def list_programs(db: Session = Depends(get_db), _admin: User = Depends(require_
 @router.post("", response_model=ProgramListItemOut, status_code=201)
 def create_program(
     payload: CreateProgramRequest,
+    request: Request,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_role("admin")),
+    actor: User = Depends(require_permission("programs.create")),
 ):
     if payload.code:
         existing = db.scalar(select(Program).where(Program.code == payload.code))
@@ -130,11 +139,18 @@ def create_program(
     db.add(program)
     db.commit()
     db.refresh(program)
+
+    ip, ua = _client_meta(request)
+    write_audit_event(
+        db, AuthEventType.program_created, ip, ua, user=actor, detail=f"Created program {program.name}",
+        module="programs", target=program.name, status="success",
+    )
+
     return _list_item(db, program)
 
 
 @router.get("/{program_id}", response_model=ProgramDetailOut)
-def get_program(program_id: int, db: Session = Depends(get_db), _admin: User = Depends(require_role("admin"))):
+def get_program(program_id: int, db: Session = Depends(get_db), _actor: User = Depends(require_permission("programs.view"))):
     program = _get_program_or_404(db, program_id)
 
     batches = db.scalars(
@@ -202,8 +218,9 @@ def get_program(program_id: int, db: Session = Depends(get_db), _admin: User = D
 def update_program(
     program_id: int,
     payload: UpdateProgramRequest,
+    request: Request,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_role("admin")),
+    actor: User = Depends(require_permission("programs.edit")),
 ):
     program = _get_program_or_404(db, program_id)
 
@@ -234,7 +251,14 @@ def update_program(
 
     db.add(program)
     db.commit()
-    return get_program(program_id, db, _admin)
+
+    ip, ua = _client_meta(request)
+    write_audit_event(
+        db, AuthEventType.program_updated, ip, ua, user=actor, detail=f"Updated program {program.name}",
+        module="programs", target=program.name, status="success",
+    )
+
+    return get_program(program_id, db, actor)
 
 
 @router.post("/{program_id}/enrollments", response_model=ProgramDetailOut)
@@ -242,7 +266,7 @@ def enroll_students(
     program_id: int,
     payload: EnrollStudentsRequest,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_role("admin")),
+    actor: User = Depends(require_permission("programs.edit")),
 ):
     program = _get_program_or_404(db, program_id)
 
@@ -269,7 +293,7 @@ def enroll_students(
             ))
 
     db.commit()
-    return get_program(program_id, db, _admin)
+    return get_program(program_id, db, actor)
 
 
 @router.patch("/{program_id}/enrollments/{enrollment_id}", response_model=ProgramDetailOut)
@@ -278,7 +302,7 @@ def update_enrollment(
     enrollment_id: int,
     payload: UpdateEnrollmentRequest,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_role("admin")),
+    actor: User = Depends(require_permission("programs.edit")),
 ):
     _get_program_or_404(db, program_id)
     enrollment = db.get(ProgramEnrollment, enrollment_id)
@@ -288,7 +312,7 @@ def update_enrollment(
     enrollment.status = EnrollmentStatusEnum(payload.status)
     db.add(enrollment)
     db.commit()
-    return get_program(program_id, db, _admin)
+    return get_program(program_id, db, actor)
 
 
 @router.delete("/{program_id}/enrollments/{enrollment_id}", response_model=ProgramDetailOut)
@@ -296,7 +320,7 @@ def remove_enrollment(
     program_id: int,
     enrollment_id: int,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_role("admin")),
+    actor: User = Depends(require_permission("programs.edit")),
 ):
     _get_program_or_404(db, program_id)
     enrollment = db.get(ProgramEnrollment, enrollment_id)
@@ -305,14 +329,14 @@ def remove_enrollment(
 
     db.delete(enrollment)
     db.commit()
-    return get_program(program_id, db, _admin)
+    return get_program(program_id, db, actor)
 
 
 @router.get("/lookup/available-students", response_model=list[dict])
 def available_students(
     q: str = "",
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_role("admin")),
+    _actor: User = Depends(require_permission("programs.view")),
 ):
     """Backs the student search box on the enroll-students panel."""
     query = select(User).where(User.role == RoleEnum.student, User.is_active.is_(True))

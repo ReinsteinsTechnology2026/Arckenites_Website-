@@ -13,7 +13,7 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=8">
+<link rel="stylesheet" href="css/style.css?v=9">
 
 </head>
 <body>
@@ -21,21 +21,21 @@
 <header class="dashboard-topbar">
   <a class="navbar-brand" href="index.html">
     <img src="assets/logo.png" alt="Arckenites logo" class="brand-mark">
-    <span class="brand-text">Arckenites Trainer</span>
+    <span class="brand-text">Arckenites Hub</span>
   </a>
   <div class="dashboard-topbar-user">
     <span id="staffWelcome">Welcome</span>
+    <a href="staff-support.html" class="btn btn-primary-outline"><i class="fa-solid fa-headset"></i> Support</a>
     <button class="btn btn-primary-outline" id="staffLogoutBtn">Logout</button>
   </div>
 </header>
 
 <main class="dashboard-main">
-  <h1>Dashboard</h1>
-  <p>Your Arckenites trainer overview.</p>
+  <h1>My Batches</h1>
+  <p>Select a batch to manage its schedule, chat, meetings, and materials.</p>
 
-  <div class="dashboard-notice">
-    <i class="fa-solid fa-circle-info"></i>
-    You're logged in and verified as a trainer. Batches, students, attendance and the rest of the trainer portal ship in a later phase.
+  <div id="batchCardsGrid" class="batch-card-grid">
+    <div class="admin-panel-empty">Loading&hellip;</div>
   </div>
 </main>
 

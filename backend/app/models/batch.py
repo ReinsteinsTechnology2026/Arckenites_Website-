@@ -67,6 +67,22 @@ class Batch(Base):
     enrollments: Mapped[list["BatchEnrollment"]] = relationship(
         back_populates="batch", cascade="all, delete-orphan"
     )
+    sessions: Mapped[list["ClassSession"]] = relationship(
+        back_populates="batch", cascade="all, delete-orphan"
+    )
+    lab_access_entries: Mapped[list["LabAccess"]] = relationship(
+        back_populates="batch", cascade="all, delete-orphan"
+    )
+    videos: Mapped[list["ClassVideo"]] = relationship(
+        back_populates="batch", cascade="all, delete-orphan"
+    )
+    materials: Mapped[list["StudyMaterial"]] = relationship(
+        back_populates="batch", cascade="all, delete-orphan"
+    )
+    chat_messages: Mapped[list["BatchMessage"]] = relationship(
+        back_populates="batch", cascade="all, delete-orphan"
+    )
+    chat_read_states: Mapped[list["BatchChatReadState"]] = relationship(cascade="all, delete-orphan")
 
 
 class BatchEnrollment(Base):

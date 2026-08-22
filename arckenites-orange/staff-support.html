@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Support | Arckenites</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet" href="css/style.css?v=9">
+
+</head>
+<body>
+
+<header class="dashboard-topbar">
+  <a class="navbar-brand" href="staff-dashboard.html">
+    <img src="assets/logo.png" alt="Arckenites logo" class="brand-mark">
+    <span class="brand-text">Arckenites Hub</span>
+  </a>
+  <div class="dashboard-topbar-user">
+    <span id="staffWelcome">Welcome</span>
+    <a href="staff-dashboard.html" class="btn btn-primary-outline"><i class="fa-solid fa-arrow-left"></i> My Batches</a>
+    <button class="btn btn-primary-outline" id="staffLogoutBtn">Logout</button>
+  </div>
+</header>
+
+<main class="dashboard-main">
+
+  <div id="ticketListView">
+    <div class="admin-page-header">
+      <div><h1>Support</h1><p>Need help? Create a support request and our team will assist you.</p></div>
+      <div class="admin-page-header-actions">
+        <button type="button" class="btn btn-accent" id="showCreateTicketBtn"><i class="fa-solid fa-plus"></i> Create Support Ticket</button>
+      </div>
+    </div>
+    <div class="admin-panel">
+      <table class="admin-activity-table">
+        <thead>
+          <tr><th>Ticket ID</th><th>Subject</th><th>Category</th><th>Priority</th><th>Status</th><th>Last Updated</th></tr>
+        </thead>
+        <tbody id="myTicketsBody">
+          <tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="ticketCreateView" style="display:none;">
+    <div class="admin-page-header">
+      <div><h1>Create Support Ticket</h1></div>
+      <div class="admin-page-header-actions">
+        <button type="button" class="btn btn-primary-outline" id="cancelCreateTicketBtn"><i class="fa-solid fa-arrow-left"></i> Back</button>
+      </div>
+    </div>
+    <div class="admin-panel">
+      <form id="createTicketForm" novalidate style="padding:20px;">
+        <div>
+          <label class="form-label">Subject</label>
+          <input type="text" class="form-control" id="ticketSubject" placeholder="Short description of the issue" required>
+        </div>
+        <div class="admin-form-grid" style="margin-top:16px;">
+          <div>
+            <label class="form-label">Category</label>
+            <select class="form-select" id="ticketCategory" required>
+              <option value="account_login">Account / Login</option>
+              <option value="course_access">Course Access</option>
+              <option value="batch">Batch</option>
+              <option value="classes_schedule">Classes / Schedule</option>
+              <option value="assignments">Assignments</option>
+              <option value="assessments">Assessments</option>
+              <option value="certificates">Certificates</option>
+              <option value="payment_fees">Payment / Fees</option>
+              <option value="technical_issue">Technical Issue</option>
+              <option value="trainer_training">Trainer / Training</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Priority</label>
+            <select class="form-select" id="ticketPriority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:16px;">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" id="ticketDescription" rows="4" placeholder="Explain the issue in detail&hellip;" required></textarea>
+        </div>
+        <div style="margin-top:16px;">
+          <label class="form-label">Attachment (optional)</label>
+          <input type="file" class="form-control" id="ticketAttachment">
+        </div>
+        <div class="login-error" id="createTicketError" style="display:none; margin-top:16px;"></div>
+        <div class="admin-form-actions">
+          <button type="submit" class="btn btn-accent" id="createTicketSubmitBtn">Submit Ticket</button>
+        </div>
+      </form>
+      <div style="padding:0 20px 20px;">
+        <p style="color:var(--muted); font-size:.85rem;">Prefer to talk directly? <button type="button" id="openSupportChatBtn" style="background:none; border:none; color:var(--primary); font-weight:600; cursor:pointer; padding:0;">Message Support</button></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="ticketDetailView" style="display:none;">
+    <div class="admin-page-header">
+      <div>
+        <div class="admin-breadcrumb"><a href="#" id="backToTicketListLink">Support</a><span>/</span><span id="ticketDetailBreadcrumb">Ticket</span></div>
+        <h1 id="ticketDetailSubject">Loading&hellip;</h1>
+      </div>
+      <div class="admin-page-header-actions">
+        <button type="button" class="btn btn-primary-outline" id="reopenMyTicketBtn" style="display:none;"><i class="fa-solid fa-rotate-left"></i> Reopen Ticket</button>
+      </div>
+    </div>
+    <div class="admin-panel" style="margin-bottom:20px;">
+      <div class="detail-list" style="padding:16px 20px;">
+        <div class="detail-row"><span class="form-label">Status</span><span id="ticketDetailStatus">—</span></div>
+        <div class="detail-row"><span class="form-label">Priority</span><span id="ticketDetailPriority">—</span></div>
+        <div class="detail-row"><span class="form-label">Category</span><span id="ticketDetailCategory">—</span></div>
+      </div>
+    </div>
+    <div class="admin-panel" style="margin-bottom:20px;">
+      <div class="admin-panel-header"><h2>Conversation</h2></div>
+      <div id="studentConversationThread" style="padding:20px; display:flex; flex-direction:column; gap:16px; max-height:500px; overflow-y:auto;"></div>
+    </div>
+    <div class="admin-panel" id="studentReplyPanel">
+      <div class="admin-panel-header"><h2>Reply</h2></div>
+      <form id="studentReplyForm" style="padding:20px;" novalidate>
+        <textarea class="form-control" id="studentReplyMessage" rows="3" placeholder="Type your message&hellip;" required></textarea>
+        <div style="margin-top:10px;"><input type="file" id="studentReplyAttachment" class="form-control"></div>
+        <div class="login-error" id="studentReplyError" style="display:none; margin-top:12px;"></div>
+        <div class="admin-form-actions">
+          <button type="submit" class="btn btn-accent" id="studentReplySubmitBtn">Send Reply</button>
+        </div>
+      </form>
+    </div>
+    <div class="admin-panel-empty" id="ticketClosedNotice" style="display:none; padding:20px;">This ticket is closed. Reopen it if you still need help.</div>
+  </div>
+
+</main>
+
+<button type="button" class="chat-float" id="chatFloatBtn" aria-label="Messages">
+  <i class="fa-solid fa-comments"></i>
+  <span class="admin-notif-badge" id="chatBadge" style="display:none;">0</span>
+</button>
+
+<div class="chat-backdrop" id="chatBackdrop"></div>
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-panel-header">
+    <button type="button" class="icon-btn chat-back" id="chatBack" style="display:none;" aria-label="Back to conversations"><i class="fa-solid fa-arrow-left"></i></button>
+    <strong id="chatTitle">Messages</strong>
+    <button type="button" class="icon-btn" id="chatClose" aria-label="Close chat"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="chat-body">
+    <div class="chat-list-view" id="chatListView">
+      <div class="chat-search-row">
+        <input type="text" class="form-control" id="chatSearchInput" placeholder="Search by username or name&hellip;" autocomplete="off">
+      </div>
+      <div id="chatSearchResults" class="chat-search-results" style="display:none;"></div>
+      <div class="chat-conversation-list" id="chatConversationList">
+        <div class="admin-panel-empty">Loading&hellip;</div>
+      </div>
+    </div>
+    <div class="chat-thread-view" id="chatThreadView" style="display:none;">
+      <div class="chat-messages" id="chatMessages"></div>
+      <form class="chat-input-row" id="chatForm">
+        <input type="text" class="form-control" id="chatInput" placeholder="Type a message&hellip;" autocomplete="off">
+        <button type="submit" class="btn btn-accent" id="chatSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js?v=1"></script>
+<script src="js/auth.js?v=1"></script>
+<script src="js/staff-support.js?v=1"></script>
+<script src="js/chat.js?v=1"></script>
+
+</body>
+</html>

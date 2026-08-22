@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, Integer, String, func
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -21,6 +21,10 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str] = mapped_column(String(200), nullable=False)
     role: Mapped[RoleEnum] = mapped_column(Enum(RoleEnum, name="role_enum"), nullable=False)
+    # Only meaningful when role == admin — the RBAC tier (Super Admin / Admin /
+    # Support Admin / a custom role). Nullable so staff/student rows are
+    # simply NULL, no backfill needed for them.
+    admin_role_id: Mapped[int | None] = mapped_column(ForeignKey("admin_roles.id"), nullable=True)
 
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     must_change_password: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
@@ -42,6 +46,10 @@ class User(Base):
     staff_profile: Mapped["StaffProfile"] = relationship(
         back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
+    admin_role: Mapped["AdminRole"] = relationship(foreign_keys=[admin_role_id])
+    admin_profile: Mapped["AdminProfile"] = relationship(
+        back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
 
     @property
     def program(self) -> str | None:
@@ -50,3 +58,13 @@ class User(Base):
         if self.role == RoleEnum.student and self.student_profile and self.student_profile.program:
             return self.student_profile.program.value
         return None
+
+    @property
+    def profile_completed(self) -> bool:
+        """Whether the student has been through the post-first-login "tell us
+        about yourself" step (mobile/email/current_role). Program is no
+        longer part of that step — admins set it at account creation — so
+        this can't just check `program` the way onboarding gating used to."""
+        if self.role != RoleEnum.student:
+            return True
+        return bool(self.student_profile and self.student_profile.current_role is not None)

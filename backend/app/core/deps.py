@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.core.security import decode_access_token
+from app.crud.permissions import user_has_permission
 from app.database import get_db
 from app.models.session import AuthSession
 from app.models.user import User
@@ -60,6 +61,20 @@ def get_current_user(
 def require_role(*allowed_roles: str):
     def _dependency(user: User = Depends(get_current_user)) -> User:
         if user.role.value not in allowed_roles:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        return user
+
+    return _dependency
+
+
+def require_permission(permission_key: str):
+    """Real server-side RBAC check — not just require_role("admin") plus a
+    hidden button. Every admin route that maps onto the permission catalog
+    (see crud/permissions.py) should use this instead of require_role for
+    its per-endpoint gate. Super Admin always passes (see user_has_permission)."""
+
+    def _dependency(user: User = Depends(require_role("admin")), db: Session = Depends(get_db)) -> User:
+        if not user_has_permission(db, user, permission_key):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
         return user
 
