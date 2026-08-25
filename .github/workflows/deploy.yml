@@ -1,9 +1,10 @@
 name: Deploy Arckenites
-
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
 
 jobs:
   deploy:
