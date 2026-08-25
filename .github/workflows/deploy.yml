@@ -1,38 +1,36 @@
 name: Deploy Arckenites
+
 on:
   push:
     branches:
       - main
   workflow_dispatch:
 
-
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            set -e
+      - name: Deploy application
+        shell: bash
+        run: |
+          set -e
 
-            cd /opt/arckenites
+          cd /opt/arckenites
 
-            git fetch origin main
-            git reset --hard origin/main
+          git fetch origin main
+          git reset --hard origin/main
 
-            cd /opt/arckenites/backend
+          cd /opt/arckenites/backend
 
-            /opt/arckenites/backend/venv/bin/pip install -r requirements.txt
+          /opt/arckenites/backend/venv/bin/pip install -r requirements.txt
 
-            /opt/arckenites/backend/venv/bin/alembic upgrade head
+          /opt/arckenites/backend/venv/bin/alembic upgrade head
 
-            sudo systemctl restart arckenites-backend
+          sudo -n systemctl restart arckenites-backend
 
-            sudo systemctl is-active --quiet arckenites-backend
+          sudo -n systemctl is-active --quiet arckenites-backend
 
-            curl -fsS http://127.0.0.1:8000/api/health
+          curl -fsS http://127.0.0.1:8000/api/health
+
+          echo "Deployment successful."         
