@@ -24,8 +24,29 @@
     <span class="brand-text">Arckenites Hub</span>
   </a>
   <div class="dashboard-topbar-user">
-    <span id="staffWelcome">Welcome</span>
-    <button class="btn btn-primary-outline" id="staffLogoutBtn">Logout</button>
+    <div class="admin-dropdown">
+      <button type="button" class="ak-avatar-btn" id="staffAvatarBtn" title="Go to Profile">
+        <span id="staffAvatarWrap"></span>
+      </button>
+      <button type="button" class="admin-profile-trigger" id="staffProfileTrigger">
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+      <div class="admin-dropdown-panel" id="staffProfilePanel">
+        <div class="admin-profile-meta">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button type="button" class="ak-avatar-btn" id="staffAvatarMenuBtn" title="Go to Profile">
+              <span id="staffAvatarWrapMenu"></span>
+            </button>
+            <div>
+              <strong id="staffProfileName">Trainer</strong>
+              <span>Trainer</span>
+            </div>
+          </div>
+        </div>
+        <a class="admin-dropdown-link" href="change-password.html"><i class="fa-solid fa-key"></i> Change Password</a>
+        <button type="button" class="admin-dropdown-link" id="staffProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -45,6 +66,7 @@
 
   <div class="workspace-tabs">
     <button type="button" class="workspace-tab is-active" data-tab="schedule"><i class="fa-solid fa-calendar-days"></i> Schedule</button>
+    <button type="button" class="workspace-tab" data-tab="students"><i class="fa-solid fa-people-group"></i> Students</button>
     <button type="button" class="workspace-tab" data-tab="chat"><i class="fa-solid fa-comments"></i> Chat<span class="admin-notif-badge" id="workspaceChatBadge" style="display:none;">0</span></button>
     <button type="button" class="workspace-tab" data-tab="meeting"><i class="fa-solid fa-video"></i> Meeting</button>
     <button type="button" class="workspace-tab" data-tab="details"><i class="fa-solid fa-book-open"></i> Class Details Updation</button>
@@ -64,6 +86,13 @@
       </div>
       <div class="calendar-grid" id="calendarWeekdays"></div>
       <div class="calendar-grid" id="calendarDays"></div>
+    </div>
+  </section>
+
+  <section data-tab-panel="students" style="display:none;">
+    <div class="admin-panel">
+      <div class="admin-panel-header"><h2><i class="fa-solid fa-people-group"></i> Students</h2></div>
+      <div id="workspaceStudentsBody" class="admin-panel-empty" style="padding:20px;">Loading&hellip;</div>
     </div>
   </section>
 

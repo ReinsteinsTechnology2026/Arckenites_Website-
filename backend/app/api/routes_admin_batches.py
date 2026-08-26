@@ -65,7 +65,10 @@ def _class_days_list(value: str | None) -> list[str]:
 
 
 def _trainer_summary(batch: Batch) -> TrainerSummary | None:
-    return TrainerSummary(id=batch.trainer.id, full_name=batch.trainer.full_name, username=batch.trainer.username) if batch.trainer else None
+    return TrainerSummary(
+        id=batch.trainer.id, full_name=batch.trainer.full_name,
+        username=batch.trainer.username, photo_url=batch.trainer.photo_url,
+    ) if batch.trainer else None
 
 
 def _program_summary(batch: Batch) -> ProgramSummary | None:
@@ -85,7 +88,10 @@ def _list_item(batch: Batch) -> BatchListItemOut:
 def _detail(batch: Batch) -> BatchDetailOut:
     base = _list_item(batch).model_dump()
     students = [
-        StudentSummary(id=e.student.id, full_name=e.student.full_name, username=e.student.username, joined_at=e.joined_at)
+        StudentSummary(
+            id=e.student.id, full_name=e.student.full_name, username=e.student.username,
+            photo_url=e.student.photo_url, joined_at=e.joined_at,
+        )
         for e in sorted(batch.enrollments, key=lambda e: e.joined_at or e.id)
     ]
     return BatchDetailOut(**base, students=students)
@@ -327,7 +333,7 @@ def available_students(
         like = f"%{q}%"
         query = query.where(or_(User.username.ilike(like), User.full_name.ilike(like)))
     students = db.scalars(query.order_by(User.full_name).limit(50)).all()
-    return [{"id": s.id, "full_name": s.full_name, "username": s.username} for s in students]
+    return [{"id": s.id, "full_name": s.full_name, "username": s.username, "photo_url": s.photo_url} for s in students]
 
 
 def _session_out(session: ClassSession, batch_name: str) -> ClassSessionOut:

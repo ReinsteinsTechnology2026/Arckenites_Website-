@@ -99,7 +99,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('infoCourse').textContent = batch.course || '—';
     document.getElementById('infoStatus').textContent = BATCH_STATUS_LABEL[batch.status];
     document.getElementById('infoStudentCount').textContent = batch.max_capacity ? `${batch.student_count} / ${batch.max_capacity}` : batch.student_count;
-    document.getElementById('infoTrainer').textContent = batch.trainer ? batch.trainer.full_name : 'Unassigned';
+    document.getElementById('infoTrainer').innerHTML = batch.trainer
+      ? `<span class="ak-identity">${ArckAPI.avatarHtml(batch.trainer.full_name, batch.trainer.photo_url, 28)}<span>${escapeHtml(batch.trainer.full_name)}</span></span>`
+      : 'Unassigned';
 
     document.getElementById('detailProgram').innerHTML = batch.program
       ? `<a href="admin-program-detail.html?id=${batch.program.id}">${escapeHtml(batch.program.name)}</a>` : 'Not linked';
@@ -112,7 +114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       ? batch.students.map((s) => `
           <tr>
             <td>${escapeHtml(s.username)}</td>
-            <td>${escapeHtml(s.full_name)}</td>
+            <td><span class="ak-identity">${ArckAPI.avatarHtml(s.full_name, s.photo_url, 28)}<span>${escapeHtml(s.full_name)}</span></span></td>
             <td>${s.joined_at ? formatDate(s.joined_at.slice(0, 10)) : '—'}</td>
             <td>
               <button type="button" class="table-action-btn is-danger" data-remove-student="${s.id}" title="Remove ${escapeHtml(s.full_name)} from this batch">

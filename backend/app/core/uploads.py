@@ -76,3 +76,64 @@ def delete_upload(storage_reference: str) -> None:
     path = UPLOAD_ROOT / storage_reference
     if path.exists():
         path.unlink()
+
+
+# ---------------------------------------------------------------------------
+# Profile photos — a separate root and a stricter, image-only allow-list from
+# support attachments above, since these are served back to any authenticated
+# user (not just the ticket's own participants).
+# ---------------------------------------------------------------------------
+
+PROFILE_PHOTO_ROOT = Path(__file__).resolve().parent.parent.parent / "uploads" / "profile_photos"
+
+MAX_PHOTO_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB
+
+ALLOWED_PHOTO_EXTENSIONS: dict[str, str] = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".webp": "image/webp",
+    ".gif": "image/gif",
+}
+
+
+def save_profile_photo(file: UploadFile, contents: bytes) -> str:
+    """Validates and persists one profile photo. Returns the storage
+    reference (a random UUID + extension — never the caller's filename, for
+    the same path-traversal reason as save_upload)."""
+    original_name = file.filename or "photo"
+    ext = Path(original_name).suffix.lower()
+
+    if ext not in ALLOWED_PHOTO_EXTENSIONS:
+        allowed = ", ".join(sorted(ALLOWED_PHOTO_EXTENSIONS))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File type not allowed. Accepted types: {allowed}",
+        )
+
+    if len(contents) > MAX_PHOTO_SIZE_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File is too large. Maximum size is {MAX_PHOTO_SIZE_BYTES // (1024 * 1024)}MB.",
+        )
+
+    if not contents:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty.")
+
+    PROFILE_PHOTO_ROOT.mkdir(parents=True, exist_ok=True)
+    storage_reference = f"{uuid.uuid4().hex}{ext}"
+    (PROFILE_PHOTO_ROOT / storage_reference).write_bytes(contents)
+    return storage_reference
+
+
+def get_profile_photo_path(storage_reference: str) -> Path:
+    path = (PROFILE_PHOTO_ROOT / storage_reference).resolve()
+    if PROFILE_PHOTO_ROOT.resolve() not in path.parents:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile photo not found")
+    return path
+
+
+def delete_profile_photo(storage_reference: str) -> None:
+    path = PROFILE_PHOTO_ROOT / storage_reference
+    if path.exists():
+        path.unlink()

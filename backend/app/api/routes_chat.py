@@ -44,9 +44,9 @@ def _other_user_id(convo: Conversation, user_id: int) -> int:
     return convo.user_b_id if user_id == convo.user_a_id else convo.user_a_id
 
 
-def _message_out(msg: DirectMessage, sender_name: str, requester_id: int) -> MessageOut:
+def _message_out(msg: DirectMessage, sender_name: str, sender_photo_url: str | None, requester_id: int) -> MessageOut:
     return MessageOut(
-        id=msg.id, sender_id=msg.sender_id, sender_name=sender_name,
+        id=msg.id, sender_id=msg.sender_id, sender_name=sender_name, sender_photo_url=sender_photo_url,
         is_me=msg.sender_id == requester_id, body=msg.body, created_at=msg.created_at,
     )
 
@@ -68,7 +68,9 @@ def search_users(
         .order_by(User.full_name)
         .limit(20)
     ).all()
-    return [UserSearchResult(id=u.id, username=u.username, full_name=u.full_name, role=u.role.value) for u in rows]
+    # Search still matches on username server-side (so "type their login id"
+    # keeps working) — the response just never echoes it back.
+    return [UserSearchResult(id=u.id, full_name=u.full_name, role=u.role.value, photo_url=u.photo_url) for u in rows]
 
 
 @router.get("/conversations", response_model=list[ConversationOut])
@@ -106,8 +108,8 @@ def list_conversations(
         unread_count = db.scalar(select(func.count()).select_from(DirectMessage).where(*unread_filters)) or 0
 
         out.append(ConversationOut(
-            other_user_id=other.id, other_username=other.username, other_name=other.full_name,
-            other_role=other.role.value,
+            other_user_id=other.id, other_name=other.full_name,
+            other_role=other.role.value, other_photo_url=other.photo_url,
             last_message=last_msg.body if last_msg else None,
             last_message_at=last_msg.created_at if last_msg else None,
             unread_count=unread_count,
@@ -124,8 +126,9 @@ def list_conversations(
             if admin.id in seen_other_ids:
                 continue
             out.insert(0, ConversationOut(
-                other_user_id=admin.id, other_username=admin.username, other_name=admin.full_name,
-                other_role=admin.role.value, last_message=None, last_message_at=None,
+                other_user_id=admin.id, other_name=admin.full_name,
+                other_role=admin.role.value, other_photo_url=admin.photo_url,
+                last_message=None, last_message_at=None,
                 unread_count=0, is_pinned_admin=True,
             ))
 
@@ -145,7 +148,7 @@ def get_messages(
     convo = _get_or_create_conversation(db, user.id, other_user_id)
 
     rows = db.execute(
-        select(DirectMessage, User.full_name)
+        select(DirectMessage, User)
         .join(User, DirectMessage.sender_id == User.id)
         .where(DirectMessage.conversation_id == convo.id)
         .order_by(DirectMessage.created_at)
@@ -155,7 +158,7 @@ def get_messages(
     db.add(convo)
     db.commit()
 
-    return [_message_out(msg, name, user.id) for msg, name in rows]
+    return [_message_out(msg, sender.full_name, sender.photo_url, user.id) for msg, sender in rows]
 
 
 async def _handle_send(db: Session, sender: User, recipient_id: int, body_text: str) -> dict | None:
@@ -173,7 +176,7 @@ async def _handle_send(db: Session, sender: User, recipient_id: int, body_text: 
     db.commit()
     db.refresh(msg)
 
-    base = _message_out(msg, sender.full_name, sender.id).model_dump(mode="json")
+    base = _message_out(msg, sender.full_name, sender.photo_url, sender.id).model_dump(mode="json")
     payload_for_sender = {"type": "message", "peer_id": recipient_id, "message": base}
     payload_for_recipient = {
         "type": "message", "peer_id": sender.id,

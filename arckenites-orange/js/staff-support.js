@@ -17,8 +17,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   const user = await ArckAuth.requireRole('staff');
   if (!user) return; // requireRole already redirected
 
-  document.getElementById('staffWelcome').textContent = `Welcome, ${user.full_name}`;
-  document.getElementById('staffLogoutBtn').addEventListener('click', () => ArckAuth.logout());
+  /* ---------- Topbar profile dropdown (photo + name, same pattern as the admin portal) ---------- */
+  const renderTopbarProfile = () => {
+    document.getElementById('staffAvatarWrap').innerHTML = ArckAPI.avatarHtml(user.full_name, user.photo_url, 36);
+    document.getElementById('staffAvatarWrapMenu').innerHTML = ArckAPI.avatarHtml(user.full_name, user.photo_url, 40);
+    document.getElementById('staffProfileName').textContent = user.full_name;
+  };
+  renderTopbarProfile();
+  const profileTrigger = document.getElementById('staffProfileTrigger');
+  const profilePanel = document.getElementById('staffProfilePanel');
+  profileTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    profilePanel.classList.toggle('is-open');
+  });
+  document.addEventListener('click', () => profilePanel.classList.remove('is-open'));
+  document.getElementById('staffProfileLogout').addEventListener('click', () => ArckAuth.logout());
+
+  // No Profile view on this page — the avatar just links to the one on the
+  // main trainer dashboard, same as clicking "Profile" in the dropdown.
+  const goToProfile = (e) => { e.stopPropagation(); window.location.href = 'staff-dashboard.html?openProfile=1'; };
+  document.getElementById('staffAvatarBtn').addEventListener('click', goToProfile);
+  document.getElementById('staffAvatarMenuBtn').addEventListener('click', goToProfile);
 
   /* ---------- Ticket list / create / detail view switching ---------- */
   const ticketListView = document.getElementById('ticketListView');

@@ -75,6 +75,7 @@ class TrainerSummary(BaseModel):
     id: int
     full_name: str
     username: str
+    photo_url: str | None = None
 
 
 class ProgramSummary(BaseModel):
@@ -87,6 +88,7 @@ class StudentSummary(BaseModel):
     id: int
     full_name: str
     username: str
+    photo_url: str | None = None
     joined_at: datetime | None = None
 
 

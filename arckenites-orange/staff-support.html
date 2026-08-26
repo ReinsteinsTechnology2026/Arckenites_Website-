@@ -24,9 +24,30 @@
     <span class="brand-text">Arckenites Hub</span>
   </a>
   <div class="dashboard-topbar-user">
-    <span id="staffWelcome">Welcome</span>
     <a href="staff-dashboard.html" class="btn btn-primary-outline"><i class="fa-solid fa-arrow-left"></i> My Batches</a>
-    <button class="btn btn-primary-outline" id="staffLogoutBtn">Logout</button>
+    <div class="admin-dropdown">
+      <button type="button" class="ak-avatar-btn" id="staffAvatarBtn" title="Go to Profile">
+        <span id="staffAvatarWrap"></span>
+      </button>
+      <button type="button" class="admin-profile-trigger" id="staffProfileTrigger">
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+      <div class="admin-dropdown-panel" id="staffProfilePanel">
+        <div class="admin-profile-meta">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button type="button" class="ak-avatar-btn" id="staffAvatarMenuBtn" title="Go to Profile">
+              <span id="staffAvatarWrapMenu"></span>
+            </button>
+            <div>
+              <strong id="staffProfileName">Trainer</strong>
+              <span>Trainer</span>
+            </div>
+          </div>
+        </div>
+        <a class="admin-dropdown-link" href="change-password.html"><i class="fa-solid fa-key"></i> Change Password</a>
+        <button type="button" class="admin-dropdown-link" id="staffProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      </div>
+    </div>
   </div>
 </header>
 

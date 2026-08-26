@@ -10,6 +10,7 @@ from app.core.uploads import MAX_FILES_PER_MESSAGE, get_upload_path, save_upload
 from app.core.video import generate_batch_room_name
 from app.core.ws_manager import manager
 from app.crud.audit import write_audit_event
+from app.crud.profile import to_public_profile
 from app.crud.support import (
     attachment_out,
     get_own_ticket_or_404,
@@ -28,8 +29,9 @@ from app.models.student import CurrentRoleEnum
 from app.models.support import SenderTypeEnum, SupportAttachment, SupportMessage, SupportTicket, TicketPriorityEnum, TicketStatusEnum
 from app.models.user import User
 from app.schemas.admin_students import CompleteProfileRequest
-from app.schemas.auth import MeResponse
+from app.schemas.auth import MeResponse, UpdateMyProfileRequest
 from app.schemas.batch_chat import BatchMessageOut, SendBatchMessageRequest
+from app.schemas.batch_members import BatchMembersOut
 from app.schemas.batch_resources import ClassVideoOut, LabAccessOut, StudyMaterialOut
 from app.schemas.class_sessions import ClassSessionOut
 from app.schemas.interview_schedule import InterviewOut
@@ -65,6 +67,30 @@ def complete_profile(
     profile.phone = payload.mobile_number
     profile.email = payload.email
     profile.current_role = CurrentRoleEnum(payload.current_role)
+
+    db.add(user)
+    db.add(profile)
+    db.commit()
+    db.refresh(user)
+
+    return MeResponse.model_validate(user)
+
+
+@router.patch("/me/profile", response_model=MeResponse)
+def update_my_profile(
+    payload: UpdateMyProfileRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role("student")),
+):
+    """The ongoing "edit my profile" action from the Profile screen — unlike
+    complete_profile above (the one-time onboarding step), this is a
+    repeatable self-service update and never touches current_role/program."""
+    user.full_name = payload.full_name
+
+    profile = user.student_profile
+    profile.email = payload.email
+    profile.phone = payload.phone
+    profile.address = payload.address
 
     db.add(user)
     db.add(profile)
@@ -185,10 +211,27 @@ def _get_own_enrolled_batch_or_404(db: Session, batch_id: int, user: User) -> Ba
     return db.get(Batch, batch_id)
 
 
+@router.get("/me/batches/{batch_id}/members", response_model=BatchMembersOut)
+def get_my_batch_members(batch_id: int, db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
+    """Who's in this batch — trainer + classmates — shown as photo + name
+    only. This is the one place a student sees other students at all, so it
+    goes through to_public_profile rather than any admin-facing schema."""
+    batch = _get_own_enrolled_batch_or_404(db, batch_id, user)
+    trainer = db.get(User, batch.trainer_id) if batch.trainer_id else None
+
+    student_ids = db.scalars(select(BatchEnrollment.student_id).where(BatchEnrollment.batch_id == batch_id)).all()
+    students = db.scalars(select(User).where(User.id.in_(student_ids)).order_by(User.full_name)).all()
+
+    return BatchMembersOut(
+        trainer=to_public_profile(trainer) if trainer else None,
+        students=[to_public_profile(s) for s in students],
+    )
+
+
 def _batch_message_out(m: BatchMessage) -> BatchMessageOut:
     return BatchMessageOut(
         id=m.id, batch_id=m.batch_id, sender_id=m.sender_id, sender_name=m.sender.full_name,
-        message=m.message, created_at=m.created_at,
+        sender_photo_url=m.sender.photo_url, message=m.message, created_at=m.created_at,
     )
 
 

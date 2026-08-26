@@ -48,6 +48,7 @@ class StudentProfile(Base):
     # phone doubles as "Mobile Number" collected during the post-first-login onboarding step.
     phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    address: Mapped[str | None] = mapped_column(String(500), nullable=True)
     current_role: Mapped[CurrentRoleEnum | None] = mapped_column(Enum(CurrentRoleEnum, name="current_role_enum"), nullable=True)
 
     # Null until the student completes the post-first-login onboarding step.

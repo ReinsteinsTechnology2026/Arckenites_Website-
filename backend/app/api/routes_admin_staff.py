@@ -35,7 +35,7 @@ def _get_staff_or_404(db: Session, staff_id: int) -> User:
 def _staff_out(user: User) -> StaffAdminOut:
     profile = user.staff_profile
     return StaffAdminOut(
-        id=user.id, username=user.username, full_name=user.full_name,
+        id=user.id, username=user.username, full_name=user.full_name, photo_url=user.photo_url,
         email=profile.email if profile else None,
         is_active=user.is_active, must_change_password=user.must_change_password,
         last_login_at=user.last_login_at, created_at=user.created_at,

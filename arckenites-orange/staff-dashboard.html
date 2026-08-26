@@ -24,18 +24,84 @@
     <span class="brand-text">Arckenites Hub</span>
   </a>
   <div class="dashboard-topbar-user">
-    <span id="staffWelcome">Welcome</span>
     <a href="staff-support.html" class="btn btn-primary-outline"><i class="fa-solid fa-headset"></i> Support</a>
-    <button class="btn btn-primary-outline" id="staffLogoutBtn">Logout</button>
+    <div class="admin-dropdown">
+      <button type="button" class="ak-avatar-btn" id="staffAvatarBtn" title="Go to Profile">
+        <span id="staffAvatarWrap"></span>
+      </button>
+      <button type="button" class="admin-profile-trigger" id="staffProfileTrigger">
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+      <div class="admin-dropdown-panel" id="staffProfilePanel">
+        <div class="admin-profile-meta">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button type="button" class="ak-avatar-btn" id="staffAvatarMenuBtn" title="Go to Profile">
+              <span id="staffAvatarWrapMenu"></span>
+            </button>
+            <div>
+              <strong id="staffProfileName">Trainer</strong>
+              <span>Trainer</span>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="admin-dropdown-link" id="staffProfileSettingsLink"><i class="fa-solid fa-id-card"></i> Profile</button>
+        <a class="admin-dropdown-link" href="change-password.html"><i class="fa-solid fa-key"></i> Change Password</a>
+        <button type="button" class="admin-dropdown-link" id="staffProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      </div>
+      <input type="file" id="profilePhotoInput" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none;">
+    </div>
   </div>
 </header>
 
 <main class="dashboard-main">
-  <h1>My Batches</h1>
-  <p>Select a batch to manage its schedule, chat, meetings, and materials.</p>
+  <div id="staffBatchesView">
+    <h1>My Batches</h1>
+    <p>Select a batch to manage its schedule, chat, meetings, and materials.</p>
 
-  <div id="batchCardsGrid" class="batch-card-grid">
-    <div class="admin-panel-empty">Loading&hellip;</div>
+    <div id="batchCardsGrid" class="batch-card-grid">
+      <div class="admin-panel-empty">Loading&hellip;</div>
+    </div>
+  </div>
+
+  <div id="staffProfileSettingsView" style="display:none;">
+    <button type="button" class="btn btn-primary-outline" id="staffBackToBatchesBtn" style="margin-bottom:20px;"><i class="fa-solid fa-arrow-left"></i> Back to My Batches</button>
+    <h1>Profile</h1>
+
+    <div class="admin-panel" style="max-width:480px;">
+      <div style="padding:24px;">
+        <div style="text-align:center; margin-bottom:24px;">
+          <button type="button" id="profilePhotoTrigger" class="ak-avatar-btn" title="Upload photo"></button>
+          <div id="profilePhotoCaption" style="margin-top:10px; font-size:.85rem; color:var(--primary); font-weight:600; cursor:pointer;">Upload Photo</div>
+          <button type="button" id="profilePhotoRemoveBtn" class="btn" style="display:none; padding:2px 10px; font-size:.72rem; margin-top:2px; color:var(--muted);">Remove Photo</button>
+        </div>
+
+        <form id="profileEditForm">
+          <div style="margin-bottom:16px;">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-control" id="profileNameInput" disabled required>
+          </div>
+          <div style="margin-bottom:16px;">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" id="profileEmailInput" disabled>
+          </div>
+          <div style="margin-bottom:16px;">
+            <label class="form-label">Phone</label>
+            <input type="text" class="form-control" id="profilePhoneInput" disabled>
+          </div>
+          <div style="margin-bottom:20px;">
+            <label class="form-label">Address</label>
+            <input type="text" class="form-control" id="profileAddressInput" disabled>
+          </div>
+          <div id="profileEditError" class="login-error" style="display:none; margin-bottom:16px;"></div>
+          <button type="submit" class="btn btn-accent" id="profileEditSaveBtn" style="width:100%;">Edit</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="admin-panel" style="max-width:480px; margin-top:20px;">
+      <div class="admin-panel-header"><h2><i class="fa-solid fa-circle-info"></i> Account Details</h2></div>
+      <div id="profileAccountDetailsBody" class="detail-list" style="padding:20px;"></div>
+    </div>
   </div>
 </main>
 

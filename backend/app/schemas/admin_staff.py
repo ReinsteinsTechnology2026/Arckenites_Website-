@@ -59,6 +59,7 @@ class StaffAdminOut(BaseModel):
     id: int
     username: str
     full_name: str
+    photo_url: str | None = None
     email: str | None = None
     is_active: bool
     must_change_password: bool

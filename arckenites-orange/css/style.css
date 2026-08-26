@@ -1196,6 +1196,25 @@ a:focus-visible, button:focus-visible, input:focus-visible{
 .calendar-event-chip:hover{ background:rgba(255,90,31,.3); }
 .calendar-event-more{ font-size:.68rem; color:var(--muted); padding:2px 6px; }
 
+/* Public identity — photo + name, shown wherever a student/trainer appears
+   to someone else in the portal (see js/api.js ArckAPI.avatarHtml). */
+.ak-avatar{
+  border-radius:50%; object-fit:cover; flex-shrink:0; display:inline-flex;
+  align-items:center; justify-content:center; background:var(--primary-darker,#232323);
+}
+.ak-avatar--initials{
+  background:linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  color:#fff; font-weight:700; font-size:.85em; text-transform:uppercase; letter-spacing:.02em;
+}
+.ak-identity{ display:flex; align-items:center; gap:10px; }
+.ak-identity-name{ font-weight:600; }
+
+/* Plain clickable wrapper around an avatar — used both for the small topbar
+   icon (just navigates to Profile) and the larger avatar inside the Profile
+   page itself (opens the upload picker); no decoration of its own, so every
+   avatar in the portal looks like a bare circular photo. */
+.ak-avatar-btn{ border:none; background:none; padding:0; cursor:pointer; border-radius:50%; display:inline-flex; flex-shrink:0; }
+
 /* Batch group chat */
 .batch-chat-body{ display:flex; flex-direction:column; height:520px; }
 .batch-chat-messages{ flex:1; overflow-y:auto; padding:18px 20px; display:flex; flex-direction:column; gap:10px; }

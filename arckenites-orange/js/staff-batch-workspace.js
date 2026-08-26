@@ -18,8 +18,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  document.getElementById('staffWelcome').textContent = `Welcome, ${user.full_name}`;
-  document.getElementById('staffLogoutBtn').addEventListener('click', () => ArckAuth.logout());
+  /* ---------- Topbar profile dropdown (photo + name, same pattern as the admin portal) ---------- */
+  const renderTopbarProfile = () => {
+    document.getElementById('staffAvatarWrap').innerHTML = ArckAPI.avatarHtml(user.full_name, user.photo_url, 36);
+    document.getElementById('staffAvatarWrapMenu').innerHTML = ArckAPI.avatarHtml(user.full_name, user.photo_url, 40);
+    document.getElementById('staffProfileName').textContent = user.full_name;
+  };
+  renderTopbarProfile();
+  const profileTrigger = document.getElementById('staffProfileTrigger');
+  const profilePanel = document.getElementById('staffProfilePanel');
+  profileTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    profilePanel.classList.toggle('is-open');
+  });
+  document.addEventListener('click', () => profilePanel.classList.remove('is-open'));
+  document.getElementById('staffProfileLogout').addEventListener('click', () => ArckAuth.logout());
+
+  // No Profile view on this page — the avatar just links to the one on the
+  // main trainer dashboard, same as clicking "Profile" in the dropdown.
+  const goToProfile = (e) => { e.stopPropagation(); window.location.href = 'staff-dashboard.html?openProfile=1'; };
+  document.getElementById('staffAvatarBtn').addEventListener('click', goToProfile);
+  document.getElementById('staffAvatarMenuBtn').addEventListener('click', goToProfile);
 
   /* ---------- Batch header ---------- */
   const chatBadgeEl = document.getElementById('workspaceChatBadge');
@@ -58,8 +77,27 @@ document.addEventListener('DOMContentLoaded', async () => {
       const name = tab.dataset.tab;
       panels.forEach((p) => { p.style.display = p.dataset.tabPanel === name ? 'block' : 'none'; });
       if (name === 'chat') loadChat();
+      if (name === 'students') loadStudents();
     });
   });
+
+  /* ---------- Students — photo + name only, never username/email/phone ---------- */
+  const loadStudents = async () => {
+    const body = document.getElementById('workspaceStudentsBody');
+    body.className = 'admin-panel-empty';
+    body.textContent = 'Loading…';
+    try {
+      const members = await ArckAPI.request(`/staff/me/batches/${batchId}/members`);
+      body.className = members.students.length ? '' : 'admin-panel-empty';
+      body.innerHTML = members.students.length
+        ? `<div style="display:flex; flex-direction:column; gap:14px;">${members.students.map((s) => `
+            <div class="ak-identity">${ArckAPI.avatarHtml(s.full_name, s.photo_url, 40)}<span class="ak-identity-name">${escapeHtml(s.full_name)}</span></div>
+          `).join('')}</div>`
+        : 'No students allocated to this batch yet.';
+    } catch (_) {
+      body.textContent = "Couldn't load students.";
+    }
+  };
 
   document.getElementById('workspaceSupportTab').addEventListener('click', () => {
     window.location.href = 'staff-support.html';

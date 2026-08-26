@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 
 import jwt
-from fastapi import Depends, HTTPException, WebSocket, status
+from fastapi import Depends, HTTPException, Query, WebSocket, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -56,6 +56,23 @@ def get_current_user(
     # Stash the session for the logout endpoint to revoke without a second lookup.
     user._current_session = session  # type: ignore[attr-defined]
     return user
+
+
+def get_current_user_flexible(
+    token: str | None = Query(default=None),
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> User:
+    """Same auth as get_current_user, but also accepts ?token= when there's
+    no Authorization header — for the one endpoint a plain <img src> needs
+    to hit directly, since a browser can't attach a custom header to that
+    request. Same pattern already used for the WebSocket handshake in
+    get_ws_user below. Only wire this into a route that serves
+    non-sensitive, intentionally-shared data (e.g. a profile photo) — every
+    other route should keep using get_current_user."""
+    if credentials is None and token:
+        credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+    return get_current_user(credentials=credentials, db=db)
 
 
 def require_role(*allowed_roles: str):

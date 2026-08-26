@@ -21,6 +21,7 @@ from app.api.routes_chat import router as chat_router
 from app.api.routes_contact import router as contact_router
 from app.api.routes_dashboard import router as dashboard_router
 from app.api.routes_health import router as health_router
+from app.api.routes_profile import router as profile_router
 from app.api.routes_sessions import router as sessions_router
 from app.api.routes_staff import router as staff_router
 from app.api.routes_students import router as students_router
@@ -88,6 +89,7 @@ app.include_router(admin_support_router, prefix="/api")
 app.include_router(sessions_router, prefix="/api")
 app.include_router(students_router, prefix="/api")
 app.include_router(staff_router, prefix="/api")
+app.include_router(profile_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(contact_router, prefix="/api")
 app.include_router(video_router, prefix="/api")

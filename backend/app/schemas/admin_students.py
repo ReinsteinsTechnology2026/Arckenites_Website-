@@ -27,6 +27,7 @@ class StudentAdminOut(BaseModel):
     id: int
     username: str
     full_name: str
+    photo_url: str | None = None
     program: str | None
     is_active: bool
     must_change_password: bool

@@ -10,6 +10,7 @@ from app.core.uploads import MAX_FILES_PER_MESSAGE, get_upload_path, save_upload
 from app.core.video import generate_batch_room_name
 from app.core.ws_manager import manager
 from app.crud.audit import write_audit_event
+from app.crud.profile import to_public_profile
 from app.crud.support import (
     client_meta,
     attachment_out,
@@ -26,7 +27,9 @@ from app.models.batch_resources import ClassVideo, StudyMaterial
 from app.models.class_session import ClassSession
 from app.models.support import SenderTypeEnum, SupportAttachment, SupportMessage, SupportTicket, TicketPriorityEnum, TicketStatusEnum
 from app.models.user import User
+from app.schemas.auth import MeResponse, UpdateMyProfileRequest
 from app.schemas.batch_chat import BatchMessageOut, SendBatchMessageRequest
+from app.schemas.batch_members import BatchMembersOut
 from app.schemas.batch_resources import ClassVideoOut, CreateClassVideoRequest, CreateStudyMaterialRequest, StudyMaterialOut
 from app.schemas.class_sessions import ClassSessionOut, CreateClassSessionRequest, UpdateClassSessionRequest
 from app.schemas.staff_batches import TrainerBatchCardOut
@@ -41,6 +44,30 @@ from app.schemas.support import (
 from app.schemas.video import VideoRoomOut
 
 router = APIRouter(prefix="/staff", tags=["staff"])
+
+
+@router.patch("/me/profile", response_model=MeResponse)
+def update_my_profile(
+    payload: UpdateMyProfileRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role("staff")),
+):
+    """The trainer's own "edit my profile" action from the Profile screen —
+    trainers have no onboarding-completion endpoint the way students do, so
+    this is the only self-service write to StaffProfile's contact fields."""
+    user.full_name = payload.full_name
+
+    profile = user.staff_profile
+    profile.email = payload.email
+    profile.phone = payload.phone
+    profile.address = payload.address
+
+    db.add(user)
+    db.add(profile)
+    db.commit()
+    db.refresh(user)
+
+    return MeResponse.model_validate(user)
 
 
 @router.get("/me/schedule", response_model=list[ClassSessionOut])
@@ -154,6 +181,21 @@ def _get_own_batch_or_404(db: Session, batch_id: int, user: User) -> Batch:
     if batch is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Batch not found")
     return batch
+
+
+@router.get("/me/batches/{batch_id}/members", response_model=BatchMembersOut)
+def get_my_batch_members(batch_id: int, db: Session = Depends(get_db), user: User = Depends(require_role("staff"))):
+    """The trainer's own view of who's enrolled — photo + name only, same
+    public shape a student would see, plus the trainer themself as trainer."""
+    batch = _get_own_batch_or_404(db, batch_id, user)
+
+    student_ids = db.scalars(select(BatchEnrollment.student_id).where(BatchEnrollment.batch_id == batch_id)).all()
+    students = db.scalars(select(User).where(User.id.in_(student_ids)).order_by(User.full_name)).all()
+
+    return BatchMembersOut(
+        trainer=to_public_profile(user),
+        students=[to_public_profile(s) for s in students],
+    )
 
 
 @router.get("/me/batches/{batch_id}/materials", response_model=list[StudyMaterialOut])
@@ -378,7 +420,7 @@ def delete_my_batch_session(
 def _batch_message_out(m: BatchMessage) -> BatchMessageOut:
     return BatchMessageOut(
         id=m.id, batch_id=m.batch_id, sender_id=m.sender_id, sender_name=m.sender.full_name,
-        message=m.message, created_at=m.created_at,
+        sender_photo_url=m.sender.photo_url, message=m.message, created_at=m.created_at,
     )
 
 

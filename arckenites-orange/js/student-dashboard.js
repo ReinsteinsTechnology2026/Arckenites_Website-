@@ -46,8 +46,163 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ---------- Sidebar layout (Institutional Program) ---------- */
   document.getElementById('sidebarLayout').style.display = 'flex';
-  document.getElementById('studentWelcome').textContent = `Welcome, ${user.full_name}`;
   document.getElementById('studentLogoutBtn').addEventListener('click', () => ArckAuth.logout());
+
+  /* ---------- Topbar profile dropdown (photo + name, same pattern as the admin portal) ---------- */
+  const renderTopbarProfile = () => {
+    document.getElementById('studentAvatarWrap').innerHTML = ArckAPI.avatarHtml(user.full_name, user.photo_url, 36);
+    document.getElementById('studentAvatarWrapMenu').innerHTML = ArckAPI.avatarHtml(user.full_name, user.photo_url, 40);
+    document.getElementById('studentProfileName').textContent = user.full_name;
+  };
+  renderTopbarProfile();
+
+  const profileTrigger = document.getElementById('studentProfileTrigger');
+  const profilePanel = document.getElementById('studentProfilePanel');
+  profileTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    profilePanel.classList.toggle('is-open');
+  });
+  document.addEventListener('click', () => profilePanel.classList.remove('is-open'));
+  document.getElementById('studentProfileLogout').addEventListener('click', () => ArckAuth.logout());
+  document.getElementById('studentProfileSettingsLink').addEventListener('click', () => {
+    profilePanel.classList.remove('is-open');
+    activatePanel('settings');
+  });
+
+  // One shared, hidden file input for the whole page — the avatar control
+  // inside the Profile page is the only thing that opens it now (clicking
+  // the topbar/menu avatar just navigates to Profile — see below). Wiring
+  // `change`/upload here ONCE (rather than inside a render function that
+  // re-runs on every photo change) matters: this element is never
+  // recreated, so re-attaching the listener there would stack duplicate
+  // uploads per file picked.
+  const photoInput = document.getElementById('profilePhotoInput');
+  const uploadPhoto = async (file) => {
+    try {
+      const result = await ArckAPI.uploadFile('/users/me/photo', file);
+      user.photo_url = result.photo_url;
+      ArckAPI.setSession(ArckAPI.getToken(), user);
+      renderTopbarProfile();
+      renderProfilePhoto();
+    } catch (err) {
+      alert(err.message || 'Could not upload photo.');
+    }
+  };
+  const removePhoto = async () => {
+    try {
+      await ArckAPI.request('/users/me/photo', { method: 'DELETE' });
+      user.photo_url = null;
+      ArckAPI.setSession(ArckAPI.getToken(), user);
+      renderTopbarProfile();
+      renderProfilePhoto();
+    } catch (err) {
+      alert(err.message || 'Could not remove photo.');
+    }
+  };
+  photoInput.addEventListener('change', () => {
+    const file = photoInput.files[0];
+    photoInput.value = '';
+    if (file) uploadPhoto(file);
+  });
+  // Clicking the avatar (topbar or dropdown menu) goes to the Profile page —
+  // it does NOT upload a photo directly. Uploading only happens from the
+  // dedicated avatar control inside the Profile page itself.
+  document.getElementById('studentAvatarBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    activatePanel('settings');
+  });
+  document.getElementById('studentAvatarMenuBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    profilePanel.classList.remove('is-open');
+    activatePanel('settings');
+  });
+
+  // Profile page — this is the student's OWN view (via /auth/me), so it's
+  // the one place username/email/phone/student ID are shown; nowhere else
+  // in the portal exposes these for any student, including this one.
+  const renderProfilePhoto = () => {
+    document.getElementById('profilePhotoTrigger').innerHTML = ArckAPI.avatarHtml(user.full_name, user.photo_url, 96);
+    document.getElementById('profilePhotoCaption').textContent = user.photo_url ? 'Change Photo' : 'Upload Photo';
+    document.getElementById('profilePhotoRemoveBtn').style.display = user.photo_url ? 'inline-block' : 'none';
+  };
+  document.getElementById('profilePhotoTrigger').addEventListener('click', () => photoInput.click());
+  document.getElementById('profilePhotoCaption').addEventListener('click', () => photoInput.click());
+  document.getElementById('profilePhotoRemoveBtn').addEventListener('click', removePhoto);
+  renderProfilePhoto();
+
+  // Name/Email/Phone/Address start disabled (view-only); "Edit" enables
+  // them, and the same button (now labeled "Save") submits the PATCH.
+  const nameInput = document.getElementById('profileNameInput');
+  const emailInput = document.getElementById('profileEmailInput');
+  const phoneInput = document.getElementById('profilePhoneInput');
+  const addressInput = document.getElementById('profileAddressInput');
+  const editSaveBtn = document.getElementById('profileEditSaveBtn');
+  const editError = document.getElementById('profileEditError');
+  const editableInputs = [nameInput, emailInput, phoneInput, addressInput];
+  let isEditingProfile = false;
+
+  const fillProfileFormFromUser = () => {
+    nameInput.value = user.full_name || '';
+    emailInput.value = user.email || '';
+    phoneInput.value = user.phone || '';
+    addressInput.value = user.address || '';
+  };
+  fillProfileFormFromUser();
+
+  document.getElementById('profileEditForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    editError.style.display = 'none';
+
+    if (!isEditingProfile) {
+      isEditingProfile = true;
+      editableInputs.forEach((input) => { input.disabled = false; });
+      editSaveBtn.textContent = 'Save';
+      nameInput.focus();
+      return;
+    }
+
+    editSaveBtn.disabled = true;
+    try {
+      const updated = await ArckAPI.request('/students/me/profile', {
+        method: 'PATCH',
+        body: {
+          full_name: nameInput.value.trim(),
+          email: emailInput.value.trim() || null,
+          phone: phoneInput.value.trim() || null,
+          address: addressInput.value.trim() || null,
+        },
+      });
+      Object.assign(user, updated);
+      ArckAPI.setSession(ArckAPI.getToken(), user);
+      renderTopbarProfile();
+      renderAccountDetails();
+      fillProfileFormFromUser();
+      isEditingProfile = false;
+      editableInputs.forEach((input) => { input.disabled = true; });
+      editSaveBtn.textContent = 'Edit';
+    } catch (err) {
+      editError.textContent = err.message || 'Could not save your profile.';
+      editError.style.display = 'block';
+    } finally {
+      editSaveBtn.disabled = false;
+    }
+  });
+
+  // Read-only account info that isn't user-editable here — kept separate
+  // from the editable form above. Re-rendered once batches are loaded (for
+  // Batch/Status) and whenever the profile is saved.
+  const renderAccountDetails = () => {
+    const primaryBatch = myBatches[0];
+    document.getElementById('profileAccountDetailsBody').innerHTML = `
+      <div class="detail-row"><span class="form-label">Username</span><span>${escapeHtml(user.username)}</span></div>
+      <div class="detail-row"><span class="form-label">Student ID</span><span>${escapeHtml(user.student_id || 'Not assigned yet')}</span></div>
+      <div class="detail-row"><span class="form-label">Program</span><span>${escapeHtml(PROGRAM_LABELS[user.program] || 'Not selected yet')}</span></div>
+      <div class="detail-row"><span class="form-label">Batch</span><span>${myBatches.length ? escapeHtml(myBatches.map((b) => b.name).join(', ')) : 'Not assigned yet'}</span></div>
+      ${primaryBatch ? `<div class="detail-row"><span class="form-label">Status</span><span class="admin-activity-badge ${BATCH_STATUS_BADGE[primaryBatch.status] || 'is-muted'}">${BATCH_STATUS_LABEL[primaryBatch.status] || primaryBatch.status}</span></div>` : ''}
+      <div class="detail-row"><span class="form-label">Account</span><span class="admin-activity-badge ${user.is_active ? 'is-success' : 'is-danger'}">${user.is_active ? 'Active' : 'Inactive'}</span></div>
+      <div class="detail-row"><span class="form-label"></span><a class="btn btn-primary-outline" href="change-password.html" style="margin-top:6px;">Change Password</a></div>
+    `;
+  };
 
   // Cached from the loaders below, so the Overview panel can reuse the same
   // data instead of re-fetching it.
@@ -68,13 +223,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   const navButtons = sidebar.querySelectorAll('.admin-sidebar-link[data-panel]');
   const panels = document.querySelectorAll('main.admin-main > section[data-panel]');
 
+  // Shared by the sidebar nav, the overview's data-goto-panel shortcuts, and
+  // the topbar profile dropdown's "Profile" link/avatar — "settings" has no
+  // sidebar entry, so this can't just be navButtons.forEach + one click().
+  const activatePanel = (name) => {
+    navButtons.forEach((b) => b.classList.toggle('is-active', b.dataset.panel === name));
+    panels.forEach((p) => { p.style.display = p.dataset.panel === name ? 'block' : 'none'; });
+    closeMobileSidebar();
+  };
+
   navButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      navButtons.forEach((b) => b.classList.remove('is-active'));
-      btn.classList.add('is-active');
-      panels.forEach((p) => { p.style.display = p.dataset.panel === btn.dataset.panel ? 'block' : 'none'; });
-      closeMobileSidebar();
-    });
+    btn.addEventListener('click', () => activatePanel(btn.dataset.panel));
   });
 
   /* ---------- Support: ticket system ---------- */
@@ -531,8 +690,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   overviewSection.addEventListener('click', (e) => {
     const gotoBtn = e.target.closest('[data-goto-panel]');
     if (gotoBtn) {
-      const navBtn = sidebar.querySelector(`.admin-sidebar-link[data-panel="${gotoBtn.dataset.gotoPanel}"]`);
-      if (navBtn) navBtn.click();
+      activatePanel(gotoBtn.dataset.gotoPanel);
       return;
     }
     const joinBtn = e.target.closest('[data-join-next-class]');
@@ -670,14 +828,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         <button type="button" class="btn btn-accent" data-goto-panel="support"><i class="fa-solid fa-life-ring"></i> Contact Support</button>
       `;
 
-    // Profile Summary
+    // Trainer + classmates for the primary batch — photo + name only, via
+    // the batch-members endpoint (never the admin batch-detail schema,
+    // which is the one place username is allowed to appear).
     const primaryBatch = myBatches[0];
-    document.getElementById('profileSummaryBody').innerHTML = `
-      <div class="detail-row"><span class="form-label">Name</span><span>${escapeHtml(user.full_name)}</span></div>
-      <div class="detail-row"><span class="form-label">Program</span><span>${escapeHtml(PROGRAM_LABELS[user.program] || 'Not selected yet')}</span></div>
-      <div class="detail-row"><span class="form-label">Batch</span><span>${myBatches.length ? escapeHtml(myBatches.map((b) => b.name).join(', ')) : 'Not assigned yet'}</span></div>
-      ${primaryBatch ? `<div class="detail-row"><span class="form-label">Status</span><span class="admin-activity-badge ${BATCH_STATUS_BADGE[primaryBatch.status] || 'is-muted'}">${BATCH_STATUS_LABEL[primaryBatch.status] || primaryBatch.status}</span></div>` : ''}
-    `;
+    const trainerBody = document.getElementById('batchTrainerBody');
+    const classmatesBody = document.getElementById('batchClassmatesBody');
+    if (primaryBatch) {
+      try {
+        const members = await ArckAPI.request(`/students/me/batches/${primaryBatch.id}/members`);
+        trainerBody.className = '';
+        trainerBody.innerHTML = members.trainer
+          ? `<div class="ak-identity">${ArckAPI.avatarHtml(members.trainer.full_name, members.trainer.photo_url, 44)}<span class="ak-identity-name">${escapeHtml(members.trainer.full_name)}</span></div>`
+          : 'No trainer assigned yet.';
+
+        classmatesBody.className = members.students.length ? '' : 'admin-panel-empty';
+        classmatesBody.innerHTML = members.students.length
+          ? `<div style="display:flex; flex-direction:column; gap:12px;">${members.students.map((s) => `
+              <div class="ak-identity">${ArckAPI.avatarHtml(s.full_name, s.photo_url, 36)}<span class="ak-identity-name">${escapeHtml(s.full_name)}</span></div>
+            `).join('')}</div>`
+          : "You're the only student in this batch so far.";
+      } catch (_) {
+        trainerBody.textContent = "Couldn't load trainer.";
+        classmatesBody.textContent = "Couldn't load classmates.";
+      }
+    } else {
+      trainerBody.textContent = 'Not assigned to a batch yet.';
+      classmatesBody.textContent = 'Not assigned to a batch yet.';
+    }
 
     // Quick Actions — only panels that actually exist in this portal
     const quickActions = [
@@ -699,5 +877,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadVideos();
   await loadTickets();
   await loadOverview();
+  renderAccountDetails();
 
 });

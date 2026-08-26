@@ -12,5 +12,6 @@ class BatchMessageOut(BaseModel):
     batch_id: int
     sender_id: int
     sender_name: str
+    sender_photo_url: str | None = None
     message: str
     created_at: datetime

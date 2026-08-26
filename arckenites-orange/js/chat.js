@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     conversationListEl.innerHTML = conversations.length
       ? conversations.map((c) => `
           <button type="button" class="chat-conv-item" data-peer-id="${c.other_user_id}" data-peer-name="${escapeHtml(c.other_name)}">
+            ${ArckAPI.avatarHtml(c.other_name, c.other_photo_url, 40)}
             <div class="chat-conv-item-main">
               <strong>${escapeHtml(c.other_name)}${c.other_role === 'admin' ? ' <span class="chat-pin-badge">Admin</span>' : ''}</strong>
               <span class="chat-conv-preview">${c.last_message ? escapeHtml(c.last_message) : (c.is_pinned_admin ? 'Say hello' : 'No messages yet')}</span>
@@ -74,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </button>
         `).join('')
-      : '<div class="admin-panel-empty">No conversations yet. Search a username above to start one.</div>';
+      : '<div class="admin-panel-empty">No conversations yet. Search a name above to start one.</div>';
   };
 
   const loadConversations = async () => {
@@ -92,8 +93,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const bubble = document.createElement('div');
     bubble.className = `chat-bubble ${msg.is_me ? 'is-me' : 'is-them'}`;
     const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const avatar = msg.is_me ? '' : ArckAPI.avatarHtml(msg.sender_name, msg.sender_photo_url, 18);
     bubble.innerHTML = `
-      <div class="chat-bubble-meta">${msg.is_me ? 'You' : escapeHtml(msg.sender_name)} &middot; ${time}</div>
+      <div class="chat-bubble-meta" style="display:flex;align-items:center;gap:6px;">${avatar}<span>${msg.is_me ? 'You' : escapeHtml(msg.sender_name)} &middot; ${time}</span></div>
       <div class="chat-bubble-body">${escapeHtml(msg.body)}</div>
     `;
     messagesEl.appendChild(bubble);
@@ -149,9 +151,10 @@ document.addEventListener('DOMContentLoaded', () => {
     searchResultsEl.innerHTML = results.length
       ? results.map((u) => `
           <button type="button" class="chat-conv-item" data-peer-id="${u.id}" data-peer-name="${escapeHtml(u.full_name)}">
+            ${ArckAPI.avatarHtml(u.full_name, u.photo_url, 40)}
             <div class="chat-conv-item-main">
               <strong>${escapeHtml(u.full_name)}</strong>
-              <span class="chat-conv-preview">@${escapeHtml(u.username)} &middot; ${roleLabel(u.role)}</span>
+              <span class="chat-conv-preview">${roleLabel(u.role)}</span>
             </div>
           </button>
         `).join('')
@@ -234,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!c) {
         const inferredName = data.message.is_me ? titleEl.textContent : data.message.sender_name;
         c = {
-          other_user_id: peerId, other_username: '', other_name: inferredName, other_role: '',
+          other_user_id: peerId, other_name: inferredName, other_role: '', other_photo_url: null,
           last_message: null, last_message_at: null, unread_count: 0, is_pinned_admin: false,
         };
         conversations.unshift(c);
