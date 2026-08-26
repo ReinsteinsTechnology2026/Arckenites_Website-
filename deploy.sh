@@ -32,9 +32,21 @@ echo "Checking backend status..."
 sudo -n systemctl is-active --quiet arckenites-backend
 
 echo "Running health check..."
-curl -fsS http://127.0.0.1:8000/api/health
 
-echo
-echo "================================"
-echo "Deployment successful"
-echo "================================"
+for i in {1..10}; do
+    if curl -fsS http://127.0.0.1:8000/api/health; then
+        echo
+        echo "Backend is healthy."
+        echo "================================"
+        echo "Deployment successful"
+        echo "================================"
+        exit 0
+    fi
+
+    echo "Backend not ready yet. Waiting 2 seconds..."
+    sleep 2
+done
+
+echo "ERROR: Backend failed health check after 20 seconds."
+sudo journalctl -u arckenites-backend -n 30 --no-pager
+exit 1
