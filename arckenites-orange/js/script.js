@@ -11,9 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ---------- Loader ---------- */
   const loader = document.getElementById('loader');
-  window.addEventListener('load', () => {
-    setTimeout(() => loader && loader.classList.add('hidden'), 300);
-  });
+  setTimeout(() => {
+    if (loader) loader.classList.add('hidden');
+  }, 300);
 
   /* ---------- Footer year ---------- */
   const yearEl = document.getElementById('year');
