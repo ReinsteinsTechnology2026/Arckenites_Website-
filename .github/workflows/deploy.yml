@@ -12,34 +12,4 @@ jobs:
 
     steps:
       - name: Deploy application
-        working-directory: /opt/arckenites
-        run: |
-          /usr/bin/bash -c '
-            set -e
-
-            echo "Starting deployment..."
-            echo "Current directory: $(pwd)"
-
-            git fetch origin main
-            git reset --hard origin/main
-
-            cd /opt/arckenites/backend
-
-            echo "Installing dependencies..."
-            /opt/arckenites/backend/venv/bin/pip install -r requirements.txt
-
-            echo "Running migrations..."
-            /opt/arckenites/backend/venv/bin/alembic upgrade head
-
-            echo "Restarting backend..."
-            sudo -n systemctl restart arckenites-backend
-
-            echo "Checking backend..."
-            sudo -n systemctl is-active --quiet arckenites-backend
-
-            echo "Running health check..."
-            curl -fsS http://127.0.0.1:8000/api/health
-
-            echo
-            echo "Deployment successful."
-          '
+        run: /opt/arckenites/deploy.sh
