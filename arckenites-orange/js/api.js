@@ -3,12 +3,12 @@
    Thin fetch wrapper shared by every login/dashboard page.
    ============================================================ */
 
-// Local dev talks to the backend on localhost:8000; anywhere else (Vercel,
-// custom domain, etc.) talks to the deployed Render backend. Update the
-// production URL below once the Render service is live.
+// Local dev talks to the backend directly on localhost:8000; production
+// (arckenites.com) talks to the same origin, since Caddy reverse-proxies
+// /api/* to the backend on 127.0.0.1:8000 (see deploy notes / Caddyfile).
 const API_BASE = (['localhost', '127.0.0.1'].includes(window.location.hostname))
   ? 'http://localhost:8000/api'
-  : 'https://arckenites-backend.onrender.com/api';
+  : '/api';
 const TOKEN_KEY = 'ak_token';
 const USER_KEY = 'ak_user';
 

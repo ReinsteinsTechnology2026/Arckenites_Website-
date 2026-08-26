@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,6 +13,18 @@ class Settings(BaseSettings):
 
     seed_admin1_username: str = "akadmin@001"
     seed_admin1_password: str = "admin#001"
+
+    @field_validator("database_url")
+    @classmethod
+    def _use_psycopg3_driver(cls, v: str) -> str:
+        # Render (and most providers) hand out plain postgresql:// URLs, which
+        # SQLAlchemy defaults to the psycopg2 driver for — not installed here,
+        # since requirements.txt installs psycopg (v3) instead.
+        if v.startswith("postgresql://"):
+            return v.replace("postgresql://", "postgresql+psycopg://", 1)
+        if v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql+psycopg://", 1)
+        return v
 
     @property
     def cors_origin_list(self) -> list[str]:
