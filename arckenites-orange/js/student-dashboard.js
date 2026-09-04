@@ -671,6 +671,103 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
+  /* ---------- Lab Slot Booking ---------- */
+  const labWeekSummaryEl = document.getElementById('labWeekSummary');
+  const labSlotsListEl = document.getElementById('labSlotsList');
+  const labMyBookingsBody = document.getElementById('labMyBookingsBody');
+
+  const formatSlotTime = (t) => {
+    const [h, m] = t.split(':').map(Number);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+  };
+
+  const renderMyLabBookings = (bookings) => {
+    labMyBookingsBody.innerHTML = bookings.length
+      ? bookings.map((b) => `
+          <tr>
+            <td>${formatDate(b.slot_date)}</td>
+            <td>${formatSlotTime(b.start_time)} – ${formatSlotTime(b.end_time)}</td>
+            <td><button type="button" class="btn btn-primary-outline" style="padding:4px 12px;" data-cancel-booking="${b.id}">Cancel</button></td>
+          </tr>
+        `).join('')
+      : '<tr><td colspan="3" class="admin-panel-empty">No upcoming lab bookings.</td></tr>';
+  };
+
+  const loadLabSlots = async () => {
+    try {
+      const data = await ArckAPI.request('/students/me/lab-slots');
+      const { slots, week_summary, my_bookings } = data;
+
+      labWeekSummaryEl.innerHTML = `<strong>${week_summary.hours_booked} / ${week_summary.weekly_cap} hours</strong> booked this week (${formatDate(week_summary.week_start)} – ${formatDate(week_summary.week_end)}) — <strong>${week_summary.hours_remaining} hours remaining</strong>`;
+
+      const byDate = new Map();
+      slots.forEach((s) => {
+        if (!byDate.has(s.slot_date)) byDate.set(s.slot_date, []);
+        byDate.get(s.slot_date).push(s);
+      });
+
+      labSlotsListEl.innerHTML = Array.from(byDate.keys()).sort().map((d) => `
+        <div class="lab-day-row">
+          <div class="lab-day-label">${formatDate(d)}</div>
+          <div class="lab-day-slots">
+            ${byDate.get(d).map((s) => {
+              const seatsLeft = s.capacity - s.booked_count;
+              let label = `${seatsLeft} seat${seatsLeft === 1 ? '' : 's'} left`;
+              let cls = '';
+              let disabled = false;
+              if (s.is_booked_by_me) { label = 'Booked'; cls = 'is-booked'; disabled = true; }
+              else if (s.is_past) { label = 'Past'; cls = 'is-disabled'; disabled = true; }
+              else if (s.is_full) { label = 'Full'; cls = 'is-disabled'; disabled = true; }
+              else if (week_summary.hours_remaining < 2) { cls = 'is-disabled'; disabled = true; }
+              return `<button type="button" class="lab-slot-btn ${cls}" ${disabled ? 'disabled' : ''} data-slot-date="${d}" data-start-time="${s.start_time}">
+                <span class="lab-slot-time">${formatSlotTime(s.start_time)} – ${formatSlotTime(s.end_time)}</span>
+                <span class="lab-slot-status">${label}</span>
+              </button>`;
+            }).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      renderMyLabBookings(my_bookings);
+    } catch (_) {
+      labWeekSummaryEl.textContent = '';
+      labSlotsListEl.innerHTML = '<div class="admin-panel-empty">Couldn\'t load lab slots.</div>';
+      labMyBookingsBody.innerHTML = '<tr><td colspan="3" class="admin-panel-empty">Couldn\'t load your bookings.</td></tr>';
+    }
+  };
+
+  labSlotsListEl.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.lab-slot-btn');
+    if (!btn || btn.disabled) return;
+    btn.disabled = true;
+    try {
+      await ArckAPI.request('/students/me/lab-slots/book', {
+        method: 'POST',
+        body: { slot_date: btn.dataset.slotDate, start_time: btn.dataset.startTime },
+      });
+      await loadLabSlots();
+    } catch (err) {
+      window.alert(err.detail || 'Could not book this slot.');
+      btn.disabled = false;
+    }
+  });
+
+  labMyBookingsBody.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-cancel-booking]');
+    if (!btn) return;
+    if (!window.confirm('Cancel this lab slot booking?')) return;
+    btn.disabled = true;
+    try {
+      await ArckAPI.request(`/students/me/lab-slots/${btn.dataset.cancelBooking}`, { method: 'DELETE' });
+      await loadLabSlots();
+    } catch (err) {
+      window.alert(err.detail || 'Could not cancel this booking.');
+      btn.disabled = false;
+    }
+  });
+
   /* ---------- Dashboard Overview ---------- */
   const overviewSection = document.querySelector('section[data-panel="overview"]');
   const nextClassBody = document.getElementById('nextClassBody');
@@ -875,6 +972,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadSchedule();
   await loadMaterials();
   await loadVideos();
+  await loadLabSlots();
   await loadTickets();
   await loadOverview();
   renderAccountDetails();

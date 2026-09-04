@@ -47,8 +47,8 @@
 
   <aside class="admin-sidebar" id="studentSidebar">
     <div class="admin-sidebar-brand">
-      <img src="assets/logo.png" alt="Arckenites logo">
-      <span>Arckenites Hub</span>
+      <img src="assets/logo-wordmark.png" alt="Arckenites" class="admin-brand-wordmark">
+      <span>Hub</span>
     </div>
 
     <nav class="admin-sidebar-nav">
@@ -250,7 +250,24 @@
 
       <section data-panel="lab" style="display:none;">
         <div class="admin-page-header"><div><h1>Lab Access</h1></div></div>
-        <div class="admin-panel"><div class="admin-panel-empty" style="padding:40px;">Content coming soon.</div></div>
+
+        <div class="admin-panel">
+          <div style="padding:24px;">
+            <h2 style="margin:0 0 4px;font-size:1.1rem;">Book a Lab Slot</h2>
+            <p style="margin:0 0 16px;color:var(--muted);font-size:.88rem;">Each slot is 2 hours. You can book up to 6 hours (3 slots) per week.</p>
+
+            <div id="labWeekSummary" class="lab-week-summary">Loading&hellip;</div>
+            <div id="labSlotsList" class="lab-slots-list">Loading&hellip;</div>
+          </div>
+        </div>
+
+        <div class="admin-panel" style="margin-top:24px;">
+          <div class="admin-panel-header"><h2>My Upcoming Bookings</h2></div>
+          <table class="admin-activity-table">
+            <thead><tr><th>Date</th><th>Time</th><th></th></tr></thead>
+            <tbody id="labMyBookingsBody"><tr><td colspan="3" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
+          </table>
+        </div>
       </section>
 
       <section data-panel="videos" style="display:none;">

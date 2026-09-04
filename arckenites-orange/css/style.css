@@ -787,6 +787,27 @@ a:focus-visible, button:focus-visible, input:focus-visible{
 .admin-activity-badge.is-info{ background:rgba(255,138,76,.16); color:var(--secondary); }
 .admin-panel-empty{ padding:30px 20px; text-align:center; color:var(--muted-2); font-size:.88rem; }
 
+/* Lab slot booking */
+.lab-week-summary{
+  background:rgba(255,90,31,.08); border:1px solid rgba(255,90,31,.2); border-radius:var(--radius-md);
+  padding:12px 16px; font-size:.88rem; color:var(--ink); margin-bottom:20px;
+}
+.lab-day-row{ display:flex; align-items:flex-start; gap:16px; padding:14px 0; border-bottom:1px solid var(--border-c); }
+.lab-day-row:last-child{ border-bottom:none; }
+.lab-day-label{ width:130px; flex-shrink:0; font-weight:700; font-size:.88rem; padding-top:10px; }
+.lab-day-slots{ display:flex; flex-wrap:wrap; gap:10px; flex:1; }
+.lab-slot-btn{
+  display:flex; flex-direction:column; align-items:flex-start; gap:4px; min-width:150px;
+  padding:10px 14px; border-radius:10px; border:1px solid var(--border-c); background:var(--surface);
+  color:var(--ink); cursor:pointer; transition:var(--transition); text-align:left;
+}
+.lab-slot-btn:hover:not(:disabled){ border-color:var(--primary); background:rgba(255,90,31,.06); }
+.lab-slot-btn .lab-slot-time{ font-weight:700; font-size:.85rem; }
+.lab-slot-btn .lab-slot-status{ font-size:.76rem; color:var(--muted); }
+.lab-slot-btn.is-booked{ border-color:var(--primary); background:rgba(255,90,31,.12); }
+.lab-slot-btn.is-booked .lab-slot-status{ color:var(--primary); font-weight:600; }
+.lab-slot-btn.is-disabled, .lab-slot-btn:disabled{ opacity:.45; cursor:not-allowed; }
+
 /* Settings tabs (admin-settings.html) */
 .settings-tabs{ display:flex; gap:4px; border-bottom:1px solid var(--border-c); margin-bottom:20px; overflow-x:auto; }
 .settings-tab{
