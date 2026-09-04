@@ -1,13 +1,13 @@
 from datetime import time
 
-# Fixed daily lab slot template — the same four 2-hour blocks repeat every
-# day. These are placeholder defaults so booking works end-to-end; swap them
-# (and the capacity) once the real lab setup/schedule is provided.
+# Fixed daily lab slot template — twelve back-to-back 2-hour blocks covering
+# the full 24-hour day (00:00 start through the 22:00 block). The last block
+# ends at 23:59 rather than 24:00 since a slot can't cross into the next
+# calendar date here. Placeholder capacity/coverage — swap once the real lab
+# setup/schedule is provided.
 LAB_SLOT_TEMPLATE: list[tuple[time, time]] = [
-    (time(9, 0), time(11, 0)),
-    (time(11, 0), time(13, 0)),
-    (time(14, 0), time(16, 0)),
-    (time(16, 0), time(18, 0)),
+    (time(start_hour, 0), time(23, 59) if start_hour + 2 >= 24 else time(start_hour + 2, 0))
+    for start_hour in range(0, 24, 2)
 ]
 
 LAB_SLOT_CAPACITY = 10          # seats per slot per day
