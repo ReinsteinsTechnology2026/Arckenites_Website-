@@ -66,12 +66,12 @@ class User(Base):
     @property
     def profile_completed(self) -> bool:
         """Whether the student has been through the post-first-login "tell us
-        about yourself" step (mobile/email/current_role). Program is no
-        longer part of that step — admins set it at account creation — so
-        this can't just check `program` the way onboarding gating used to."""
+        about yourself" step (name/mobile/email). Program is no longer part
+        of that step — admins set it at account creation — so this can't
+        just check `program` the way onboarding gating used to."""
         if self.role != RoleEnum.student:
             return True
-        return bool(self.student_profile and self.student_profile.current_role is not None)
+        return bool(self.student_profile and self.student_profile.phone and self.student_profile.email)
 
     # ------------------------------------------------------------------
     # Private-detail passthroughs — every one of these is only ever meant

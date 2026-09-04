@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, field_validator
 
-from app.models.student import PROGRAM_LABELS, CurrentRoleEnum, ProgramEnum
+from app.models.student import PROGRAM_LABELS, ProgramEnum
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
@@ -45,25 +45,17 @@ def _validate_program_value(value: str) -> str:
 
 class CompleteProfileRequest(BaseModel):
     """The one-time "tell us about yourself" step every student fills in
-    right after setting their own password, before reaching the dashboard."""
+    right after setting their own password, before reaching the dashboard.
+    Just name/mobile/email — current_role was dropped from this step."""
     full_name: str = Field(min_length=1, max_length=200)
     mobile_number: str = Field(min_length=7, max_length=30)
     email: str = Field(min_length=3, max_length=255)
-    current_role: str
 
     @field_validator("email")
     @classmethod
     def validate_email(cls, value: str) -> str:
         if not _EMAIL_RE.match(value):
             raise ValueError("Enter a valid email address.")
-        return value
-
-    @field_validator("current_role")
-    @classmethod
-    def validate_current_role(cls, value: str) -> str:
-        if value not in CurrentRoleEnum._value2member_map_:
-            allowed = ", ".join(r.value for r in CurrentRoleEnum)
-            raise ValueError(f"current_role must be one of: {allowed}")
         return value
 
 

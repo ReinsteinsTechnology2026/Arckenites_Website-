@@ -25,7 +25,6 @@ from app.models.batch_chat import BatchChatReadState, BatchMessage
 from app.models.batch_resources import ClassVideo, LabAccess, StudyMaterial
 from app.models.class_session import ClassSession
 from app.models.interview_schedule import InterviewSchedule
-from app.models.student import CurrentRoleEnum
 from app.models.support import SenderTypeEnum, SupportAttachment, SupportMessage, SupportTicket, TicketPriorityEnum, TicketStatusEnum
 from app.models.user import User
 from app.schemas.admin_students import CompleteProfileRequest
@@ -66,7 +65,6 @@ def complete_profile(
     profile = user.student_profile
     profile.phone = payload.mobile_number
     profile.email = payload.email
-    profile.current_role = CurrentRoleEnum(payload.current_role)
 
     db.add(user)
     db.add(profile)
