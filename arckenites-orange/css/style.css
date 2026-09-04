@@ -129,9 +129,9 @@ img{ max-width: 100%; display: block; }
   width: 44px; height: 44px; object-fit: contain; display: block;
 }
 .brand-mark--wordmark{
-  width: auto; height: 42px; transition: var(--transition);
+  width: auto; height: 58px; transition: var(--transition);
 }
-#mainNavbar.scrolled .brand-mark--wordmark{ height: 34px; }
+#mainNavbar.scrolled .brand-mark--wordmark{ height: 46px; }
 .brand-text{ font-weight: 800; font-size: 1.3rem; color: var(--ink); }
 
 .nav-link{
