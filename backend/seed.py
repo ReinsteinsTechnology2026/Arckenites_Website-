@@ -100,16 +100,28 @@ def main():
         seed_rbac(db)
         db.commit()
 
-        print("Seeding bootstrap admin account...")
-        # This credential previously lived in plaintext in js/admin-login.js.
-        # Treat it as already-known/compromised: must_change_password=True
-        # forces rotation on first real login.
-        reset_admin_password(
-            db,
-            username=settings.seed_admin1_username,
-            password=settings.seed_admin1_password,
-            full_name="Admin One",
+        print("Checking bootstrap admin account...")
+        existing_admin = (
+            db.query(User)
+            .filter(User.username == settings.seed_admin1_username)
+            .first()
         )
+
+        if existing_admin is None:
+            existing_admin = User(
+                username=settings.seed_admin1_username,
+                password_hash=hash_password(settings.seed_admin1_password),
+                full_name="Admin One",
+                role=RoleEnum.admin,
+                admin_role_id=SUPER_ADMIN_ROLE_ID,
+                is_active=True,
+                must_change_password=False,
+            )
+            db.add(existing_admin)
+            db.flush()
+            print(f"  created: {settings.seed_admin1_username} (admin, Super Admin)")
+        else:
+            print(f"  skip existing admin: {existing_admin.username} (password unchanged)")
 
         print("Seeding dev-only demo student/staff accounts...")
         demo_student = upsert_user(
