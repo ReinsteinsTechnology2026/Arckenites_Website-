@@ -801,21 +801,48 @@ a:focus-visible, button:focus-visible, input:focus-visible{
   background:rgba(255,90,31,.08); border:1px solid rgba(255,90,31,.2); border-radius:var(--radius-md);
   padding:12px 16px; font-size:.88rem; color:var(--ink); margin-bottom:20px;
 }
-.lab-day-row{ display:flex; align-items:flex-start; gap:16px; padding:14px 0; border-bottom:1px solid var(--border-c); }
-.lab-day-row:last-child{ border-bottom:none; }
-.lab-day-label{ width:130px; flex-shrink:0; font-weight:700; font-size:.88rem; padding-top:10px; }
-.lab-day-slots{ display:flex; flex-wrap:wrap; gap:10px; flex:1; }
-.lab-slot-btn{
-  display:flex; flex-direction:column; align-items:flex-start; gap:4px; min-width:150px;
-  padding:10px 14px; border-radius:10px; border:1px solid var(--border-c); background:var(--surface);
+/* Date strip — horizontal scrollable day picker */
+.lab-date-strip{
+  display:flex; gap:10px; overflow-x:auto; padding:4px 4px 14px; margin-bottom:18px;
+  border-bottom:1px solid var(--border-c); scrollbar-width:thin;
+}
+.lab-date-chip{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  flex-shrink:0; width:64px; padding:10px 6px; border-radius:14px; border:1px solid var(--border-c);
+  background:var(--surface); color:var(--ink); cursor:pointer; transition:var(--transition); position:relative;
+}
+.lab-date-chip:hover{ border-color:var(--primary); }
+.lab-date-chip .lab-date-chip-dow{ font-size:.68rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted-2); }
+.lab-date-chip .lab-date-chip-day{ font-size:1.2rem; font-weight:800; line-height:1.1; }
+.lab-date-chip .lab-date-chip-mon{ font-size:.68rem; color:var(--muted-2); }
+.lab-date-chip.is-today .lab-date-chip-dow{ color:var(--primary); }
+.lab-date-chip.is-selected{ border-color:var(--primary); background:rgba(255,90,31,.14); box-shadow:0 0 0 1px var(--primary) inset; }
+.lab-date-chip .lab-date-chip-dot{
+  position:absolute; top:6px; right:8px; width:6px; height:6px; border-radius:50%; background:var(--primary);
+}
+
+/* Slot cards for the selected day */
+.lab-slots-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:12px; }
+.lab-slot-card{
+  display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:16px;
+  border-radius:14px; border:1px solid var(--border-c); background:var(--surface);
   color:var(--ink); cursor:pointer; transition:var(--transition); text-align:left;
 }
-.lab-slot-btn:hover:not(:disabled){ border-color:var(--primary); background:rgba(255,90,31,.06); }
-.lab-slot-btn .lab-slot-time{ font-weight:700; font-size:.85rem; }
-.lab-slot-btn .lab-slot-status{ font-size:.76rem; color:var(--muted); }
-.lab-slot-btn.is-booked{ border-color:var(--primary); background:rgba(255,90,31,.12); }
-.lab-slot-btn.is-booked .lab-slot-status{ color:var(--primary); font-weight:600; }
-.lab-slot-btn.is-disabled, .lab-slot-btn:disabled{ opacity:.45; cursor:not-allowed; }
+.lab-slot-card:hover:not(:disabled){ border-color:var(--primary); background:rgba(255,90,31,.06); transform:translateY(-1px); }
+.lab-slot-card .lab-slot-icon{
+  width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  background:rgba(255,90,31,.12); color:var(--primary); font-size:.9rem;
+}
+.lab-slot-card .lab-slot-time{ font-weight:700; font-size:.92rem; }
+.lab-slot-card .lab-slot-status{
+  display:inline-flex; align-items:center; gap:5px; font-size:.74rem; font-weight:600; padding:3px 10px;
+  border-radius:999px; background:rgba(76,175,80,.14); color:#69db7c;
+}
+.lab-slot-card.is-booked{ border-color:var(--primary); background:rgba(255,90,31,.1); }
+.lab-slot-card.is-booked .lab-slot-icon{ background:var(--primary); color:#fff; }
+.lab-slot-card.is-booked .lab-slot-status{ background:rgba(255,90,31,.18); color:var(--primary); }
+.lab-slot-card.is-disabled, .lab-slot-card:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
+.lab-slot-card.is-disabled .lab-slot-status, .lab-slot-card:disabled .lab-slot-status{ background:rgba(255,255,255,.06); color:var(--muted); }
 
 /* Settings tabs (admin-settings.html) */
 .settings-tabs{ display:flex; gap:4px; border-bottom:1px solid var(--border-c); margin-bottom:20px; overflow-x:auto; }

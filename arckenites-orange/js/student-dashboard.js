@@ -699,7 +699,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ---------- Lab Slot Booking ---------- */
   const labWeekSummaryEl = document.getElementById('labWeekSummary');
-  const labSlotsListEl = document.getElementById('labSlotsList');
+  const labDateStripEl = document.getElementById('labDateStrip');
+  const labSlotsGridEl = document.getElementById('labSlotsGrid');
   const labMyBookingsBody = document.getElementById('labMyBookingsBody');
 
   const formatSlotTime = (t) => {
@@ -721,51 +722,95 @@ document.addEventListener('DOMContentLoaded', async () => {
       : '<tr><td colspan="3" class="admin-panel-empty">No upcoming lab bookings.</td></tr>';
   };
 
+  // Cache of the last fetch so switching the selected date is instant —
+  // no need to re-hit the API just to look at a different day.
+  let labSlotsByDate = new Map();
+  let labWeekSummaryCache = null;
+  let selectedLabDate = null;
+
+  const todayISO = () => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  };
+
+  const renderDateStrip = () => {
+    const dates = Array.from(labSlotsByDate.keys()).sort();
+    const today = todayISO();
+    labDateStripEl.innerHTML = dates.map((d) => {
+      const dt = new Date(`${d}T00:00:00`);
+      const hasMyBooking = labSlotsByDate.get(d).some((s) => s.is_booked_by_me);
+      return `
+        <button type="button" class="lab-date-chip ${d === today ? 'is-today' : ''} ${d === selectedLabDate ? 'is-selected' : ''}" data-date="${d}">
+          <span class="lab-date-chip-dow">${dt.toLocaleDateString(undefined, { weekday: 'short' })}</span>
+          <span class="lab-date-chip-day">${dt.getDate()}</span>
+          <span class="lab-date-chip-mon">${dt.toLocaleDateString(undefined, { month: 'short' })}</span>
+          ${hasMyBooking ? '<span class="lab-date-chip-dot"></span>' : ''}
+        </button>
+      `;
+    }).join('');
+  };
+
+  const renderSlotsGrid = () => {
+    const slots = labSlotsByDate.get(selectedLabDate) || [];
+    labSlotsGridEl.innerHTML = slots.map((s) => {
+      const seatsLeft = s.capacity - s.booked_count;
+      let label = `${seatsLeft} seat${seatsLeft === 1 ? '' : 's'} left`;
+      let cls = '';
+      let disabled = false;
+      let icon = 'fa-flask';
+      if (s.is_booked_by_me) { label = 'Booked'; cls = 'is-booked'; disabled = true; icon = 'fa-check'; }
+      else if (s.is_past) { label = 'Past'; cls = 'is-disabled'; disabled = true; icon = 'fa-clock-rotate-left'; }
+      else if (s.is_full) { label = 'Full'; cls = 'is-disabled'; disabled = true; icon = 'fa-ban'; }
+      else if (labWeekSummaryCache && labWeekSummaryCache.hours_remaining < 2) { label = 'Weekly limit reached'; cls = 'is-disabled'; disabled = true; }
+      return `
+        <button type="button" class="lab-slot-card ${cls}" ${disabled ? 'disabled' : ''} data-slot-date="${s.slot_date}" data-start-time="${s.start_time}">
+          <span class="lab-slot-icon"><i class="fa-solid ${icon}"></i></span>
+          <span class="lab-slot-time">${formatSlotTime(s.start_time)} – ${formatSlotTime(s.end_time)}</span>
+          <span class="lab-slot-status">${label}</span>
+        </button>
+      `;
+    }).join('');
+  };
+
   const loadLabSlots = async () => {
     try {
       const data = await ArckAPI.request('/students/me/lab-slots');
       const { slots, week_summary, my_bookings } = data;
+      labWeekSummaryCache = week_summary;
 
       labWeekSummaryEl.innerHTML = `<strong>${week_summary.hours_booked} / ${week_summary.weekly_cap} hours</strong> booked this week (${formatDate(week_summary.week_start)} – ${formatDate(week_summary.week_end)}) — <strong>${week_summary.hours_remaining} hours remaining</strong>`;
 
-      const byDate = new Map();
+      labSlotsByDate = new Map();
       slots.forEach((s) => {
-        if (!byDate.has(s.slot_date)) byDate.set(s.slot_date, []);
-        byDate.get(s.slot_date).push(s);
+        if (!labSlotsByDate.has(s.slot_date)) labSlotsByDate.set(s.slot_date, []);
+        labSlotsByDate.get(s.slot_date).push(s);
       });
 
-      labSlotsListEl.innerHTML = Array.from(byDate.keys()).sort().map((d) => `
-        <div class="lab-day-row">
-          <div class="lab-day-label">${formatDate(d)}</div>
-          <div class="lab-day-slots">
-            ${byDate.get(d).map((s) => {
-              const seatsLeft = s.capacity - s.booked_count;
-              let label = `${seatsLeft} seat${seatsLeft === 1 ? '' : 's'} left`;
-              let cls = '';
-              let disabled = false;
-              if (s.is_booked_by_me) { label = 'Booked'; cls = 'is-booked'; disabled = true; }
-              else if (s.is_past) { label = 'Past'; cls = 'is-disabled'; disabled = true; }
-              else if (s.is_full) { label = 'Full'; cls = 'is-disabled'; disabled = true; }
-              else if (week_summary.hours_remaining < 2) { cls = 'is-disabled'; disabled = true; }
-              return `<button type="button" class="lab-slot-btn ${cls}" ${disabled ? 'disabled' : ''} data-slot-date="${d}" data-start-time="${s.start_time}">
-                <span class="lab-slot-time">${formatSlotTime(s.start_time)} – ${formatSlotTime(s.end_time)}</span>
-                <span class="lab-slot-status">${label}</span>
-              </button>`;
-            }).join('')}
-          </div>
-        </div>
-      `).join('');
+      if (!selectedLabDate || !labSlotsByDate.has(selectedLabDate)) {
+        selectedLabDate = Array.from(labSlotsByDate.keys()).sort()[0] || null;
+      }
 
+      renderDateStrip();
+      renderSlotsGrid();
       renderMyLabBookings(my_bookings);
     } catch (_) {
       labWeekSummaryEl.textContent = '';
-      labSlotsListEl.innerHTML = '<div class="admin-panel-empty">Couldn\'t load lab slots.</div>';
+      labDateStripEl.innerHTML = '';
+      labSlotsGridEl.innerHTML = '<div class="admin-panel-empty">Couldn\'t load lab slots.</div>';
       labMyBookingsBody.innerHTML = '<tr><td colspan="3" class="admin-panel-empty">Couldn\'t load your bookings.</td></tr>';
     }
   };
 
-  labSlotsListEl.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.lab-slot-btn');
+  labDateStripEl.addEventListener('click', (e) => {
+    const chip = e.target.closest('.lab-date-chip');
+    if (!chip) return;
+    selectedLabDate = chip.dataset.date;
+    renderDateStrip();
+    renderSlotsGrid();
+  });
+
+  labSlotsGridEl.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.lab-slot-card');
     if (!btn || btn.disabled) return;
     btn.disabled = true;
     try {
