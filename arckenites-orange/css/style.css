@@ -787,6 +787,15 @@ a:focus-visible, button:focus-visible, input:focus-visible{
 .admin-activity-badge.is-info{ background:rgba(255,138,76,.16); color:var(--secondary); }
 .admin-panel-empty{ padding:30px 20px; text-align:center; color:var(--muted-2); font-size:.88rem; }
 
+/* Lab access lock/unlock banner */
+.lab-access-banner{
+  display:flex; align-items:center; gap:10px; padding:14px 18px; border-radius:var(--radius-md);
+  font-size:.92rem; font-weight:600; margin-bottom:20px; border:1px solid var(--border-c); background:var(--surface);
+}
+.lab-access-banner.is-locked{ background:rgba(217,45,32,.1); border-color:rgba(217,45,32,.3); color:#ff8a80; }
+.lab-access-banner.is-unlocked{ background:rgba(76,175,80,.1); border-color:rgba(76,175,80,.3); color:#69db7c; }
+.lab-access-banner p{ margin:2px 0 0; font-weight:400; font-size:.85rem; color:var(--muted); }
+
 /* Lab slot booking */
 .lab-week-summary{
   background:rgba(255,90,31,.08); border:1px solid rgba(255,90,31,.2); border-radius:var(--radius-md);

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contact Enquiries | Arckenites Hub</title>
+<title>Lab Access | Arckenites Hub</title>
 <meta name="robots" content="noindex, nofollow">
 
 <link rel="icon" href="assets/favicon.png" type="image/png">
@@ -31,8 +31,8 @@
         <i class="fa-solid fa-gauge-high"></i><span class="label">Dashboard</span>
       </a>
 
-      <div class="admin-sidebar-group">
-        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+      <div class="admin-sidebar-group is-open">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="true">
           <span>Management</span><i class="fa-solid fa-chevron-right"></i>
         </button>
         <ul class="admin-sidebar-group-list">
@@ -45,12 +45,12 @@
         </ul>
       </div>
 
-      <div class="admin-sidebar-group">
-        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+      <div class="admin-sidebar-group is-open">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="true">
           <span>Permissions</span><i class="fa-solid fa-chevron-right"></i>
         </button>
         <ul class="admin-sidebar-group-list">
-          <li><a href="admin-lab-access.html" class="admin-sidebar-link" title="Lab Access"><i class="fa-solid fa-lock"></i><span class="label">Lab Access</span></a></li>
+          <li><a href="admin-lab-access.html" class="admin-sidebar-link is-active" aria-current="page" title="Lab Access"><i class="fa-solid fa-lock"></i><span class="label">Lab Access</span></a></li>
         </ul>
       </div>
 
@@ -77,14 +77,14 @@
         </ul>
       </div>
 
-      <div class="admin-sidebar-group is-open">
-        <button type="button" class="admin-sidebar-group-header" aria-expanded="true">
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
           <span>Website</span><i class="fa-solid fa-chevron-right"></i>
         </button>
         <ul class="admin-sidebar-group-list">
           <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Website Content — coming soon"><i class="fa-solid fa-file-lines"></i><span class="label">Website Content</span><span class="soon-badge">Soon</span></button></li>
           <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Careers — coming soon"><i class="fa-solid fa-suitcase"></i><span class="label">Careers</span><span class="soon-badge">Soon</span></button></li>
-          <li><a href="admin-contact-enquiries.html" class="admin-sidebar-link is-active" aria-current="page" title="Contact Enquiries"><i class="fa-solid fa-envelope"></i><span class="label">Contact Enquiries</span></a></li>
+          <li><a href="admin-contact-enquiries.html" class="admin-sidebar-link" title="Contact Enquiries"><i class="fa-solid fa-envelope"></i><span class="label">Contact Enquiries</span></a></li>
         </ul>
       </div>
 
@@ -126,11 +126,6 @@
       </div>
 
       <div class="admin-topbar-actions">
-        <button type="button" class="icon-btn" id="chatTopbarTrigger" aria-label="Messages">
-          <i class="fa-solid fa-comments"></i>
-          <span class="admin-notif-badge" id="chatBadge" style="display:none;">0</span>
-        </button>
-
         <div class="admin-dropdown">
           <button type="button" class="admin-profile-trigger" id="adminProfileTrigger">
             <span class="admin-avatar" id="adminAvatarInitials">A</span>
@@ -156,19 +151,25 @@
 
       <div class="admin-page-header">
         <div>
-          <h1>Contact Enquiries</h1>
-          <p>Messages submitted through the website's Contact page.</p>
+          <h1>Lab Access</h1>
+          <p>Control each student's access to the Lab individually — independent of their batch.</p>
         </div>
       </div>
 
       <div class="admin-panel">
-        <div class="admin-panel-header"><h2>All Enquiries</h2></div>
+        <div style="padding:20px 20px 0;">
+          <label class="form-label">Batch</label>
+          <select class="form-select" id="labAccessBatchSelect" style="max-width:360px;">
+            <option value="">Select a batch&hellip;</option>
+          </select>
+        </div>
+
         <table class="admin-activity-table">
           <thead>
-            <tr><th>Name</th><th>Phone</th><th>Email</th><th>Subject</th><th>Message</th><th>Received</th><th>Status</th><th>Actions</th></tr>
+            <tr><th>Student</th><th>Student ID</th><th>Slot</th><th>Slot Status</th><th>Lab Access</th><th>Last Modified</th><th>Action</th></tr>
           </thead>
-          <tbody id="enquiriesTableBody">
-            <tr><td colspan="8" class="admin-panel-empty">Loading&hellip;</td></tr>
+          <tbody id="labAccessTableBody">
+            <tr><td colspan="7" class="admin-panel-empty">Select a batch to view its students.</td></tr>
           </tbody>
         </table>
       </div>
@@ -176,37 +177,22 @@
   </div>
 </div>
 
-<div class="chat-backdrop" id="chatBackdrop"></div>
-<div class="chat-panel" id="chatPanel">
-  <div class="chat-panel-header">
-    <button type="button" class="icon-btn chat-back" id="chatBack" style="display:none;" aria-label="Back to conversations"><i class="fa-solid fa-arrow-left"></i></button>
-    <strong id="chatTitle">Messages</strong>
-    <button type="button" class="icon-btn" id="chatClose" aria-label="Close chat"><i class="fa-solid fa-xmark"></i></button>
+<!-- History modal -->
+<div class="chat-backdrop" id="labHistoryBackdrop" style="display:none;"></div>
+<div class="admin-panel" id="labHistoryModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:min(560px, 90vw); max-height:80vh; overflow-y:auto; z-index:1200;">
+  <div class="admin-panel-header" style="display:flex; align-items:center; justify-content:space-between;">
+    <h2 id="labHistoryTitle">Access History</h2>
+    <button type="button" class="icon-btn" id="labHistoryCloseBtn" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
   </div>
-  <div class="chat-body">
-    <div class="chat-list-view" id="chatListView">
-      <div class="chat-search-row">
-        <input type="text" class="form-control" id="chatSearchInput" placeholder="Search by username or name&hellip;" autocomplete="off">
-      </div>
-      <div id="chatSearchResults" class="chat-search-results" style="display:none;"></div>
-      <div class="chat-conversation-list" id="chatConversationList">
-        <div class="admin-panel-empty">Loading&hellip;</div>
-      </div>
-    </div>
-    <div class="chat-thread-view" id="chatThreadView" style="display:none;">
-      <div class="chat-messages" id="chatMessages"></div>
-      <form class="chat-input-row" id="chatForm">
-        <input type="text" class="form-control" id="chatInput" placeholder="Type a message&hellip;" autocomplete="off">
-        <button type="submit" class="btn btn-accent" id="chatSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
-      </form>
-    </div>
-  </div>
+  <table class="admin-activity-table">
+    <thead><tr><th>When</th><th>Admin</th><th>Action</th><th>Change</th><th>Reason</th></tr></thead>
+    <tbody id="labHistoryTableBody"><tr><td colspan="5" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
+  </table>
 </div>
 
 <script src="js/api.js?v=1"></script>
 <script src="js/auth.js?v=1"></script>
-<script src="js/admin-contact-enquiries.js?v=1"></script>
-<script src="js/chat.js?v=1"></script>
+<script src="js/admin-lab-access.js?v=1"></script>
 
 </body>
 </html>

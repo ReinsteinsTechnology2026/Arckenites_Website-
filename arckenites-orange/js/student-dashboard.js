@@ -671,6 +671,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
+  /* ---------- Lab Access Lock/Unlock Status ---------- */
+  const labAccessBanner = document.getElementById('labAccessStatusBanner');
+  const labPanelSection = document.querySelector('section[data-panel="lab"]');
+
+  const loadLabAccessStatus = async () => {
+    try {
+      const state = await ArckAPI.request('/students/me/lab-access-status');
+      if (state.status === 'UNLOCKED') {
+        labAccessBanner.className = 'lab-access-banner is-unlocked';
+        labAccessBanner.innerHTML = '<div><i class="fa-solid fa-lock-open"></i> <strong>🔓 Lab Access Available</strong><p>You can enter and use the Lab now.</p></div>';
+      } else {
+        labAccessBanner.className = 'lab-access-banner is-locked';
+        labAccessBanner.innerHTML = '<div><i class="fa-solid fa-lock"></i> <strong>🔒 Lab Access Locked</strong><p>Your lab access is currently locked. Please wait until your scheduled lab slot or contact the administrator.</p></div>';
+      }
+    } catch (_) {
+      // leave the last-known banner state on a transient failure
+    }
+  };
+
+  // Refresh while the Lab panel is open, so a status change made by an
+  // admin shows up without the student needing to log out/in.
+  setInterval(() => {
+    if (labPanelSection.style.display !== 'none') loadLabAccessStatus();
+  }, 20000);
+
   /* ---------- Lab Slot Booking ---------- */
   const labWeekSummaryEl = document.getElementById('labWeekSummary');
   const labSlotsListEl = document.getElementById('labSlotsList');
@@ -972,6 +997,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadSchedule();
   await loadMaterials();
   await loadVideos();
+  await loadLabAccessStatus();
   await loadLabSlots();
   await loadTickets();
   await loadOverview();

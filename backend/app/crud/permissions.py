@@ -31,6 +31,9 @@ PERMISSION_CATALOG: list[dict] = [
     {"key": "batches.edit", "module": "Batches", "action": "edit", "description": "Edit batches, including scheduling classes."},
     {"key": "batches.delete", "module": "Batches", "action": "delete", "description": "Delete batches."},
 
+    {"key": "lab_access.view", "module": "Lab Access", "action": "view", "description": "View per-student lab slot bookings and lock/unlock status."},
+    {"key": "lab_access.manage", "module": "Lab Access", "action": "manage", "description": "Manually lock or unlock a student's lab access."},
+
     {"key": "placement.view", "module": "Placement", "action": "view", "description": "View placement interviews."},
     {"key": "placement.create", "module": "Placement", "action": "create", "description": "Schedule placement interviews."},
     {"key": "placement.edit", "module": "Placement", "action": "edit", "description": "Edit placement interviews."},
@@ -65,7 +68,7 @@ PERMISSION_CATALOG: list[dict] = [
 
 PERMISSION_KEYS: frozenset[str] = frozenset(p["key"] for p in PERMISSION_CATALOG)
 
-_OPERATIONAL_MODULES = ["students", "trainers", "programs", "batches", "placement"]
+_OPERATIONAL_MODULES = ["students", "trainers", "programs", "batches", "placement", "lab_access"]
 
 # Default grants for the two editable system roles. Super Admin is not here —
 # its access is computed (see user_has_permission), never read from this table.

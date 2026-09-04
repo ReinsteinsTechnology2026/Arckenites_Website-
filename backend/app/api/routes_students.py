@@ -6,6 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import require_role
+from app.core.lab_access import compute_lab_access
 from app.core.lab_slots import LAB_BOOKING_HORIZON_DAYS, LAB_SLOT_CAPACITY, LAB_SLOT_HOURS, LAB_SLOT_TEMPLATE, LAB_WEEKLY_HOUR_CAP
 from app.core.uploads import MAX_FILES_PER_MESSAGE, get_upload_path, save_upload
 from app.core.video import generate_batch_room_name
@@ -36,6 +37,7 @@ from app.schemas.batch_members import BatchMembersOut
 from app.schemas.batch_resources import ClassVideoOut, LabAccessOut, StudyMaterialOut
 from app.schemas.class_sessions import ClassSessionOut
 from app.schemas.interview_schedule import InterviewOut
+from app.schemas.lab_access import LabAccessStateOut
 from app.schemas.lab_slots import LabBookingOut, LabSlotBookRequest, LabSlotOut, LabSlotsPageOut, LabWeekSummaryOut
 from app.schemas.student_batches import StudentBatchCardOut
 from app.schemas.support import (
@@ -283,8 +285,17 @@ async def send_my_batch_chat(
     return out
 
 
+@router.get("/me/lab-access-status", response_model=LabAccessStateOut)
+def my_lab_access_status(db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
+    return compute_lab_access(db, user.id)
+
+
 @router.get("/me/lab-access", response_model=list[LabAccessOut])
 def my_lab_access(db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
+    state = compute_lab_access(db, user.id)
+    if state["status"] == "LOCKED":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Lab access is currently locked.")
+
     rows = db.execute(
         select(LabAccess)
         .join(BatchEnrollment, BatchEnrollment.batch_id == LabAccess.batch_id)
