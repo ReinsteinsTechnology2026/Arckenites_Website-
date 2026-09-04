@@ -686,7 +686,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         labAccessBanner.innerHTML = '<div><i class="fa-solid fa-lock"></i> <strong>🔒 Lab Access Locked</strong><p>Your lab access is currently locked. Please wait until your scheduled lab slot or contact the administrator.</p></div>';
       }
     } catch (_) {
-      // leave the last-known banner state on a transient failure
+      labAccessBanner.className = 'lab-access-banner is-locked';
+      labAccessBanner.innerHTML = '<div><i class="fa-solid fa-triangle-exclamation"></i> <strong>Couldn\'t check lab access.</strong><p>Refresh the page, or contact the administrator if this keeps happening.</p></div>';
     }
   };
 
@@ -997,7 +998,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadSchedule();
   await loadMaterials();
   await loadVideos();
-  await loadLabAccessStatus();
+  loadLabAccessStatus(); // independent of the slot list below — never lets one block the other
   await loadLabSlots();
   await loadTickets();
   await loadOverview();

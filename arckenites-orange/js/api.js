@@ -49,18 +49,28 @@ const ArckAPI = {
       if (token) headers['Authorization'] = `Bearer ${token}`;
     }
 
+    // A misbehaving proxy/server can accept the connection and then never
+    // respond at all — fetch() alone would hang forever on that, leaving
+    // whatever UI was waiting on it stuck on "Loading…" with no error ever
+    // shown. This bounds every request so it always settles one way or another.
+    const timeoutController = new AbortController();
+    const timeoutId = setTimeout(() => timeoutController.abort(), 15000);
+
     let res;
     try {
       res = await fetch(`${API_BASE}${path}`, {
         method,
         headers,
         body: body !== undefined ? JSON.stringify(body) : undefined,
+        signal: timeoutController.signal,
       });
     } catch (_) {
       // fetch() throws on network failure, CORS rejection, DNS failure, server
-      // down, etc. — distinct from a real 4xx/5xx API response, and must never
-      // be shown to the user as a wrong-username/password error.
+      // down/unresponsive, etc. — distinct from a real 4xx/5xx API response,
+      // and must never be shown to the user as a wrong-username/password error.
       throw new ApiError(0, 'Cannot reach the Arckenites server. Check that the backend is running and try again.');
+    } finally {
+      clearTimeout(timeoutId);
     }
 
     if (res.status === 401 && auth) {
