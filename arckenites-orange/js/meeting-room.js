@@ -235,16 +235,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.confirm('Leave this meeting?')) jitsiApi?.executeCommand('hangup');
   });
   document.getElementById('meetToolRecord').addEventListener('click', toggleRecording);
-  document.getElementById('meetToolRaiseHand').addEventListener('click', () => jitsiApi?.executeCommand('toggleRaiseHand'));
-
-  let handToastTimer = null;
-  function showHandRaiseToast(name) {
-    const toast = document.getElementById('meetHandToast');
-    document.getElementById('meetHandToastText').textContent = `${name} raised their hand`;
-    toast.classList.add('is-visible');
-    clearTimeout(handToastTimer);
-    handToastTimer = setTimeout(() => toast.classList.remove('is-visible'), 4000);
-  }
 
   const sidepanel = document.getElementById('meetSidepanel');
   const openPanel = (name) => {
