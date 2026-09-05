@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <td>${s.trainer_name ? escapeHtml(s.trainer_name) : '<span class="admin-activity-badge is-pending">Unassigned</span>'}</td>
             <td>${formatDate(s.session_date)}</td>
             <td>${(s.start_time && s.end_time) ? `${formatTime(s.start_time)} – ${formatTime(s.end_time)}` : '—'}</td>
-            <td>${s.meeting_link ? `<a href="${escapeHtml(s.meeting_link)}" target="_blank" rel="noopener">Join</a>` : '—'}</td>
+            <td><a class="btn btn-accent" style="padding:4px 12px;" href="meeting-room.html?batch=${s.batch_id}"><i class="fa-solid fa-video"></i> Join</a></td>
             <td>${s.notes ? escapeHtml(s.notes) : '—'}</td>
           </tr>
         `).join('')

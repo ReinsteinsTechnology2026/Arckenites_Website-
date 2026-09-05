@@ -272,11 +272,8 @@
                   <label class="form-label">End Time</label>
                   <input type="time" class="form-control" id="sessionEndTime">
                 </div>
-                <div>
-                  <label class="form-label">Meeting Link</label>
-                  <input type="url" class="form-control" id="sessionMeetingLink" placeholder="https://&hellip;">
-                </div>
               </div>
+              <p style="margin:10px 0 0; font-size:.82rem; color:var(--muted);"><i class="fa-solid fa-circle-info"></i> Every session automatically gets a real meeting room — no link to paste in.</p>
               <div style="margin-top:16px;">
                 <label class="form-label">Notes</label>
                 <textarea class="form-control" id="sessionNotes" rows="2"></textarea>
@@ -291,7 +288,7 @@
 
           <table class="admin-activity-table">
             <thead>
-              <tr><th>Title</th><th>Date</th><th>Time</th><th>Meeting Link</th><th>Notes</th><th>Actions</th></tr>
+              <tr><th>Title</th><th>Date</th><th>Time</th><th>Meeting</th><th>Notes</th><th>Actions</th></tr>
             </thead>
             <tbody id="sessionsTableBody">
               <tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr>
@@ -439,7 +436,7 @@
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=1"></script>
 <script src="js/video-conference.js?v=1"></script>
-<script src="js/admin-batch-detail.js?v=2"></script>
+<script src="js/admin-batch-detail.js?v=3"></script>
 <script src="js/chat.js?v=1"></script>
 
 </body>

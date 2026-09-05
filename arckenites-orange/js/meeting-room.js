@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   let lastPassword = null;
   let notesSaveTimer = null;
   let actionItems = [];
+  let myJitsiId = null;
+  const jitsiNames = new Map();
 
   /* ---------- Join flow ---------- */
   const renderJoinButton = (extraHtml = '') => {
@@ -162,16 +164,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     const connStatus = document.getElementById('meetConnectionStatus');
-    jitsiApi.addEventListener('videoConferenceJoined', () => {
+    jitsiApi.addEventListener('videoConferenceJoined', (e) => {
       connStatus.innerHTML = '<i class="fa-solid fa-circle" style="color:#4caf50; font-size:.55rem;"></i> Connected';
+      myJitsiId = e.id;
+      jitsiNames.set(e.id, e.displayName);
     });
     jitsiApi.addEventListener('videoConferenceLeft', () => leaveAndShowEnded());
     jitsiApi.addEventListener('readyToClose', () => leaveAndShowEnded());
     jitsiApi.addEventListener('audioMuteStatusChanged', ({ muted }) => setToolActive('meetToolMic', !muted));
     jitsiApi.addEventListener('videoMuteStatusChanged', ({ muted }) => setToolActive('meetToolCamera', !muted));
     jitsiApi.addEventListener('screenSharingStatusChanged', ({ on }) => setToolActive('meetToolShare', on));
-    jitsiApi.addEventListener('participantJoined', () => refreshParticipants());
-    jitsiApi.addEventListener('participantLeft', () => refreshParticipants());
+    jitsiApi.addEventListener('participantJoined', (e) => { jitsiNames.set(e.id, e.displayName); refreshParticipants(); });
+    jitsiApi.addEventListener('participantLeft', (e) => { jitsiNames.delete(e.id); refreshParticipants(); });
+    jitsiApi.addEventListener('raiseHandUpdated', ({ id, handRaised }) => {
+      const raised = !!handRaised;
+      if (id === myJitsiId) {
+        setToolActive('meetToolRaiseHand', raised);
+      } else if (raised) {
+        showHandRaiseToast(jitsiNames.get(id) || 'A participant');
+      }
+    });
 
     setToolActive('meetToolMic', micAllowed);
     setToolActive('meetToolCamera', cameraAllowed);
@@ -201,10 +213,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!isModerator && !screenShareEnabled) { window.alert('The host has disabled screen sharing for this meeting.'); return; }
     jitsiApi?.executeCommand('toggleShareScreen');
   });
+  document.getElementById('meetToolRaiseHand').addEventListener('click', () => {
+    jitsiApi?.executeCommand('toggleRaiseHand');
+  });
+
+  let handRaiseToastTimer = null;
+  function showHandRaiseToast(name) {
+    const toast = document.getElementById('meetHandToast');
+    const textEl = document.getElementById('meetHandToastText');
+    if (!toast || !textEl) return;
+    textEl.textContent = `${name} raised their hand`;
+    toast.classList.add('is-visible');
+    clearTimeout(handRaiseToastTimer);
+    handRaiseToastTimer = setTimeout(() => toast.classList.remove('is-visible'), 5000);
+  }
   document.getElementById('meetToolLeave').addEventListener('click', () => {
     if (window.confirm('Leave this meeting?')) jitsiApi?.executeCommand('hangup');
   });
   document.getElementById('meetToolRecord').addEventListener('click', toggleRecording);
+  document.getElementById('meetToolRaiseHand').addEventListener('click', () => jitsiApi?.executeCommand('toggleRaiseHand'));
+
+  let handToastTimer = null;
+  function showHandRaiseToast(name) {
+    const toast = document.getElementById('meetHandToast');
+    document.getElementById('meetHandToastText').textContent = `${name} raised their hand`;
+    toast.classList.add('is-visible');
+    clearTimeout(handToastTimer);
+    handToastTimer = setTimeout(() => toast.classList.remove('is-visible'), 4000);
+  }
 
   const sidepanel = document.getElementById('meetSidepanel');
   const openPanel = (name) => {

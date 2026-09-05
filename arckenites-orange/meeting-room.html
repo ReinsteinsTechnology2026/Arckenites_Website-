@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="css/style.css?v=10">
-<link rel="stylesheet" href="css/meeting-room.css?v=1">
+<link rel="stylesheet" href="css/meeting-room.css?v=2">
 
 </head>
 <body class="meeting-room-body">
@@ -39,7 +39,10 @@
   </header>
 
   <div class="meet-body">
-    <div class="meet-video-area" id="meetVideoArea"></div>
+    <div class="meet-video-wrap">
+      <div class="meet-video-area" id="meetVideoArea"></div>
+      <div class="meet-hand-toast" id="meetHandToast"><i class="fa-solid fa-hand"></i> <span id="meetHandToastText"></span></div>
+    </div>
 
     <aside class="meet-sidepanel" id="meetSidepanel" data-active-tab="participants">
       <div class="meet-sidepanel-tabs">
@@ -81,6 +84,7 @@
     <button type="button" class="meet-tool-btn" id="meetToolMic" title="Mute/unmute microphone"><i class="fa-solid fa-microphone"></i></button>
     <button type="button" class="meet-tool-btn" id="meetToolCamera" title="Turn camera on/off"><i class="fa-solid fa-video"></i></button>
     <button type="button" class="meet-tool-btn" id="meetToolShare" title="Share your screen"><i class="fa-solid fa-display"></i></button>
+    <button type="button" class="meet-tool-btn" id="meetToolRaiseHand" title="Raise/lower your hand"><i class="fa-solid fa-hand"></i></button>
     <button type="button" class="meet-tool-btn" id="meetToolChat" title="Chat"><i class="fa-solid fa-comment"></i></button>
     <button type="button" class="meet-tool-btn" id="meetToolNotes" title="Notes"><i class="fa-solid fa-note-sticky"></i></button>
     <button type="button" class="meet-tool-btn" id="meetToolParticipants" title="Participants"><i class="fa-solid fa-users"></i></button>
@@ -101,7 +105,7 @@
 
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=1"></script>
-<script src="js/meeting-room.js?v=2"></script>
+<script src="js/meeting-room.js?v=3"></script>
 
 </body>
 </html>

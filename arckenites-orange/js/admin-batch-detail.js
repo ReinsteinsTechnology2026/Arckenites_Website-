@@ -341,7 +341,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <td>${escapeHtml(s.title)}</td>
             <td>${formatDate(s.session_date)}</td>
             <td>${(s.start_time && s.end_time) ? `${formatTime(s.start_time)} – ${formatTime(s.end_time)}` : '—'}</td>
-            <td>${s.meeting_link ? `<a href="${escapeHtml(s.meeting_link)}" target="_blank" rel="noopener">Join</a>` : '—'}</td>
+            <td><a class="btn btn-accent" style="padding:4px 12px;" href="meeting-room.html?batch=${batchId}"><i class="fa-solid fa-video"></i> Join</a></td>
             <td>${s.notes ? escapeHtml(s.notes) : '—'}</td>
             <td>
               <button type="button" class="table-action-btn is-danger" data-remove-session="${s.id}" title="Delete ${escapeHtml(s.title)}">
@@ -384,7 +384,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       session_date: document.getElementById('sessionDate').value,
       start_time: document.getElementById('sessionStartTime').value || null,
       end_time: document.getElementById('sessionEndTime').value || null,
-      meeting_link: document.getElementById('sessionMeetingLink').value.trim() || null,
       notes: document.getElementById('sessionNotes').value.trim() || null,
     };
 
