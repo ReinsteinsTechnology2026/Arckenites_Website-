@@ -144,12 +144,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     jitsiApi = new window.JitsiMeetExternalAPI(jitsiDomain, {
       roomName: joinInfo.room_name,
+      subject: joinInfo.title, // shown in Jitsi's own header instead of the raw room token
       parentNode: document.getElementById('meetVideoArea'),
       width: '100%',
       height: '100%',
       userInfo: { displayName: joinInfo.display_name },
       configOverwrite: {
-        prejoinPageEnabled: false,
+        prejoinPageEnabled: false, // older Jitsi releases
+        prejoinConfig: { enabled: false }, // newer releases moved this here — set both for compatibility
         disableDeepLinking: true,
         startWithAudioMuted: !micAllowed,
         startWithVideoMuted: !cameraAllowed,
@@ -160,6 +162,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         SHOW_JITSI_WATERMARK: false,
         SHOW_WATERMARK_FOR_GUESTS: false,
         MOBILE_APP_PROMO: false,
+        HIDE_DEEP_LINKING_LOGO: true,
+        DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,
       },
     });
 
