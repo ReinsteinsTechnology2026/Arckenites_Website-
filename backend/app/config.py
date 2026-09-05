@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     seed_admin1_username: str = "akadmin@001"
     seed_admin1_password: str = "admin#001"
 
+    # Self-hosted Jitsi deployment backing the Meetings module — never
+    # hardcode this in frontend JS; every meeting join URL is built from it.
+    meet_domain: str = "meet.arckenites.com"
+
     @field_validator("database_url")
     @classmethod
     def _use_psycopg3_driver(cls, v: str) -> str:

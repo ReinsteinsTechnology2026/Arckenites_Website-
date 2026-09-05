@@ -34,6 +34,12 @@ PERMISSION_CATALOG: list[dict] = [
     {"key": "lab_access.view", "module": "Lab Access", "action": "view", "description": "View per-student lab slot bookings and lock/unlock status."},
     {"key": "lab_access.manage", "module": "Lab Access", "action": "manage", "description": "Manually lock or unlock a student's lab access."},
 
+    {"key": "meetings.view", "module": "Meetings", "action": "view", "description": "View meetings, participants, chat, notes and recordings."},
+    {"key": "meetings.create", "module": "Meetings", "action": "create", "description": "Schedule new meetings."},
+    {"key": "meetings.edit", "module": "Meetings", "action": "edit", "description": "Edit meeting details and settings."},
+    {"key": "meetings.manage", "module": "Meetings", "action": "manage", "description": "Start, end, and manage a live meeting (participants, recording)."},
+    {"key": "meetings.delete", "module": "Meetings", "action": "delete", "description": "Cancel or delete meetings and recordings."},
+
     {"key": "placement.view", "module": "Placement", "action": "view", "description": "View placement interviews."},
     {"key": "placement.create", "module": "Placement", "action": "create", "description": "Schedule placement interviews."},
     {"key": "placement.edit", "module": "Placement", "action": "edit", "description": "Edit placement interviews."},
@@ -68,7 +74,7 @@ PERMISSION_CATALOG: list[dict] = [
 
 PERMISSION_KEYS: frozenset[str] = frozenset(p["key"] for p in PERMISSION_CATALOG)
 
-_OPERATIONAL_MODULES = ["students", "trainers", "programs", "batches", "placement", "lab_access"]
+_OPERATIONAL_MODULES = ["students", "trainers", "programs", "batches", "placement", "lab_access", "meetings"]
 
 # Default grants for the two editable system roles. Super Admin is not here —
 # its access is computed (see user_has_permission), never read from this table.

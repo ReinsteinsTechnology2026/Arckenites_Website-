@@ -137,3 +137,26 @@ def delete_profile_photo(storage_reference: str) -> None:
     path = PROFILE_PHOTO_ROOT / storage_reference
     if path.exists():
         path.unlink()
+
+
+# ---------------------------------------------------------------------------
+# Meeting recordings — written to disk by the Jibri recording pipeline (see
+# backend/MEETINGS_DEPLOYMENT.md), not via a multipart upload endpoint, so
+# there's no save_* function here — just the same path-resolution/delete
+# pattern as the other upload roots, keyed by MeetingRecording.file_path.
+# ---------------------------------------------------------------------------
+
+RECORDINGS_ROOT = Path(__file__).resolve().parent.parent.parent / "uploads" / "recordings"
+
+
+def get_recording_path(storage_reference: str) -> Path:
+    path = (RECORDINGS_ROOT / storage_reference).resolve()
+    if RECORDINGS_ROOT.resolve() not in path.parents:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recording not found")
+    return path
+
+
+def delete_recording(storage_reference: str) -> None:
+    path = RECORDINGS_ROOT / storage_reference
+    if path.exists():
+        path.unlink()

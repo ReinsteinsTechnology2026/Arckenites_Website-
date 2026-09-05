@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meeting | Arckenites</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="icon" href="assets/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="css/style.css?v=10">
+<link rel="stylesheet" href="css/meeting-room.css?v=1">
+
+</head>
+<body class="meeting-room-body">
+
+<!-- ===================== PRE-JOIN ===================== -->
+<div class="meet-prejoin" id="meetPrejoin">
+  <div class="meet-prejoin-card">
+    <img src="assets/logo-wordmark.png" alt="Arckenites" class="meet-prejoin-logo">
+    <div id="meetPrejoinBody">
+      <p class="meet-prejoin-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading meeting&hellip;</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== LIVE MEETING ===================== -->
+<div class="meet-room" id="meetRoom" style="display:none;">
+  <header class="meet-topbar">
+    <div class="meet-topbar-title">
+      <strong id="meetTitle">Meeting</strong>
+      <span id="meetRecordingBadge" class="meet-recording-badge" style="display:none;"><i class="fa-solid fa-circle"></i> Recording</span>
+    </div>
+    <div class="meet-topbar-actions">
+      <span id="meetConnectionStatus" class="meet-connection-status"><i class="fa-solid fa-circle-notch fa-spin"></i> Connecting&hellip;</span>
+    </div>
+  </header>
+
+  <div class="meet-body">
+    <div class="meet-video-area" id="meetVideoArea"></div>
+
+    <aside class="meet-sidepanel" id="meetSidepanel" data-active-tab="participants">
+      <div class="meet-sidepanel-tabs">
+        <button type="button" class="meet-sidepanel-tab is-active" data-panel="participants"><i class="fa-solid fa-users"></i> Participants</button>
+        <button type="button" class="meet-sidepanel-tab" data-panel="chat"><i class="fa-solid fa-comment"></i> Chat</button>
+        <button type="button" class="meet-sidepanel-tab" data-panel="notes"><i class="fa-solid fa-note-sticky"></i> Notes</button>
+        <button type="button" class="icon-btn meet-sidepanel-close" id="meetSidepanelClose" aria-label="Close panel"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="meet-panel-body" data-panel-body="participants">
+        <ul class="meet-participant-list" id="meetParticipantList"></ul>
+      </div>
+
+      <div class="meet-panel-body" data-panel-body="chat" style="display:none;">
+        <div class="meet-chat-messages" id="meetChatMessages"></div>
+        <form class="meet-chat-form" id="meetChatForm">
+          <input type="text" id="meetChatInput" placeholder="Type a message&hellip;" autocomplete="off">
+          <button type="submit" class="icon-btn" aria-label="Send"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+      </div>
+
+      <div class="meet-panel-body" data-panel-body="notes" style="display:none;">
+        <div class="meet-notes-toolbar">
+          <span id="meetNotesSaveStatus" class="meet-notes-save-status">Saved</span>
+        </div>
+        <textarea id="meetNotesContent" placeholder="Write meeting notes here&hellip; (Markdown supported)"></textarea>
+        <div class="meet-action-items">
+          <div class="meet-action-items-header">
+            <strong>Action Items</strong>
+            <button type="button" class="btn btn-primary-outline" id="meetAddActionItem" style="padding:2px 10px; font-size:.78rem;">+ Add</button>
+          </div>
+          <ul id="meetActionItemsList"></ul>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="meet-toolbar">
+    <button type="button" class="meet-tool-btn" id="meetToolMic" title="Mute/unmute microphone"><i class="fa-solid fa-microphone"></i></button>
+    <button type="button" class="meet-tool-btn" id="meetToolCamera" title="Turn camera on/off"><i class="fa-solid fa-video"></i></button>
+    <button type="button" class="meet-tool-btn" id="meetToolShare" title="Share your screen"><i class="fa-solid fa-display"></i></button>
+    <button type="button" class="meet-tool-btn" id="meetToolChat" title="Chat"><i class="fa-solid fa-comment"></i></button>
+    <button type="button" class="meet-tool-btn" id="meetToolNotes" title="Notes"><i class="fa-solid fa-note-sticky"></i></button>
+    <button type="button" class="meet-tool-btn" id="meetToolParticipants" title="Participants"><i class="fa-solid fa-users"></i></button>
+    <button type="button" class="meet-tool-btn" id="meetToolRecord" title="Start/stop recording" style="display:none;"><i class="fa-solid fa-circle"></i></button>
+    <button type="button" class="meet-tool-btn is-leave" id="meetToolLeave" title="Leave meeting"><i class="fa-solid fa-phone-slash"></i></button>
+  </footer>
+</div>
+
+<!-- ===================== MEETING ENDED / SUMMARY ===================== -->
+<div class="meet-prejoin" id="meetEndedScreen" style="display:none;">
+  <div class="meet-prejoin-card">
+    <img src="assets/logo-wordmark.png" alt="Arckenites" class="meet-prejoin-logo">
+    <h2><i class="fa-solid fa-circle-check" style="color:var(--primary);"></i> You left the meeting</h2>
+    <p id="meetEndedSubline">Thanks for joining.</p>
+    <a href="index.html" class="btn btn-accent" style="margin-top:16px;">Return to Arckenites</a>
+  </div>
+</div>
+
+<script src="js/api.js?v=2"></script>
+<script src="js/auth.js?v=1"></script>
+<script src="js/meeting-room.js?v=1"></script>
+
+</body>
+</html>

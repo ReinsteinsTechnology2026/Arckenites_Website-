@@ -64,6 +64,18 @@ class AuthEventType(str, enum.Enum):
     support_ticket_reopened = "support_ticket_reopened"
     support_ticket_deleted = "support_ticket_deleted"
 
+    meeting_created = "meeting_created"
+    meeting_updated = "meeting_updated"
+    meeting_cancelled = "meeting_cancelled"
+    meeting_started = "meeting_started"
+    meeting_ended = "meeting_ended"
+    meeting_deleted = "meeting_deleted"
+    meeting_participant_added = "meeting_participant_added"
+    meeting_participant_removed = "meeting_participant_removed"
+    meeting_recording_started = "meeting_recording_started"
+    meeting_recording_stopped = "meeting_recording_stopped"
+    meeting_recording_deleted = "meeting_recording_deleted"
+
 
 class AuthAuditLog(Base):
     __tablename__ = "auth_audit_log"

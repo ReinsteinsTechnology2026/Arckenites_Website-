@@ -9,6 +9,8 @@ from app.api.routes_admin_class_schedule import router as admin_class_schedule_r
 from app.api.routes_admin_contact_enquiries import router as admin_contact_enquiries_router
 from app.api.routes_admin_interviews import router as admin_interviews_router
 from app.api.routes_admin_lab_access import router as admin_lab_access_router
+from app.api.routes_admin_meetings import router as admin_meetings_router
+from app.api.routes_meetings import router as meetings_router
 from app.api.routes_admin_programs import router as admin_programs_router
 from app.api.routes_admin_staff import router as admin_staff_router
 from app.api.routes_admin_students import router as admin_students_router
@@ -81,6 +83,8 @@ app.include_router(admin_batches_router, prefix="/api")
 app.include_router(admin_class_schedule_router, prefix="/api")
 app.include_router(admin_interviews_router, prefix="/api")
 app.include_router(admin_lab_access_router, prefix="/api")
+app.include_router(admin_meetings_router, prefix="/api")
+app.include_router(meetings_router, prefix="/api")
 app.include_router(admin_programs_router, prefix="/api")
 app.include_router(admin_contact_enquiries_router, prefix="/api")
 app.include_router(admin_users_router, prefix="/api")
