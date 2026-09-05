@@ -5,10 +5,12 @@ const PARTICIPANT_STATUS_LABEL = { INVITED: 'Invited', WAITING: 'Waiting', ADMIT
 
 document.addEventListener('DOMContentLoaded', async () => {
 
-  const token = new URLSearchParams(location.search).get('token');
+  const params = new URLSearchParams(location.search);
+  const token = params.get('token');
+  const batchId = params.get('batch');
   const prejoinBody = document.getElementById('meetPrejoinBody');
 
-  if (!token) {
+  if (!token && !batchId) {
     prejoinBody.innerHTML = '<h2>Invalid meeting link</h2><p>This meeting link is missing or malformed.</p>';
     return;
   }
@@ -80,9 +82,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btn = document.getElementById('meetJoinBtn') || document.getElementById('meetPasswordSubmit');
     if (btn) btn.disabled = true;
     try {
-      const res = await ArckAPI.request(`/meetings/${encodeURIComponent(token)}/join`, {
-        method: 'POST', body: { password: lastPassword },
-      });
+      const res = batchId
+        ? await ArckAPI.request(`/meetings/batch/${encodeURIComponent(batchId)}/join`, { method: 'POST', body: {} })
+        : await ArckAPI.request(`/meetings/${encodeURIComponent(token)}/join`, { method: 'POST', body: { password: lastPassword } });
       if (res.status === 'WAITING') {
         clearTimeout(waitingPollTimer);
         renderWaiting();

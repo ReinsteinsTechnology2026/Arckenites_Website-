@@ -56,6 +56,13 @@ class Meeting(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     host_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
 
+    # Set only for a batch's standing class meeting (auto-provisioned by
+    # POST /meetings/batch/{batch_id}/join) — null for ad-hoc/scheduled
+    # meetings created from the admin Meetings module. A batch can have many
+    # Meeting rows over time (one per class session); at most one is ever
+    # LIVE at once, enforced in the join endpoint, not by a DB constraint.
+    batch_id: Mapped[int | None] = mapped_column(ForeignKey("batches.id"), nullable=True, index=True)
+
     password_hash: Mapped[str | None] = mapped_column(String(200), nullable=True)
     scheduled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     duration_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=60)

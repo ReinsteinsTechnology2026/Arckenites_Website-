@@ -178,17 +178,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     editPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
-  document.getElementById('joinBatchVideoBtn').addEventListener('click', async (e) => {
-    const btn = e.currentTarget;
-    btn.disabled = true;
-    try {
-      const room = await ArckAPI.request(`/admin/batches/${batchId}/video`);
-      ArckVideo.openRoom({ roomName: room.room_name, displayName: room.display_name, subject: room.subject, shareable: true });
-    } catch (err) {
-      window.alert(err.detail || 'Could not open this batch\'s video room.');
-    } finally {
-      btn.disabled = false;
-    }
+  document.getElementById('joinBatchVideoBtn').addEventListener('click', () => {
+    window.location.href = `meeting-room.html?batch=${batchId}`;
   });
 
   document.getElementById('editBatchBtn').addEventListener('click', openEditPanel);

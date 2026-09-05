@@ -12,6 +12,7 @@ from app.core.meetings import get_participant_row, meeting_member_user_ids, requ
 from app.core.security import verify_password
 from app.core.ws_manager import manager
 from app.database import get_db
+from app.models.batch import Batch, BatchEnrollment
 from app.models.meeting import (
     Meeting,
     MeetingMessage,
@@ -23,7 +24,7 @@ from app.models.meeting import (
     ParticipantStatus,
     RecordingStatus,
 )
-from app.models.user import User
+from app.models.user import RoleEnum, User
 from app.schemas.meeting import (
     MeetingJoinOut,
     MessageOut,
@@ -77,6 +78,69 @@ def my_meetings(db: Session = Depends(get_db), user: User = Depends(get_current_
         )
         for m in meetings
     ]
+
+
+@router.post("/batch/{batch_id}/join", response_model=MeetingJoinOut)
+def join_batch_meeting(batch_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """The batch equivalent of a token-based meeting join — auto-provisions
+    a Meeting the first time a trainer/admin opens it for a given class,
+    then everyone else (any enrolled student) joins that same live Meeting.
+    Once created, chat/notes/participants/recording all just work through
+    the exact same Meeting/MeetingParticipant machinery as any other
+    meeting — no separate code path needed for those."""
+    batch = db.get(Batch, batch_id)
+    if batch is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Batch not found")
+
+    is_host = user.role == RoleEnum.admin or batch.trainer_id == user.id
+    is_enrolled = db.scalar(select(BatchEnrollment).where(
+        BatchEnrollment.batch_id == batch_id, BatchEnrollment.student_id == user.id
+    )) is not None
+    if not (is_host or is_enrolled):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You don't have access to this batch.")
+
+    now = datetime.now(timezone.utc)
+    meeting = db.scalar(select(Meeting).where(Meeting.batch_id == batch_id, Meeting.status == MeetingStatus.LIVE))
+
+    if meeting is None:
+        if not is_host:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Your trainer hasn't started this class yet. Please wait.")
+        meeting = Meeting(
+            title=f"{batch.name} — Class", host_id=user.id, batch_id=batch_id,
+            scheduled_at=now, duration_minutes=120, status=MeetingStatus.LIVE, started_at=now,
+            mic_enabled=True, camera_enabled=True, screen_share_enabled=True,
+            chat_enabled=True, notes_enabled=True, recording_enabled=False,
+            waiting_room_enabled=False, require_approval=False,
+        )
+        db.add(meeting)
+        db.flush()
+        db.add(MeetingParticipant(meeting_id=meeting.id, user_id=user.id, role=ParticipantRole.HOST, status=ParticipantStatus.JOINED, joined_at=now))
+        db.add(MeetingMessage(meeting_id=meeting.id, user_id=None, message=f"{user.full_name} started the class.", is_system=True))
+        db.commit()
+        db.refresh(meeting)
+    else:
+        participant = get_participant_row(db, meeting.id, user.id)
+        if participant is None:
+            db.add(MeetingParticipant(
+                meeting_id=meeting.id, user_id=user.id,
+                role=ParticipantRole.HOST if is_host else ParticipantRole.PARTICIPANT,
+                status=ParticipantStatus.JOINED, joined_at=now,
+            ))
+        elif participant.status != ParticipantStatus.JOINED:
+            participant.status = ParticipantStatus.JOINED
+            if participant.joined_at is None:
+                participant.joined_at = now
+            db.add(participant)
+        db.commit()
+
+    return MeetingJoinOut(
+        status="READY", meeting_id=meeting.id, meeting_token=meeting.meeting_token, title=meeting.title,
+        display_name=user.full_name, is_moderator=is_host,
+        jitsi_domain=settings.meet_domain, room_name=room_name_for(meeting),
+        mic_enabled=meeting.mic_enabled, camera_enabled=meeting.camera_enabled,
+        screen_share_enabled=meeting.screen_share_enabled, chat_enabled=meeting.chat_enabled,
+        notes_enabled=meeting.notes_enabled,
+    )
 
 
 class JoinRequest(BaseModel):

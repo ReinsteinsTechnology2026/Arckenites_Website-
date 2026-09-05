@@ -494,20 +494,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
-  batchMeetingsList.addEventListener('click', async (e) => {
+  batchMeetingsList.addEventListener('click', (e) => {
     const joinBtn = e.target.closest('[data-join-batch]');
-    if (joinBtn) {
-      joinBtn.disabled = true;
-      try {
-        const room = await ArckAPI.request(`/students/me/batches/${joinBtn.dataset.joinBatch}/video`);
-        ArckVideo.openRoom({ roomName: room.room_name, displayName: room.display_name, subject: room.subject });
-      } catch (err) {
-        window.alert(err.detail || 'Could not join this batch\'s meeting.');
-      } finally {
-        joinBtn.disabled = false;
-      }
-      return;
-    }
+    if (joinBtn) { window.location.href = `meeting-room.html?batch=${joinBtn.dataset.joinBatch}`; return; }
     const chatBtn = e.target.closest('[data-chat-batch]');
     if (chatBtn) openBatchChat(Number(chatBtn.dataset.chatBatch), chatBtn.dataset.chatBatchName);
   });
@@ -583,7 +572,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <td>${formatDate(s.session_date)}</td>
       <td>${(s.start_time && s.end_time) ? `${formatTime(s.start_time)} – ${formatTime(s.end_time)}` : '—'}</td>
       <td>${s.meeting_link ? `<a href="${escapeHtml(s.meeting_link)}" target="_blank" rel="noopener">Open Link</a>` : '—'}</td>
-      <td><button type="button" class="btn btn-accent" data-join-session="${s.id}" data-subject="${escapeHtml(s.title)}"><i class="fa-solid fa-video"></i> Join</button></td>
+      <td><button type="button" class="btn btn-accent" data-join-batch="${s.batch_id}"><i class="fa-solid fa-video"></i> Join</button></td>
       <td>${s.notes ? escapeHtml(s.notes) : '—'}</td>
     </tr>
   `;
@@ -600,18 +589,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
-  scheduleBody.addEventListener('click', async (e) => {
-    const btn = e.target.closest('[data-join-session]');
+  scheduleBody.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-join-batch]');
     if (!btn) return;
-    btn.disabled = true;
-    try {
-      const room = await ArckAPI.request(`/students/me/schedule/${btn.dataset.joinSession}/video`);
-      await ArckVideo.openRoom({ roomName: room.room_name, displayName: room.display_name, subject: room.subject });
-    } catch (err) {
-      window.alert(err.detail || 'Could not join this class\'s video call.');
-    } finally {
-      btn.disabled = false;
-    }
+    window.location.href = `meeting-room.html?batch=${btn.dataset.joinBatch}`;
   });
 
   document.getElementById('startInstantMeetingBtn').addEventListener('click', async (e) => {
@@ -868,18 +849,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const overviewSection = document.querySelector('section[data-panel="overview"]');
   const nextClassBody = document.getElementById('nextClassBody');
 
-  const joinNextClass = async (btn) => {
-    btn.disabled = true;
-    try {
-      const room = await ArckAPI.request(`/students/me/schedule/${btn.dataset.joinNextClass}/video`);
-      await ArckVideo.openRoom({ roomName: room.room_name, displayName: room.display_name, subject: room.subject });
-    } catch (err) {
-      window.alert(err.detail || 'Could not join this class\'s video call.');
-    } finally {
-      btn.disabled = false;
-    }
-  };
-
   overviewSection.addEventListener('click', (e) => {
     const gotoBtn = e.target.closest('[data-goto-panel]');
     if (gotoBtn) {
@@ -887,7 +856,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
     const joinBtn = e.target.closest('[data-join-next-class]');
-    if (joinBtn) joinNextClass(joinBtn);
+    if (joinBtn) window.location.href = `meeting-room.html?batch=${joinBtn.dataset.joinNextClass}`;
   });
 
   const loadOverview = async () => {
@@ -944,7 +913,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="detail-row"><span class="form-label">Date</span><span>${label(s.session_date)}</span></div>
             <div class="detail-row"><span class="form-label">Time</span><span>${(s.start_time && s.end_time) ? `${formatTime(s.start_time)} – ${formatTime(s.end_time)}` : '—'}</span></div>
           </div>
-          <button type="button" class="btn btn-accent" data-join-next-class="${s.id}"><i class="fa-solid fa-video"></i> Join Class</button>
+          <button type="button" class="btn btn-accent" data-join-next-class="${s.batch_id}"><i class="fa-solid fa-video"></i> Join Class</button>
         </div>
       `;
     } else {
