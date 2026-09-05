@@ -57,6 +57,7 @@
       <button type="button" class="admin-sidebar-link" data-panel="lab"><i class="fa-solid fa-flask"></i><span class="label">Lab Access</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="videos"><i class="fa-solid fa-video"></i><span class="label">Class Videos</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="materials"><i class="fa-solid fa-book-open"></i><span class="label">Study Materials</span></button>
+      <button type="button" class="admin-sidebar-link" data-panel="meetings"><i class="fa-solid fa-video"></i><span class="label">Meetings</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="interviews"><i class="fa-solid fa-user-tie"></i><span class="label">Interview Schedule</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="support"><i class="fa-solid fa-life-ring"></i><span class="label">Support</span><span class="admin-notif-badge" id="supportSidebarBadge" style="display:none; position:static; margin-left:auto;">0</span></button>
     </nav>
@@ -302,6 +303,16 @@
         </div>
       </section>
 
+      <section data-panel="meetings" style="display:none;">
+        <div class="admin-page-header"><div><h1>Meetings</h1></div></div>
+        <div class="admin-panel">
+          <table class="admin-activity-table">
+            <thead><tr><th>Meeting</th><th>Host</th><th>Date</th><th>Time</th><th>Status</th><th></th></tr></thead>
+            <tbody id="myMeetingsBody"><tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
       <section data-panel="interviews" style="display:none;">
         <div class="admin-page-header"><div><h1>Interview Schedule</h1></div></div>
         <div class="admin-panel"><div class="admin-panel-empty" style="padding:40px;">Content coming soon.</div></div>
@@ -478,7 +489,7 @@
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=1"></script>
 <script src="js/video-conference.js?v=1"></script>
-<script src="js/student-dashboard.js?v=3"></script>
+<script src="js/student-dashboard.js?v=5"></script>
 <script src="js/chat.js?v=1"></script>
 
 </body>

@@ -839,6 +839,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  /* ---------- Meetings ---------- */
+  const MEETING_STATUS_LABEL = { SCHEDULED: 'Scheduled', LIVE: 'Live', COMPLETED: 'Completed', CANCELLED: 'Cancelled' };
+  const MEETING_STATUS_BADGE = { SCHEDULED: 'is-info', LIVE: 'is-success', COMPLETED: 'is-muted', CANCELLED: 'is-danger' };
+  const myMeetingsBody = document.getElementById('myMeetingsBody');
+
+  const loadMyMeetings = async () => {
+    try {
+      const meetings = await ArckAPI.request('/meetings/me');
+      myMeetingsBody.innerHTML = meetings.length ? meetings.map((m) => `
+        <tr>
+          <td>${escapeHtml(m.title)}${m.has_password ? ' <i class="fa-solid fa-lock" style="color:var(--muted-2); font-size:.75rem;" title="Password protected"></i>' : ''}</td>
+          <td>${escapeHtml(m.host_name)}</td>
+          <td>${formatDate(m.scheduled_at.slice(0, 10))}</td>
+          <td>${new Date(m.scheduled_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</td>
+          <td><span class="admin-activity-badge ${MEETING_STATUS_BADGE[m.status] || 'is-muted'}">${MEETING_STATUS_LABEL[m.status] || m.status}</span></td>
+          <td>${m.status === 'LIVE' || m.status === 'SCHEDULED'
+            ? `<a class="btn btn-accent" style="padding:4px 14px;" href="meeting-room.html?token=${encodeURIComponent(m.meeting_token)}">${m.my_role === 'HOST' ? 'Start / Join' : 'Join'}</a>`
+            : ''}</td>
+        </tr>
+      `).join('') : '<tr><td colspan="6" class="admin-panel-empty">No meetings yet.</td></tr>';
+    } catch (_) {
+      myMeetingsBody.innerHTML = '<tr><td colspan="6" class="admin-panel-empty">Couldn\'t load meetings.</td></tr>';
+    }
+  };
+
   /* ---------- Dashboard Overview ---------- */
   const overviewSection = document.querySelector('section[data-panel="overview"]');
   const nextClassBody = document.getElementById('nextClassBody');
@@ -1031,6 +1056,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       { panel: 'materials', label: 'Study Materials', icon: 'fa-book-open' },
       { panel: 'videos', label: 'Class Videos', icon: 'fa-video' },
       { panel: 'lab', label: 'Lab Access', icon: 'fa-flask' },
+      { panel: 'meetings', label: 'Meetings', icon: 'fa-video' },
       { panel: 'interviews', label: 'Interview Schedule', icon: 'fa-user-tie' },
       { panel: 'support', label: 'Support', icon: 'fa-life-ring' },
     ];
@@ -1045,6 +1071,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadVideos();
   loadLabAccessStatus(); // independent of the slot list below — never lets one block the other
   await loadLabSlots();
+  await loadMyMeetings();
   await loadTickets();
   await loadOverview();
   renderAccountDetails();

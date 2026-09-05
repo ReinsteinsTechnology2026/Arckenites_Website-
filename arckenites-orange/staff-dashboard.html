@@ -55,6 +55,15 @@
 
 <main class="dashboard-main">
   <div id="staffBatchesView">
+    <h1>My Meetings</h1>
+    <p>Meetings you're hosting or invited to.</p>
+    <div class="admin-panel" style="margin-bottom:32px;">
+      <table class="admin-activity-table">
+        <thead><tr><th>Meeting</th><th>Host</th><th>Date</th><th>Time</th><th>Status</th><th></th></tr></thead>
+        <tbody id="myMeetingsBody"><tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
+      </table>
+    </div>
+
     <h1>My Batches</h1>
     <p>Select a batch to manage its schedule, chat, meetings, and materials.</p>
 
@@ -139,7 +148,7 @@
 
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=1"></script>
-<script src="js/staff-dashboard.js?v=1"></script>
+<script src="js/staff-dashboard.js?v=3"></script>
 <script src="js/chat.js?v=1"></script>
 
 </body>

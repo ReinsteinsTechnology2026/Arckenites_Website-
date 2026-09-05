@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meetings | Arckenites Hub</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet" href="css/style.css?v=10">
+
+</head>
+<body>
+
+<div class="admin-shell">
+
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-sidebar-brand">
+      <img src="assets/logo-wordmark.png" alt="Arckenites" class="admin-brand-wordmark">
+      <span>Hub</span>
+    </div>
+
+    <nav class="admin-sidebar-nav">
+      <a href="admin-dashboard.html" class="admin-sidebar-link" title="Dashboard">
+        <i class="fa-solid fa-gauge-high"></i><span class="label">Dashboard</span>
+      </a>
+
+      <div class="admin-sidebar-group is-open">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="true">
+          <span>Management</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><a href="admin-students.html" class="admin-sidebar-link" title="Students"><i class="fa-solid fa-user-graduate"></i><span class="label">Students</span></a></li>
+          <li><a href="admin-staff.html" class="admin-sidebar-link" title="Trainers"><i class="fa-solid fa-chalkboard-user"></i><span class="label">Trainers</span></a></li>
+          <li><a href="admin-programs.html" class="admin-sidebar-link" title="Programs"><i class="fa-solid fa-diagram-project"></i><span class="label">Programs</span></a></li>
+          <li><a href="admin-batches.html" class="admin-sidebar-link" title="Batches"><i class="fa-solid fa-people-group"></i><span class="label">Batches</span></a></li>
+          <li><a href="admin-class-schedule.html" class="admin-sidebar-link" title="Class Schedule"><i class="fa-solid fa-calendar-days"></i><span class="label">Class Schedule</span></a></li>
+          <li><a href="admin-meetings.html" class="admin-sidebar-link is-active" aria-current="page" title="Meetings"><i class="fa-solid fa-video"></i><span class="label">Meetings</span></a></li>
+          <li><a href="admin-support.html" class="admin-sidebar-link" title="Support Tickets"><i class="fa-solid fa-headset"></i><span class="label">Support Tickets</span></a></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group is-open">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="true">
+          <span>Permissions</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><a href="admin-lab-access.html" class="admin-sidebar-link" title="Lab Access"><i class="fa-solid fa-lock"></i><span class="label">Lab Access</span></a></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>Database</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><a href="admin-students.html" class="admin-sidebar-link" title="Student Database"><i class="fa-solid fa-database"></i><span class="label">Student Database</span></a></li>
+          <li><a href="admin-staff.html" class="admin-sidebar-link" title="Staff Database"><i class="fa-solid fa-database"></i><span class="label">Staff Database</span></a></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>Placement</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Placement Candidates — coming soon"><i class="fa-solid fa-user-tie"></i><span class="label">Placement Candidates</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Companies — coming soon"><i class="fa-solid fa-building"></i><span class="label">Companies</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Job Opportunities — coming soon"><i class="fa-solid fa-briefcase"></i><span class="label">Job Opportunities</span><span class="soon-badge">Soon</span></button></li>
+          <li><a href="admin-interviews.html" class="admin-sidebar-link" title="Interviews"><i class="fa-solid fa-comments"></i><span class="label">Interviews</span></a></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Placement Statistics — coming soon"><i class="fa-solid fa-chart-pie"></i><span class="label">Placement Statistics</span><span class="soon-badge">Soon</span></button></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>Website</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Website Content — coming soon"><i class="fa-solid fa-file-lines"></i><span class="label">Website Content</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Careers — coming soon"><i class="fa-solid fa-suitcase"></i><span class="label">Careers</span><span class="soon-badge">Soon</span></button></li>
+          <li><a href="admin-contact-enquiries.html" class="admin-sidebar-link" title="Contact Enquiries"><i class="fa-solid fa-envelope"></i><span class="label">Contact Enquiries</span></a></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>System</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><a href="admin-users.html" class="admin-sidebar-link" title="Admin Users"><i class="fa-solid fa-user-shield"></i><span class="label">Admin Users</span></a></li>
+          <li><a href="admin-roles.html" class="admin-sidebar-link" title="Roles &amp; Permissions"><i class="fa-solid fa-key"></i><span class="label">Roles &amp; Permissions</span></a></li>
+          <li><a href="admin-activity-logs.html" class="admin-sidebar-link" title="Activity Logs"><i class="fa-solid fa-clock-rotate-left"></i><span class="label">Activity Logs</span></a></li>
+          <li><a href="admin-settings.html" class="admin-sidebar-link" title="Settings"><i class="fa-solid fa-sliders"></i><span class="label">Settings</span></a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="admin-sidebar-logout">
+      <button type="button" class="admin-sidebar-link" id="adminSidebarLogout" title="Logout">
+        <i class="fa-solid fa-right-from-bracket"></i><span class="label">Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
+
+  <div class="admin-shell-main">
+    <header class="admin-topbar">
+      <div class="admin-topbar-left">
+        <button type="button" class="icon-btn admin-mobile-toggle" id="adminMobileToggle" aria-label="Open menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <button type="button" class="icon-btn" id="adminSidebarCollapseBtn" aria-label="Collapse sidebar">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <label class="admin-search-input">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Search — coming soon" disabled>
+        </label>
+      </div>
+
+      <div class="admin-topbar-actions">
+        <div class="admin-dropdown">
+          <button type="button" class="admin-profile-trigger" id="adminProfileTrigger">
+            <span class="admin-avatar" id="adminAvatarInitials">A</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="admin-dropdown-panel" id="adminProfilePanel">
+            <div class="admin-profile-meta">
+              <strong id="adminProfileName">Admin</strong>
+              <span id="adminProfileRole">admin</span>
+            </div>
+            <a class="admin-dropdown-link" href="change-password.html"><i class="fa-solid fa-key"></i> Change Password</a>
+            <button type="button" class="admin-dropdown-link" id="adminProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <div class="admin-server-banner" id="adminServerBanner">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        Cannot reach the Arckenites server. Check that the backend is running, then refresh this page.
+      </div>
+
+      <!-- ===================== LIST VIEW ===================== -->
+      <div id="meetingsListView">
+        <div class="admin-page-header">
+          <div>
+            <h1>Meetings</h1>
+            <p>Schedule and run private, self-hosted video meetings.</p>
+          </div>
+          <div class="admin-page-header-actions">
+            <button type="button" class="btn btn-accent" id="toggleCreateMeetingBtn"><i class="fa-solid fa-plus"></i> Create Meeting</button>
+          </div>
+        </div>
+
+        <div class="admin-kpi-grid">
+          <div class="admin-kpi-card"><i class="fa-solid fa-video"></i><h3 id="kpiTotalMeetings">—</h3><p>Total Meetings</p></div>
+          <div class="admin-kpi-card"><i class="fa-solid fa-calendar-check"></i><h3 id="kpiScheduledMeetings">—</h3><p>Scheduled</p></div>
+          <div class="admin-kpi-card"><i class="fa-solid fa-tower-broadcast"></i><h3 id="kpiLiveMeetings">—</h3><p>Live Now</p></div>
+          <div class="admin-kpi-card"><i class="fa-solid fa-circle-check"></i><h3 id="kpiCompletedMeetings">—</h3><p>Completed</p></div>
+          <div class="admin-kpi-card"><i class="fa-solid fa-users"></i><h3 id="kpiTotalParticipants">—</h3><p>Total Participants</p></div>
+        </div>
+
+        <!-- Create Meeting panel -->
+        <div class="form-card admin-inline-form" id="createMeetingPanel" style="display:none;">
+          <h5>Create Meeting</h5>
+          <form id="createMeetingForm" novalidate>
+            <div class="admin-form-grid">
+              <div style="grid-column:1 / -1;">
+                <label class="form-label">Meeting Title</label>
+                <input type="text" class="form-control" id="meetingTitle" required>
+              </div>
+              <div style="grid-column:1 / -1;">
+                <label class="form-label">Description (optional)</label>
+                <textarea class="form-control" id="meetingDescription" rows="2"></textarea>
+              </div>
+              <div>
+                <label class="form-label">Host</label>
+                <select class="form-select" id="meetingHost" required></select>
+              </div>
+              <div>
+                <label class="form-label">Date</label>
+                <input type="date" class="form-control" id="meetingDate" required>
+              </div>
+              <div>
+                <label class="form-label">Start Time</label>
+                <input type="time" class="form-control" id="meetingTime" required>
+              </div>
+              <div>
+                <label class="form-label">Duration (minutes)</label>
+                <input type="number" class="form-control" id="meetingDuration" min="5" max="480" value="60" required>
+              </div>
+              <div>
+                <label class="form-label">Meeting Password (optional)</label>
+                <input type="text" class="form-control" id="meetingPassword" placeholder="Leave blank for no password" minlength="4">
+              </div>
+              <div>
+                <label class="form-label">Max Participants (optional)</label>
+                <input type="number" class="form-control" id="meetingMaxParticipants" min="1" max="500" placeholder="Unlimited">
+              </div>
+            </div>
+
+            <div style="margin-top:18px;">
+              <label class="form-label">Participants</label>
+              <input type="text" class="form-control" id="meetingParticipantSearch" placeholder="Search users by name or username&hellip;" autocomplete="off">
+              <div class="batch-student-picker" id="meetingParticipantResults"></div>
+              <div class="batch-student-picker" id="meetingParticipantSelected"></div>
+            </div>
+
+            <div class="admin-toggle-grid" style="margin-top:18px;">
+              <label class="admin-toggle-item"><input type="checkbox" id="toggleMic" checked> Allow Microphone</label>
+              <label class="admin-toggle-item"><input type="checkbox" id="toggleCamera" checked> Allow Camera</label>
+              <label class="admin-toggle-item"><input type="checkbox" id="toggleScreenShare" checked> Allow Screen Sharing</label>
+              <label class="admin-toggle-item"><input type="checkbox" id="toggleChat" checked> Allow Chat</label>
+              <label class="admin-toggle-item"><input type="checkbox" id="toggleNotes" checked> Allow Notes</label>
+              <label class="admin-toggle-item"><input type="checkbox" id="toggleParticipantNotes"> Allow Participant Notes</label>
+              <label class="admin-toggle-item"><input type="checkbox" id="toggleRecording"> Enable Recording</label>
+              <label class="admin-toggle-item"><input type="checkbox" id="toggleWaitingRoom"> Waiting Room</label>
+              <label class="admin-toggle-item"><input type="checkbox" id="toggleRequireApproval"> Require Participant Approval</label>
+            </div>
+
+            <div class="login-error" id="createMeetingError" style="display:none; margin-top:16px;"></div>
+            <div class="admin-form-actions">
+              <button type="submit" class="btn btn-accent" id="createMeetingSubmitBtn">Create Meeting</button>
+              <button type="button" class="btn btn-primary-outline" id="cancelCreateMeetingBtn">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="admin-panel">
+          <div class="admin-panel-header"><h2>All Meetings</h2></div>
+          <table class="admin-activity-table">
+            <thead>
+              <tr><th>Meeting Name</th><th>Meeting ID</th><th>Host</th><th>Date</th><th>Start Time</th><th>Duration</th><th>Status</th><th>Participants</th><th>Recording</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="meetingsTableBody">
+              <tr><td colspan="10" class="admin-panel-empty">Loading&hellip;</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===================== DETAIL VIEW ===================== -->
+      <div id="meetingDetailView" style="display:none;">
+        <div class="admin-page-header">
+          <div>
+            <button type="button" class="btn btn-primary-outline" id="backToMeetingsBtn" style="margin-bottom:10px;"><i class="fa-solid fa-arrow-left"></i> Back to Meetings</button>
+            <h1 id="detailTitle">Meeting</h1>
+            <p id="detailSubline"></p>
+          </div>
+          <div class="admin-page-header-actions" id="detailActions"></div>
+        </div>
+
+        <div class="admin-panel" style="margin-bottom:20px;">
+          <div style="padding:20px;" id="detailInfoBody">Loading&hellip;</div>
+        </div>
+
+        <div class="admin-tabs" id="detailTabs">
+          <button type="button" class="admin-tab is-active" data-tab="participants">Participants</button>
+          <button type="button" class="admin-tab" data-tab="chat">Chat</button>
+          <button type="button" class="admin-tab" data-tab="notes">Notes</button>
+          <button type="button" class="admin-tab" data-tab="recordings">Recordings</button>
+        </div>
+
+        <div class="admin-panel" data-tab-panel="participants">
+          <div style="padding:16px 20px;">
+            <label class="form-label">Add Participant</label>
+            <input type="text" class="form-control" id="detailParticipantSearch" placeholder="Search users by name or username&hellip;" autocomplete="off" style="max-width:400px;">
+            <div class="batch-student-picker" id="detailParticipantResults"></div>
+          </div>
+          <table class="admin-activity-table">
+            <thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Joined</th><th>Left</th><th></th></tr></thead>
+            <tbody id="detailParticipantsBody"><tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
+          </table>
+        </div>
+
+        <div class="admin-panel" data-tab-panel="chat" style="display:none;">
+          <div id="detailChatBody" style="padding:20px; max-height:500px; overflow-y:auto;">Loading&hellip;</div>
+        </div>
+
+        <div class="admin-panel" data-tab-panel="notes" style="display:none;">
+          <div style="padding:20px;" id="detailNotesBody">Loading&hellip;</div>
+        </div>
+
+        <div class="admin-panel" data-tab-panel="recordings" style="display:none;">
+          <table class="admin-activity-table">
+            <thead><tr><th>Started</th><th>Duration</th><th>Size</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="detailRecordingsBody"><tr><td colspan="5" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="js/api.js?v=2"></script>
+<script src="js/auth.js?v=1"></script>
+<script src="js/admin-meetings.js?v=2"></script>
+
+</body>
+</html>
