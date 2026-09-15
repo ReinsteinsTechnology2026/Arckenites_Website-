@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from sqlalchemy import delete, or_, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import require_permission
@@ -16,6 +17,9 @@ from app.models.audit_log import AuthAuditLog, AuthEventType
 from app.models.batch import BatchEnrollment
 from app.models.chat import Conversation, DirectMessage
 from app.models.interview_schedule import InterviewSchedule
+from app.models.lab_access_audit import LabAccessAuditLog
+from app.models.lab_access_override import LabAccessOverride
+from app.models.lab_slot_booking import LabSlotBooking
 from app.models.program import ProgramEnrollment
 from app.models.session import AuthSession
 from app.models.student import PROGRAM_LABELS, ProgramEnum, StudentProfile
@@ -220,8 +224,27 @@ def delete_student(
     db.execute(delete(ProgramEnrollment).where(ProgramEnrollment.student_id == user.id))
     db.execute(delete(InterviewSchedule).where(InterviewSchedule.student_id == user.id))
 
+    # Lab access control rows have no ON DELETE CASCADE to users.id either —
+    # same story as chat/enrollments above. A student's override and audit
+    # trail are meaningless once the account is gone, so they're removed
+    # rather than detached (unlike auth_audit_log, student_id here is
+    # NOT NULL, so there's no "keep but unlink" option).
+    db.execute(delete(LabAccessOverride).where(LabAccessOverride.student_id == user.id))
+    db.execute(delete(LabAccessAuditLog).where(LabAccessAuditLog.student_id == user.id))
+    db.execute(delete(LabSlotBooking).where(LabSlotBooking.student_id == user.id))
+
     db.delete(user)  # cascades to student_profile via the User.student_profile relationship
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # Some other dependent record we don't know about yet is still
+        # pointing at this account — fail safely instead of a bare 500,
+        # without leaking the underlying SQL/constraint name to the client.
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Student has related records that prevent deletion. Contact engineering.",
+        )
 
     ip, ua = _client_meta(request)
     write_audit_event(
