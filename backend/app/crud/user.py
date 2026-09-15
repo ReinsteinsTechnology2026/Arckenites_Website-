@@ -1,13 +1,16 @@
 import re
 
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
-from app.models.user import RoleEnum, User
+from app.models.user import User
 
 
 def get_by_username(db: Session, username: str) -> User | None:
-    return db.scalar(select(User).where(User.username == username))
+    """Case-insensitive on purpose — student/trainer usernames are now real
+    email addresses the account owner types themselves (mixed case and all),
+    not the always-lowercase auto-generated ids every account used to get."""
+    return db.scalar(select(User).where(func.lower(User.username) == username.strip().lower()))
 
 
 def _generate_email_username(db: Session, full_name: str, fallback: str) -> str:
@@ -30,35 +33,12 @@ def _generate_email_username(db: Session, full_name: str, fallback: str) -> str:
         n += 1
 
 
-def generate_username(db: Session, full_name: str, role: RoleEnum) -> str:
-    """Student login id — see _generate_email_username. `role` is only
-    used as the fallback slug when the name yields nothing usable."""
-    return _generate_email_username(db, full_name, role.value)
-
-
 def generate_admin_username(db: Session, full_name: str) -> str:
-    """Admin-portal account login id — see _generate_email_username."""
+    """Admin-portal account login id — see _generate_email_username. Students
+    and trainers instead log in with their own real email (entered by the
+    admin at account creation) — only admin accounts still get an
+    auto-generated name@arckenites.com id."""
     return _generate_email_username(db, full_name, "admin")
-
-
-def generate_staff_username(db: Session, full_name: str) -> str:
-    """Trainer/staff account login id — same name@arckenites.com base as
-    every other role, but with a ".staff" tag before the domain so trainer
-    logins are visually distinguishable — e.g. "Ravi Kumar" ->
-    ravikumar.staff@arckenites.com. Numeric suffix (on the name part, before
-    ".staff") only on collision, same as every other role."""
-    slug = re.sub(r"[^a-z0-9]", "", full_name.lower()) or "trainer"
-
-    candidate = f"{slug}.staff@arckenites.com"
-    if get_by_username(db, candidate) is None:
-        return candidate
-
-    n = 2
-    while True:
-        candidate = f"{slug}{n}.staff@arckenites.com"
-        if get_by_username(db, candidate) is None:
-            return candidate
-        n += 1
 
 
 def _next_sequential_code(db: Session, table: str, column: str, prefix: str) -> str:

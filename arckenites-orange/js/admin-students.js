@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cancelBtn = document.getElementById('cancelAddStudentBtn');
   const form = document.getElementById('addStudentForm');
   const nameInput = document.getElementById('newStudentName');
+  const emailInput = document.getElementById('newStudentEmail');
   const passwordInput = document.getElementById('newStudentPassword');
   const newProgramSelect = document.getElementById('newStudentProgram');
   const errorBox = document.getElementById('addStudentError');
@@ -200,13 +201,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const created = await ArckAPI.request('/admin/students', {
         method: 'POST',
-        body: { full_name: nameInput.value.trim(), temp_password: passwordInput.value, program: newProgramSelect.value || null },
+        body: {
+          full_name: nameInput.value.trim(),
+          email: emailInput.value.trim(),
+          temp_password: passwordInput.value,
+          program: newProgramSelect.value || null,
+        },
       });
       students = [created, ...students];
       renderStudents(students);
       closeAddPanel();
 
-      notice.innerHTML = `Created <code>${created.username}</code> for ${created.full_name}. Share the username and temporary password with the student — they'll be asked to set their own password on first login.`;
+      notice.innerHTML = `Created <code>${created.username}</code> for ${created.full_name}. They log in with this email and the temporary password — they'll be asked to set their own password on first login.`;
       notice.style.display = 'flex';
     } catch (err) {
       errorBox.textContent = err.detail || 'Could not create student.';

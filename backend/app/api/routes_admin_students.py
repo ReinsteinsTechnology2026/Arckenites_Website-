@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.core.deps import require_permission
 from app.core.security import hash_password
 from app.crud.audit import write_audit_event
-from app.crud.user import generate_student_code, generate_username
+from app.crud.user import generate_student_code, get_by_username
 from app.database import get_db
 from app.models.audit_log import AuthAuditLog, AuthEventType
 from app.models.batch import BatchEnrollment
@@ -49,7 +49,9 @@ def create_student(
     db: Session = Depends(get_db),
     actor: User = Depends(require_permission("students.create")),
 ):
-    username = generate_username(db, payload.full_name, RoleEnum.student)
+    if get_by_username(db, payload.email) is not None:
+        raise HTTPException(status_code=400, detail="An account with this email already exists.")
+    username = payload.email
 
     user = User(
         username=username,
@@ -62,7 +64,9 @@ def create_student(
     db.flush()
 
     program = ProgramEnum(payload.program) if payload.program else None
-    db.add(StudentProfile(user_id=user.id, program=program, student_code=generate_student_code(db)))
+    db.add(StudentProfile(
+        user_id=user.id, program=program, student_code=generate_student_code(db), email=payload.email,
+    ))
     db.commit()
     db.refresh(user)
 

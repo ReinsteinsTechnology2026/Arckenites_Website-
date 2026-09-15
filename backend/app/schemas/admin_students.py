@@ -13,9 +13,21 @@ PROGRAM_CHOICES: list[dict[str, str]] = [
 
 
 class CreateStudentRequest(BaseModel):
+    """The student's real email becomes their login username directly (see
+    routes_admin_students.create_student) — no more auto-generated
+    name@arckenites.com id."""
     full_name: str = Field(min_length=1, max_length=200)
+    email: str = Field(min_length=3, max_length=120)
     temp_password: str = Field(min_length=8, max_length=128)
     program: str | None = None
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        value = value.strip().lower()
+        if not _EMAIL_RE.match(value):
+            raise ValueError("Enter a valid email address.")
+        return value
 
     @field_validator("program")
     @classmethod
