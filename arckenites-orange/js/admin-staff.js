@@ -226,7 +226,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cancelBtn = document.getElementById('cancelAddStaffBtn');
   const form = document.getElementById('addStaffForm');
   const nameInput = document.getElementById('newStaffName');
-  const emailInput = document.getElementById('newStaffEmail');
   const passwordInput = document.getElementById('newStaffPassword');
   const errorBox = document.getElementById('addStaffError');
   const submitBtn = document.getElementById('addStaffSubmitBtn');
@@ -258,7 +257,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         method: 'POST',
         body: {
           full_name: nameInput.value.trim(),
-          email: emailInput.value.trim(),
           temp_password: passwordInput.value,
         },
       });
@@ -266,7 +264,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderTrainers(trainers);
       closeAddPanel();
 
-      notice.innerHTML = `Created <code>${escapeHtml(created.username)}</code> for ${escapeHtml(created.full_name)}. They log in with this email and the temporary password — they'll be asked to set their own password on first login.`;
+      notice.innerHTML = `Created <code>${escapeHtml(created.username)}</code> for ${escapeHtml(created.full_name)}. Share the username and temporary password with the trainer — they'll be asked to set their own password on first login.`;
       notice.style.display = 'flex';
     } catch (err) {
       errorBox.textContent = err.detail || 'Could not create trainer.';

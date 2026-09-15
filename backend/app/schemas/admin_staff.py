@@ -17,17 +17,19 @@ def _clean_permissions(value: dict | None) -> dict:
 
 
 class CreateStaffRequest(BaseModel):
-    """No separate username field — the trainer's real email becomes their
-    login username directly (see routes_admin_staff.create_staff), no more
-    auto-generated name.staff@arckenites.com id."""
+    """No username field — it's auto-generated (name@arckenites.com) the
+    same way a student's is, so every trainer's login id follows the same
+    naming rule regardless of which admin creates the account."""
     full_name: str = Field(min_length=1, max_length=200)
-    email: str = Field(min_length=3, max_length=120)
+    email: str | None = None
     temp_password: str = Field(min_length=8, max_length=128)
 
     @field_validator("email")
     @classmethod
-    def validate_email(cls, value: str) -> str:
-        value = value.strip().lower()
+    def validate_email(cls, value: str | None) -> str | None:
+        if value is None or value.strip() == "":
+            return None
+        value = value.strip()
         if not _EMAIL_RE.match(value):
             raise ValueError("Enter a valid email address.")
         return value
