@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session, selectinload
 import io
 
 from app.core.deps import require_permission
+from app.core.notify import notify_support_activity
 from app.core.uploads import MAX_FILES_PER_MESSAGE, delete_upload, get_upload_path, save_upload
 from app.crud.audit import write_audit_event
 from app.crud.support import (
@@ -203,6 +204,7 @@ def reply_to_ticket(
         db, AuthEventType.support_ticket_replied, ip, ua, user=actor,
         detail=f"Replied to ticket {ticket.ticket_number}", module="support", target=ticket.ticket_number, status="success",
     )
+    notify_support_activity(ticket.requester, ticket.subject, f"{actor.full_name} replied to your support ticket.")
     return message_out(message)
 
 
@@ -306,6 +308,7 @@ def change_status(
         detail=f"Changed status of ticket {ticket.ticket_number} from {old_status.value} to {new_status.value}",
         module="support", target=ticket.ticket_number, status="success",
     )
+    notify_support_activity(ticket.requester, ticket.subject, f"Your ticket status changed to \"{new_status.value.replace('_', ' ')}\".")
     return ticket_detail_out(_get_ticket_or_404(db, ticket_id), include_internal=True)
 
 

@@ -22,6 +22,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     return; // onUnauthorized already redirected to login.html
   }
 
+  // Lets a student stuck on "waiting for the host" (or any other pre-join
+  // state) get back out without relying on the browser's own Back button.
+  const ROLE_DASHBOARD = { admin: 'admin-dashboard.html', staff: 'staff-dashboard.html', student: 'student-dashboard.html' };
+  const backLink = document.getElementById('meetBackLink');
+  if (backLink && ROLE_DASHBOARD[user.role]) {
+    backLink.href = ROLE_DASHBOARD[user.role];
+    backLink.style.display = '';
+  }
+
   let meetingId = null;
   let isModerator = false;
   let jitsiApi = null;

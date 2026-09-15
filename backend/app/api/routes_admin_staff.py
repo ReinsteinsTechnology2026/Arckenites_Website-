@@ -6,7 +6,7 @@ from app.core.deps import require_permission
 from app.core.security import hash_password
 from app.crud.audit import write_audit_event
 from app.crud.session import revoke_all_sessions
-from app.crud.user import generate_staff_username
+from app.crud.user import generate_staff_code, generate_staff_username
 from app.database import get_db
 from app.models.audit_log import AuthAuditLog, AuthEventType
 from app.models.batch import Batch
@@ -62,7 +62,7 @@ def create_staff(
     db.add(user)
     db.flush()
 
-    db.add(StaffProfile(user_id=user.id, email=payload.email))
+    db.add(StaffProfile(user_id=user.id, email=payload.email, staff_code=generate_staff_code(db)))
     db.commit()
     db.refresh(user)
 

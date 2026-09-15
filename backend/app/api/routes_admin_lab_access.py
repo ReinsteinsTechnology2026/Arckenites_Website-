@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import require_permission
 from app.core.lab_access import compute_lab_access, get_or_create_override
+from app.core.notify import notify_lab_access_change
 from app.database import get_db
 from app.models.batch import Batch, BatchEnrollment
 from app.models.lab_access_audit import LabAccessAuditLog
@@ -87,6 +88,9 @@ def _apply_override(
         previous_status=previous_state["status"], new_status=new_state["status"], reason=reason,
     ))
     db.commit()
+
+    if new_state["status"] != previous_state["status"]:
+        notify_lab_access_change(student, new_state["status"], reason)
 
     return AdminLabAccessRowOut(
         student_id=student.id, username=student.username, full_name=student.full_name,

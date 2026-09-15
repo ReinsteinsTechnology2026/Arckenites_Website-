@@ -1,3 +1,5 @@
+const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
 /* Keep in sync with PROGRAM_LABELS in backend/app/models/student.py */
 const PROGRAM_LABELS = {
   official_certification: 'Official Certification Program',
@@ -129,6 +131,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const serverBanner = document.getElementById('adminServerBanner');
   const showServerBanner = () => serverBanner.classList.add('is-visible');
 
+  // Same page, two sidebar entries: "Students" (Management) shows the plain
+  // list; "Student Database" (Database) links here with ?view=database and
+  // additionally shows Mobile/Email — see the .col-database CSS rule.
+  const isDatabaseView = new URLSearchParams(location.search).get('view') === 'database';
+  document.body.classList.toggle('is-database-view', isDatabaseView);
+  const tableColspan = isDatabaseView ? 8 : 6;
+  const panelTitle = document.getElementById('studentsPanelTitle');
+  if (isDatabaseView && panelTitle) panelTitle.textContent = 'Student Database';
+
   const statusBadge = (student) => {
     if (!student.is_active) return '<span class="admin-activity-badge is-danger">Inactive</span>';
     if (student.must_change_password) return '<span class="admin-activity-badge is-info">Awaiting First Login</span>';
@@ -143,15 +154,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const rowHtml = (student) => `
     <tr>
-      <td>${student.username}</td>
-      <td>${student.full_name}</td>
+      <td>${escapeHtml(student.username)}</td>
+      <td>${escapeHtml(student.full_name)}</td>
+      <td class="col-database">${student.phone ? escapeHtml(student.phone) : '—'}</td>
+      <td class="col-database">${student.email ? escapeHtml(student.email) : '—'}</td>
       <td>${programBadge(student.program)}</td>
       <td>${statusBadge(student)}</td>
       <td title="${new Date(student.created_at).toLocaleString()}">${new Date(student.created_at).toLocaleDateString()}</td>
       <td>
         <div class="admin-row-actions">
-          <button type="button" class="table-action-btn" data-action="edit" data-id="${student.id}" title="Edit ${student.full_name}"><i class="fa-solid fa-pen"></i></button>
-          ${canDeleteStudents ? `<button type="button" class="table-action-btn is-danger" data-action="delete" data-id="${student.id}" title="Delete ${student.full_name}"><i class="fa-solid fa-trash"></i></button>` : ''}
+          <button type="button" class="table-action-btn" data-action="edit" data-id="${student.id}" title="Edit ${escapeHtml(student.full_name)}"><i class="fa-solid fa-pen"></i></button>
+          ${canDeleteStudents ? `<button type="button" class="table-action-btn is-danger" data-action="delete" data-id="${student.id}" title="Delete ${escapeHtml(student.full_name)}"><i class="fa-solid fa-trash"></i></button>` : ''}
         </div>
       </td>
     </tr>
@@ -160,7 +173,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const renderStudents = (list) => {
     tbody.innerHTML = list.length
       ? list.map(rowHtml).join('')
-      : '<tr><td colspan="6" class="admin-panel-empty">No students yet. Click "Add New Student" to create the first one.</td></tr>';
+      : `<tr><td colspan="${tableColspan}" class="admin-panel-empty">No students yet. Click "Add New Student" to create the first one.</td></tr>`;
   };
 
   const loadStudents = async () => {
@@ -170,7 +183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return list;
     } catch (err) {
       if (err.status === 0) showServerBanner();
-      tbody.innerHTML = '<tr><td colspan="6" class="admin-panel-empty">Couldn\'t load students.</td></tr>';
+      tbody.innerHTML = `<tr><td colspan="${tableColspan}" class="admin-panel-empty">Couldn't load students.</td></tr>`;
       return [];
     }
   };

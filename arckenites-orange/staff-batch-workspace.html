@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('ak_theme') || 'dark');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Batch Workspace | Arckenites</title>
@@ -13,7 +14,7 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=10">
+<link rel="stylesheet" href="css/style.css?v=16">
 
 </head>
 <body>
@@ -24,6 +25,7 @@
     <span class="brand-text">Hub</span>
   </a>
   <div class="dashboard-topbar-user">
+    <button type="button" class="icon-btn theme-toggle-btn" aria-label="Switch to light theme" title="Switch to light theme"><i class="fa-solid fa-sun"></i></button>
     <div class="admin-dropdown">
       <button type="button" class="ak-avatar-btn" id="staffAvatarBtn" title="Go to Profile">
         <span id="staffAvatarWrap"></span>
@@ -224,6 +226,7 @@
 
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=1"></script>
+<script src="js/theme.js?v=1"></script>
 <script src="js/video-conference.js?v=1"></script>
 <script src="js/staff-batch-workspace.js?v=2"></script>
 <script src="js/chat.js?v=1"></script>

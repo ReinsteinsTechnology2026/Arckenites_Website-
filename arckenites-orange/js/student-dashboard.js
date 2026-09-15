@@ -204,6 +204,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
   };
 
+  /* ---------- Notifications toggle ---------- */
+  const notifyEmailToggle = document.getElementById('notifyEmailToggle');
+  notifyEmailToggle.checked = !!user.email_notifications_enabled;
+  notifyEmailToggle.addEventListener('change', async () => {
+    const enabled = notifyEmailToggle.checked;
+    notifyEmailToggle.disabled = true;
+    try {
+      const updatedUser = await ArckAPI.request('/students/me/notifications', { method: 'PATCH', body: { enabled } });
+      user.email_notifications_enabled = updatedUser.email_notifications_enabled;
+      ArckAPI.setSession(ArckAPI.getToken(), user);
+    } catch (err) {
+      notifyEmailToggle.checked = !enabled;
+      alert(err.detail || 'Could not update notification preference.');
+    } finally {
+      notifyEmailToggle.disabled = false;
+    }
+  });
+
   // Cached from the loaders below, so the Overview panel can reuse the same
   // data instead of re-fetching it.
   let myBatches = [];
@@ -595,19 +613,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = `meeting-room.html?batch=${btn.dataset.joinBatch}`;
   });
 
-  document.getElementById('startInstantMeetingBtn').addEventListener('click', async (e) => {
-    const btn = e.currentTarget;
-    btn.disabled = true;
-    try {
-      const room = await ArckAPI.request('/me/video/ad-hoc', { method: 'POST' });
-      await ArckVideo.openRoom({ roomName: room.room_name, displayName: room.display_name, subject: room.subject, shareable: true });
-    } catch (err) {
-      window.alert(err.detail || 'Could not start a meeting.');
-    } finally {
-      btn.disabled = false;
-    }
-  });
-
   /* ---------- Study Materials ---------- */
   const materialsBody = document.getElementById('materialsTableBody');
 
@@ -675,8 +680,113 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Refresh while the Lab panel is open, so a status change made by an
   // admin shows up without the student needing to log out/in.
   setInterval(() => {
-    if (labPanelSection.style.display !== 'none') loadLabAccessStatus();
+    if (labPanelSection.style.display !== 'none') { loadLabAccessStatus(); loadLabEnvironment(); }
   }, 20000);
+
+  /* ---------- Lab Environment (RDP) credentials ---------- */
+  const labEnvironmentBody = document.getElementById('labEnvironmentBody');
+
+  const labEnvCardHtml = (entry) => `
+    <div class="lab-env-card">
+      <div class="lab-env-card-title">${escapeHtml(entry.title)}</div>
+      <div class="lab-env-card-batch">${escapeHtml(entry.batch_name)}</div>
+      <div class="lab-env-field-grid">
+        <div class="lab-env-field">
+          <label>IP / Address</label>
+          <div class="lab-env-field-value">
+            <span>${escapeHtml(entry.access_url)}</span>
+            <button type="button" data-copy="${escapeHtml(entry.access_url)}" title="Copy"><i class="fa-solid fa-copy"></i></button>
+          </div>
+        </div>
+        ${entry.username ? `
+        <div class="lab-env-field">
+          <label>Username</label>
+          <div class="lab-env-field-value">
+            <span>${escapeHtml(entry.username)}</span>
+            <button type="button" data-copy="${escapeHtml(entry.username)}" title="Copy"><i class="fa-solid fa-copy"></i></button>
+          </div>
+        </div>` : ''}
+        ${entry.password ? `
+        <div class="lab-env-field">
+          <label>Password</label>
+          <div class="lab-env-field-value">
+            <span class="lab-env-password" data-value="${escapeHtml(entry.password)}">••••••••</span>
+            <button type="button" data-toggle-password title="Show/Hide"><i class="fa-solid fa-eye"></i></button>
+            <button type="button" data-copy="${escapeHtml(entry.password)}" title="Copy"><i class="fa-solid fa-copy"></i></button>
+          </div>
+        </div>` : ''}
+      </div>
+      <div style="margin-top:14px;">
+        <button type="button" class="btn btn-accent" data-connect-rdp="${entry.id}" data-host="${escapeHtml(entry.access_url)}" data-user="${escapeHtml(entry.username || '')}" data-title="${escapeHtml(entry.title)}">
+          <i class="fa-solid fa-desktop"></i> Connect via Remote Desktop
+        </button>
+      </div>
+      ${entry.notes ? `<div class="lab-env-notes"><i class="fa-solid fa-circle-info"></i> ${escapeHtml(entry.notes)}</div>` : ''}
+    </div>
+  `;
+
+  // Downloads a .rdp file pre-filled with the server address and username —
+  // double-clicking it launches Windows' native Remote Desktop Connection
+  // already pointed at the right VM. The password is deliberately never
+  // embedded (RDP files can't safely carry a plaintext password), so the
+  // student still pastes it into mstsc's own prompt from the copy button above.
+  const connectViaRdp = (host, username, title) => {
+    const lines = [
+      'full address:s:' + host,
+      'prompt for credentials:i:1',
+      'authentication level:i:0',
+    ];
+    if (username) lines.splice(1, 0, 'username:s:' + username);
+    const blob = new Blob([lines.join('\r\n') + '\r\n'], { type: 'application/x-rdp' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(title || 'lab-vm').replace(/[^a-z0-9\-_ ]/gi, '')}.rdp`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const loadLabEnvironment = async () => {
+    try {
+      const entries = await ArckAPI.request('/students/me/lab-access');
+      labEnvironmentBody.innerHTML = entries.length
+        ? entries.map(labEnvCardHtml).join('')
+        : '<div class="admin-panel-empty">No lab environment has been set up for your batch yet.</div>';
+    } catch (err) {
+      if (err.status === 403) {
+        labEnvironmentBody.innerHTML = `<div class="lab-env-locked"><i class="fa-solid fa-lock"></i> ${escapeHtml(err.detail || 'Lab access is currently locked.')}</div>`;
+      } else {
+        labEnvironmentBody.innerHTML = '<div class="admin-panel-empty">Couldn\'t load lab environment details.</div>';
+      }
+    }
+  };
+
+  labEnvironmentBody.addEventListener('click', (e) => {
+    const connectBtn = e.target.closest('[data-connect-rdp]');
+    if (connectBtn) {
+      connectViaRdp(connectBtn.dataset.host, connectBtn.dataset.user, connectBtn.dataset.title);
+      return;
+    }
+    const toggleBtn = e.target.closest('[data-toggle-password]');
+    if (toggleBtn) {
+      const span = toggleBtn.parentElement.querySelector('.lab-env-password');
+      const icon = toggleBtn.querySelector('i');
+      const revealed = span.textContent !== '••••••••';
+      span.textContent = revealed ? '••••••••' : span.dataset.value;
+      icon.className = revealed ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
+      return;
+    }
+    const copyBtn = e.target.closest('[data-copy]');
+    if (copyBtn) {
+      navigator.clipboard.writeText(copyBtn.dataset.copy).then(() => {
+        const icon = copyBtn.querySelector('i');
+        icon.className = 'fa-solid fa-check';
+        setTimeout(() => { icon.className = 'fa-solid fa-copy'; }, 1200);
+      });
+    }
+  });
 
   /* ---------- Lab Slot Booking ---------- */
   const labWeekSummaryEl = document.getElementById('labWeekSummary');
@@ -1039,6 +1149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadMaterials();
   await loadVideos();
   loadLabAccessStatus(); // independent of the slot list below — never lets one block the other
+  loadLabEnvironment();
   await loadLabSlots();
   await loadMyMeetings();
   await loadTickets();

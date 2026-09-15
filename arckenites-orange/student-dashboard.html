@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('ak_theme') || 'dark');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Student Dashboard | Arckenites</title>
@@ -13,7 +14,7 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=10">
+<link rel="stylesheet" href="css/style.css?v=16">
 
 </head>
 <body>
@@ -26,6 +27,7 @@
       <span class="brand-text">Hub</span>
     </a>
     <div class="dashboard-topbar-user">
+    <button type="button" class="icon-btn theme-toggle-btn" aria-label="Switch to light theme" title="Switch to light theme"><i class="fa-solid fa-sun"></i></button>
       <span id="simpleWelcome">Welcome</span>
       <button class="btn btn-primary-outline" id="simpleLogoutBtn">Logout</button>
     </div>
@@ -63,7 +65,30 @@
     </nav>
 
     <div class="admin-sidebar-logout">
-      <button type="button" class="admin-sidebar-link" id="studentLogoutBtn" title="Logout">
+      <div class="admin-dropdown admin-sidebar-account">
+        <button type="button" class="admin-profile-trigger" id="studentProfileTrigger">
+          <span class="label">Account</span>
+          <i class="fa-solid fa-chevron-up"></i>
+        </button>
+        <div class="admin-dropdown-panel" id="studentProfilePanel">
+          <div class="admin-profile-meta">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <button type="button" class="ak-avatar-btn" id="studentAvatarMenuBtn" title="Go to Profile">
+                <span id="studentAvatarWrapMenu"></span>
+              </button>
+              <div>
+                <strong id="studentProfileName">Student</strong>
+                <span>Student</span>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="admin-dropdown-link" id="studentProfileSettingsLink"><i class="fa-solid fa-id-card"></i> Profile</button>
+          <a class="admin-dropdown-link" href="change-password.html"><i class="fa-solid fa-key"></i> Change Password</a>
+          <button type="button" class="admin-dropdown-link" id="studentProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+        </div>
+        <input type="file" id="profilePhotoInput" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none;">
+      </div>
+      <button type="button" class="admin-sidebar-link" id="studentLogoutBtn" title="Logout" style="display:none;">
         <i class="fa-solid fa-right-from-bracket"></i><span class="label">Logout</span>
       </button>
     </div>
@@ -79,31 +104,10 @@
         </button>
       </div>
       <div class="admin-topbar-actions">
-        <div class="admin-dropdown">
-          <button type="button" class="ak-avatar-btn" id="studentAvatarBtn" title="Go to Profile">
-            <span id="studentAvatarWrap"></span>
-          </button>
-          <button type="button" class="admin-profile-trigger" id="studentProfileTrigger">
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <div class="admin-dropdown-panel" id="studentProfilePanel">
-            <div class="admin-profile-meta">
-              <div style="display:flex; align-items:center; gap:10px;">
-                <button type="button" class="ak-avatar-btn" id="studentAvatarMenuBtn" title="Go to Profile">
-                  <span id="studentAvatarWrapMenu"></span>
-                </button>
-                <div>
-                  <strong id="studentProfileName">Student</strong>
-                  <span>Student</span>
-                </div>
-              </div>
-            </div>
-            <button type="button" class="admin-dropdown-link" id="studentProfileSettingsLink"><i class="fa-solid fa-id-card"></i> Profile</button>
-            <a class="admin-dropdown-link" href="change-password.html"><i class="fa-solid fa-key"></i> Change Password</a>
-            <button type="button" class="admin-dropdown-link" id="studentProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-          </div>
-          <input type="file" id="profilePhotoInput" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none;">
-        </div>
+        <button type="button" class="icon-btn theme-toggle-btn" aria-label="Switch to light theme" title="Switch to light theme"><i class="fa-solid fa-sun"></i></button>
+        <button type="button" class="ak-avatar-btn" id="studentAvatarBtn" title="Go to Profile">
+          <span id="studentAvatarWrap"></span>
+        </button>
       </div>
     </header>
 
@@ -223,13 +227,29 @@
           <div class="admin-panel-header"><h2><i class="fa-solid fa-circle-info"></i> Account Details</h2></div>
           <div id="profileAccountDetailsBody" class="detail-list" style="padding:20px;"></div>
         </div>
+
+        <div class="admin-panel" style="max-width:480px; margin-top:20px;">
+          <div class="admin-panel-header"><h2><i class="fa-solid fa-bell"></i> Notifications</h2></div>
+          <div style="padding:20px;">
+            <div class="settings-toggle-row">
+              <div class="settings-toggle-label">
+                <strong>Email Notifications</strong>
+                <span>Get an email at your linked address for messages, support replies, class/meeting updates, and lab access changes.</span>
+              </div>
+              <label class="settings-switch">
+                <input type="checkbox" id="notifyEmailToggle">
+                <span class="settings-switch-track"></span>
+              </label>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section data-panel="schedule" style="display:none;">
         <div class="admin-page-header">
-          <div><h1>Class Schedule</h1></div>
-          <div class="admin-page-header-actions">
-            <button type="button" class="btn btn-accent" id="startInstantMeetingBtn"><i class="fa-solid fa-video"></i> Start a Meeting</button>
+          <div>
+            <h1>Class Schedule</h1>
+            <p>Your batch's live meeting room, plus any classes your trainer schedules.</p>
           </div>
         </div>
         <div class="admin-panel" style="margin-bottom:20px;">
@@ -253,6 +273,14 @@
         <div class="admin-page-header"><div><h1>Lab Access</h1></div></div>
 
         <div id="labAccessStatusBanner" class="lab-access-banner">Checking your lab access&hellip;</div>
+
+        <div class="admin-panel" style="margin-bottom:24px;">
+          <div style="padding:24px;">
+            <h2 style="margin:0 0 4px;font-size:1.1rem;"><i class="fa-solid fa-desktop"></i> Lab Environment Access</h2>
+            <p style="margin:0 0 16px;color:var(--muted);font-size:.88rem;">Remote desktop (RDP) credentials for your batch's lab VM. Only visible while your lab access is unlocked.</p>
+            <div id="labEnvironmentBody">Loading&hellip;</div>
+          </div>
+        </div>
 
         <div class="admin-panel">
           <div style="padding:24px;">
@@ -488,8 +516,9 @@
 
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=1"></script>
+<script src="js/theme.js?v=1"></script>
 <script src="js/video-conference.js?v=1"></script>
-<script src="js/student-dashboard.js?v=6"></script>
+<script src="js/student-dashboard.js?v=11"></script>
 <script src="js/chat.js?v=1"></script>
 
 </body>

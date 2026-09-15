@@ -29,6 +29,8 @@ class StudentAdminOut(BaseModel):
     full_name: str
     photo_url: str | None = None
     program: str | None
+    phone: str | None = None
+    email: str | None = None
     is_active: bool
     must_change_password: bool
     created_at: datetime

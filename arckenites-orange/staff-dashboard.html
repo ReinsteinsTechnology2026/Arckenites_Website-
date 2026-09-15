@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('ak_theme') || 'dark');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trainer Dashboard | Arckenites</title>
@@ -13,7 +14,7 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=10">
+<link rel="stylesheet" href="css/style.css?v=16">
 
 </head>
 <body>
@@ -24,6 +25,7 @@
     <span class="brand-text">Hub</span>
   </a>
   <div class="dashboard-topbar-user">
+    <button type="button" class="icon-btn theme-toggle-btn" aria-label="Switch to light theme" title="Switch to light theme"><i class="fa-solid fa-sun"></i></button>
     <a href="staff-support.html" class="btn btn-primary-outline"><i class="fa-solid fa-headset"></i> Support</a>
     <div class="admin-dropdown">
       <button type="button" class="ak-avatar-btn" id="staffAvatarBtn" title="Go to Profile">
@@ -111,6 +113,22 @@
       <div class="admin-panel-header"><h2><i class="fa-solid fa-circle-info"></i> Account Details</h2></div>
       <div id="profileAccountDetailsBody" class="detail-list" style="padding:20px;"></div>
     </div>
+
+    <div class="admin-panel" style="max-width:480px; margin-top:20px;">
+      <div class="admin-panel-header"><h2><i class="fa-solid fa-bell"></i> Notifications</h2></div>
+      <div style="padding:20px;">
+        <div class="settings-toggle-row">
+          <div class="settings-toggle-label">
+            <strong>Email Notifications</strong>
+            <span>Get an email at your linked address for messages, support replies, and batch/class updates.</span>
+          </div>
+          <label class="settings-switch">
+            <input type="checkbox" id="notifyEmailToggle">
+            <span class="settings-switch-track"></span>
+          </label>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -148,7 +166,8 @@
 
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=1"></script>
-<script src="js/staff-dashboard.js?v=3"></script>
+<script src="js/theme.js?v=1"></script>
+<script src="js/staff-dashboard.js?v=4"></script>
 <script src="js/chat.js?v=1"></script>
 
 </body>

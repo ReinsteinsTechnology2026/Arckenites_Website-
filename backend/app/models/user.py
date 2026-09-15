@@ -132,6 +132,14 @@ class User(Base):
         return None
 
     @property
+    def email_notifications_enabled(self) -> bool:
+        if self.role == RoleEnum.student and self.student_profile:
+            return self.student_profile.email_notifications_enabled
+        if self.role == RoleEnum.staff and self.staff_profile:
+            return self.staff_profile.email_notifications_enabled
+        return False
+
+    @property
     def photo_url(self) -> str | None:
         """A path relative to the API root (no /api prefix — callers already
         prepend that, same convention as every other endpoint path returned

@@ -20,6 +20,9 @@ class ChatConnectionManager:
         if not sockets:
             self.connections.pop(user_id, None)
 
+    def is_online(self, user_id: int) -> bool:
+        return bool(self.connections.get(user_id))
+
     async def send_to_user(self, user_id: int, payload: dict) -> None:
         for ws in list(self.connections.get(user_id, ())):
             try:

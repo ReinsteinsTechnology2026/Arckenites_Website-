@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.core.deps import get_current_user
 from app.core.meetings import get_participant_row, meeting_member_user_ids, require_member, room_name_for
+from app.core.notify import notify_batch_update
 from app.core.security import verify_password
 from app.core.ws_manager import manager
 from app.database import get_db
@@ -118,6 +119,9 @@ def join_batch_meeting(batch_id: int, db: Session = Depends(get_db), user: User 
         db.add(MeetingMessage(meeting_id=meeting.id, user_id=None, message=f"{user.full_name} started the class.", is_system=True))
         db.commit()
         db.refresh(meeting)
+
+        for enrollment in batch.enrollments:
+            notify_batch_update(enrollment.student, batch.name, f"{user.full_name} just started the class — join now.")
     else:
         participant = get_participant_row(db, meeting.id, user.id)
         if participant is None:

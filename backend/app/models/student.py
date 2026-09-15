@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -53,6 +53,10 @@ class StudentProfile(Base):
 
     # Null until the student completes the post-first-login onboarding step.
     program: Mapped[ProgramEnum | None] = mapped_column(Enum(ProgramEnum, name="program_enum"), nullable=True)
+
+    # Master on/off switch for email notifications (chat, support, batch/class
+    # updates, lab access changes) — see app/core/notify.py. Defaults on.
+    email_notifications_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
 
     # course_id / batch_id FKs are intentionally NOT added yet — courses/batches
     # tables don't exist until a later phase. Add via a new Alembic migration then.

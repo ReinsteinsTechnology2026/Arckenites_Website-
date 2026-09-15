@@ -3,6 +3,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import require_permission
+from app.core.notify import notify_batch_update
 from app.core.video import generate_batch_room_name
 from app.crud.audit import write_audit_event
 from app.database import get_db
@@ -370,6 +371,13 @@ def create_session(
     db.add(session)
     db.commit()
     db.refresh(session)
+
+    event = f"A new class \"{session.title}\" was scheduled for {session.session_date}."
+    for enrollment in batch.enrollments:
+        notify_batch_update(enrollment.student, batch.name, event)
+    if batch.trainer:
+        notify_batch_update(batch.trainer, batch.name, event)
+
     return _session_out(session, batch.name)
 
 

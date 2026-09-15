@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('ak_theme') || 'dark');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lab Access | Arckenites Hub</title>
@@ -13,7 +14,7 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=10">
+<link rel="stylesheet" href="css/style.css?v=16">
 
 </head>
 <body>
@@ -60,7 +61,7 @@
           <span>Database</span><i class="fa-solid fa-chevron-right"></i>
         </button>
         <ul class="admin-sidebar-group-list">
-          <li><a href="admin-students.html" class="admin-sidebar-link" title="Student Database"><i class="fa-solid fa-database"></i><span class="label">Student Database</span></a></li>
+          <li><a href="admin-students.html?view=database" class="admin-sidebar-link" title="Student Database"><i class="fa-solid fa-database"></i><span class="label">Student Database</span></a></li>
           <li><a href="admin-staff.html" class="admin-sidebar-link" title="Staff Database"><i class="fa-solid fa-database"></i><span class="label">Staff Database</span></a></li>
         </ul>
       </div>
@@ -103,7 +104,21 @@
     </nav>
 
     <div class="admin-sidebar-logout">
-      <button type="button" class="admin-sidebar-link" id="adminSidebarLogout" title="Logout">
+      <div class="admin-dropdown admin-sidebar-account">
+        <button type="button" class="admin-profile-trigger" id="adminProfileTrigger">
+          <span class="label">Account</span>
+          <i class="fa-solid fa-chevron-up"></i>
+        </button>
+        <div class="admin-dropdown-panel" id="adminProfilePanel">
+          <div class="admin-profile-meta">
+            <strong id="adminProfileName">Admin</strong>
+            <span id="adminProfileRole">admin</span>
+          </div>
+          <a class="admin-dropdown-link" href="change-password.html"><i class="fa-solid fa-key"></i> Change Password</a>
+          <button type="button" class="admin-dropdown-link" id="adminProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+        </div>
+      </div>
+      <button type="button" class="admin-sidebar-link" id="adminSidebarLogout" title="Logout" style="display:none;">
         <i class="fa-solid fa-right-from-bracket"></i><span class="label">Logout</span>
       </button>
     </div>
@@ -127,20 +142,8 @@
       </div>
 
       <div class="admin-topbar-actions">
-        <div class="admin-dropdown">
-          <button type="button" class="admin-profile-trigger" id="adminProfileTrigger">
-            <span class="admin-avatar" id="adminAvatarInitials">A</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <div class="admin-dropdown-panel" id="adminProfilePanel">
-            <div class="admin-profile-meta">
-              <strong id="adminProfileName">Admin</strong>
-              <span id="adminProfileRole">admin</span>
-            </div>
-            <a class="admin-dropdown-link" href="change-password.html"><i class="fa-solid fa-key"></i> Change Password</a>
-            <button type="button" class="admin-dropdown-link" id="adminProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-          </div>
-        </div>
+        <button type="button" class="icon-btn theme-toggle-btn" aria-label="Switch to light theme" title="Switch to light theme"><i class="fa-solid fa-sun"></i></button>
+        <span class="admin-avatar" id="adminAvatarInitials">A</span>
       </div>
     </header>
 
@@ -167,10 +170,10 @@
 
         <table class="admin-activity-table">
           <thead>
-            <tr><th>Student</th><th>Student ID</th><th>Slot</th><th>Slot Status</th><th>Lab Access</th><th>Last Modified</th><th>Action</th></tr>
+            <tr><th>Student</th><th>Student ID</th><th>Slot</th><th>Slot Status</th><th>Last Modified</th><th>Action</th></tr>
           </thead>
           <tbody id="labAccessTableBody">
-            <tr><td colspan="7" class="admin-panel-empty">Select a batch to view its students.</td></tr>
+            <tr><td colspan="6" class="admin-panel-empty">Select a batch to view its students.</td></tr>
           </tbody>
         </table>
       </div>
@@ -193,7 +196,8 @@
 
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=1"></script>
-<script src="js/admin-lab-access.js?v=1"></script>
+<script src="js/theme.js?v=1"></script>
+<script src="js/admin-lab-access.js?v=2"></script>
 
 </body>
 </html>

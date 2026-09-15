@@ -17,9 +17,9 @@ def _clean_permissions(value: dict | None) -> dict:
 
 
 class CreateStaffRequest(BaseModel):
-    """No username field — it's auto-generated (AKT@Name) the same way a
-    student's is, so every trainer's login id follows the same naming rule
-    regardless of which admin creates the account."""
+    """No username field — it's auto-generated (name@arckenites.com) the
+    same way a student's is, so every trainer's login id follows the same
+    naming rule regardless of which admin creates the account."""
     full_name: str = Field(min_length=1, max_length=200)
     email: str | None = None
     temp_password: str = Field(min_length=8, max_length=128)

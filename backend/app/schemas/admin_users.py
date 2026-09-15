@@ -7,8 +7,8 @@ _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 class CreateAdminUserRequest(BaseModel):
-    """No username field — auto-generated (AKA@Name), same convention as
-    trainer creation. No confirm-password field — a single temp password
+    """No username field — auto-generated (name@arckenites.com), same
+    convention as trainer creation. No confirm-password field — a single temp password
     with a Generate button, matching the Trainer form exactly. No email at
     creation either, matching the Trainer form (email is optional/edit-only
     there too, per an earlier explicit decision in this project)."""

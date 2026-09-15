@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderRow: (r) => `
       <tr>
         <td>${escapeHtml(r.title)}</td>
-        <td><a href="${escapeHtml(r.access_url)}" target="_blank" rel="noopener">Open</a></td>
+        <td><code>${escapeHtml(r.access_url)}</code></td>
         <td>${r.username ? escapeHtml(r.username) : '—'}</td>
         <td>${r.password ? escapeHtml(r.password) : '—'}</td>
         <td>${r.notes ? escapeHtml(r.notes) : '—'}</td>

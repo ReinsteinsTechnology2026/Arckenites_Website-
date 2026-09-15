@@ -40,6 +40,7 @@ class UserOut(BaseModel):
     department: str | None = None
     program: str | None = None
     profile_completed: bool = True
+    email_notifications_enabled: bool = True
     # Populated explicitly by the route (not bare from_attributes) since it
     # needs a fresh permissions-table query — see crud/permissions.py.
     admin_role: AdminRoleSummary | None = None
@@ -56,6 +57,10 @@ class LoginResponse(BaseModel):
 
 class MeResponse(UserOut):
     pass
+
+
+class UpdateNotificationPreferenceRequest(BaseModel):
+    enabled: bool
 
 
 class ChangePasswordRequest(BaseModel):

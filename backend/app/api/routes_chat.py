@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
@@ -6,6 +7,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_ws_user
+from app.core.notify import notify_new_chat_message
 from app.core.ws_manager import manager
 from app.database import SessionLocal, get_db
 from app.models.chat import Conversation, DirectMessage
@@ -184,6 +186,13 @@ async def _handle_send(db: Session, sender: User, recipient_id: int, body_text: 
     }
     await manager.send_to_user(sender.id, payload_for_sender)
     await manager.send_to_user(recipient_id, payload_for_recipient)
+
+    # Only email if they're not actively online to see the WS push above —
+    # otherwise every message in a live chat would also be an email.
+    if not manager.is_online(recipient_id):
+        preview = body_text if len(body_text) <= 200 else body_text[:197] + "..."
+        await asyncio.to_thread(notify_new_chat_message, recipient, sender.full_name, preview)
+
     return payload_for_sender
 
 

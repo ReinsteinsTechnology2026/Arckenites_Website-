@@ -27,7 +27,7 @@ from app.models.batch_resources import ClassVideo, StudyMaterial
 from app.models.class_session import ClassSession
 from app.models.support import SenderTypeEnum, SupportAttachment, SupportMessage, SupportTicket, TicketPriorityEnum, TicketStatusEnum
 from app.models.user import User
-from app.schemas.auth import MeResponse, UpdateMyProfileRequest
+from app.schemas.auth import MeResponse, UpdateMyProfileRequest, UpdateNotificationPreferenceRequest
 from app.schemas.batch_chat import BatchMessageOut, SendBatchMessageRequest
 from app.schemas.batch_members import BatchMembersOut
 from app.schemas.batch_resources import ClassVideoOut, CreateClassVideoRequest, CreateStudyMaterialRequest, StudyMaterialOut
@@ -67,6 +67,20 @@ def update_my_profile(
     db.commit()
     db.refresh(user)
 
+    return MeResponse.model_validate(user)
+
+
+@router.patch("/me/notifications", response_model=MeResponse)
+def update_notification_preference(
+    payload: UpdateNotificationPreferenceRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role("staff")),
+):
+    profile = user.staff_profile
+    profile.email_notifications_enabled = payload.enabled
+    db.add(profile)
+    db.commit()
+    db.refresh(user)
     return MeResponse.model_validate(user)
 
 

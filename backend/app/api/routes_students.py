@@ -31,7 +31,7 @@ from app.models.lab_slot_booking import LabSlotBooking
 from app.models.support import SenderTypeEnum, SupportAttachment, SupportMessage, SupportTicket, TicketPriorityEnum, TicketStatusEnum
 from app.models.user import User
 from app.schemas.admin_students import CompleteProfileRequest
-from app.schemas.auth import MeResponse, UpdateMyProfileRequest
+from app.schemas.auth import MeResponse, UpdateMyProfileRequest, UpdateNotificationPreferenceRequest
 from app.schemas.batch_chat import BatchMessageOut, SendBatchMessageRequest
 from app.schemas.batch_members import BatchMembersOut
 from app.schemas.batch_resources import ClassVideoOut, LabAccessOut, StudyMaterialOut
@@ -100,6 +100,20 @@ def update_my_profile(
     db.commit()
     db.refresh(user)
 
+    return MeResponse.model_validate(user)
+
+
+@router.patch("/me/notifications", response_model=MeResponse)
+def update_notification_preference(
+    payload: UpdateNotificationPreferenceRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role("student")),
+):
+    profile = user.student_profile
+    profile.email_notifications_enabled = payload.enabled
+    db.add(profile)
+    db.commit()
+    db.refresh(user)
     return MeResponse.model_validate(user)
 
 

@@ -11,7 +11,6 @@ const formatSlotTime = (t) => {
 
 const SLOT_STATE_LABEL = { ACTIVE: '🟢 Active', NOT_STARTED: '⏳ Not Started', COMPLETED: '✅ Completed', NO_SLOT: 'No Slot Selected' };
 const SLOT_STATE_BADGE = { ACTIVE: 'is-success', NOT_STARTED: 'is-info', COMPLETED: 'is-muted', NO_SLOT: 'is-muted' };
-const ACCESS_MODE_LABEL = { AUTO: 'Auto', MANUAL_UNLOCK: 'Manually Unlocked', MANUAL_LOCK: 'Manually Locked' };
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -80,8 +79,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const slotText = row.slot_date
       ? `${formatDate(row.slot_date)}<br><span style="color:var(--muted-2); font-size:.82rem;">${formatSlotTime(row.slot_start_time)} – ${formatSlotTime(row.slot_end_time)}</span>`
       : '—';
-    const modeNote = row.access_mode !== 'AUTO'
-      ? `<div style="font-size:.72rem; color:var(--muted-2); margin-top:2px;">${ACCESS_MODE_LABEL[row.access_mode]}</div>` : '';
     const lastModified = row.updated_at
       ? `${formatDateTime(row.updated_at)}${row.updated_by_name ? `<br><span style="font-size:.76rem; color:var(--muted-2);">by ${escapeHtml(row.updated_by_name)}</span>` : ''}`
       : '—';
@@ -96,7 +93,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         <td>${escapeHtml(row.username)}</td>
         <td>${slotText}</td>
         <td><span class="admin-activity-badge ${SLOT_STATE_BADGE[row.slot_state]}">${SLOT_STATE_LABEL[row.slot_state]}</span></td>
-        <td><span class="admin-activity-badge ${row.status === 'UNLOCKED' ? 'is-success' : 'is-danger'}">${row.status === 'UNLOCKED' ? '🔓 Unlocked' : '🔒 Locked'}</span>${modeNote}</td>
         <td>${lastModified}</td>
         <td>
           <div style="display:flex; gap:6px; flex-wrap:wrap;">
@@ -110,17 +106,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const loadStudents = async (batchId) => {
     if (!batchId) {
-      tableBody.innerHTML = '<tr><td colspan="7" class="admin-panel-empty">Select a batch to view its students.</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="6" class="admin-panel-empty">Select a batch to view its students.</td></tr>';
       return;
     }
-    tableBody.innerHTML = '<tr><td colspan="7" class="admin-panel-empty">Loading&hellip;</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr>';
     try {
       const rows = await ArckAPI.request(`/admin/lab-access/batches/${batchId}/students`);
       tableBody.innerHTML = rows.length
         ? rows.map(renderRow).join('')
-        : '<tr><td colspan="7" class="admin-panel-empty">No students enrolled in this batch.</td></tr>';
+        : '<tr><td colspan="6" class="admin-panel-empty">No students enrolled in this batch.</td></tr>';
     } catch (_) {
-      tableBody.innerHTML = '<tr><td colspan="7" class="admin-panel-empty">Couldn\'t load students.</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="6" class="admin-panel-empty">Couldn\'t load students.</td></tr>';
     }
   };
 

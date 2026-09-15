@@ -175,6 +175,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
   renderAccountDetails();
 
+  /* ---------- Notifications toggle ---------- */
+  const notifyEmailToggle = document.getElementById('notifyEmailToggle');
+  notifyEmailToggle.checked = !!user.email_notifications_enabled;
+  notifyEmailToggle.addEventListener('change', async () => {
+    const enabled = notifyEmailToggle.checked;
+    notifyEmailToggle.disabled = true;
+    try {
+      const updatedUser = await ArckAPI.request('/staff/me/notifications', { method: 'PATCH', body: { enabled } });
+      user.email_notifications_enabled = updatedUser.email_notifications_enabled;
+      ArckAPI.setSession(ArckAPI.getToken(), user);
+    } catch (err) {
+      notifyEmailToggle.checked = !enabled;
+      alert(err.detail || 'Could not update notification preference.');
+    } finally {
+      notifyEmailToggle.disabled = false;
+    }
+  });
+
   const grid = document.getElementById('batchCardsGrid');
 
   const cardHtml = (b) => `
