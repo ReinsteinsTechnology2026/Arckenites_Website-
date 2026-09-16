@@ -70,14 +70,21 @@ PERMISSION_CATALOG: list[dict] = [
     {"key": "support.close", "module": "Support", "action": "close", "description": "Close a support ticket."},
     {"key": "support.delete", "module": "Support", "action": "delete", "description": "Delete a support ticket."},
     {"key": "support.export", "module": "Support", "action": "export", "description": "Export support ticket data."},
+
+    {"key": "leads.view", "module": "Leads", "action": "view", "description": "View the leads database."},
+    {"key": "leads.create", "module": "Leads", "action": "create", "description": "Add new leads."},
+    {"key": "leads.edit", "module": "Leads", "action": "edit", "description": "Edit lead details and status."},
+    {"key": "leads.delete", "module": "Leads", "action": "delete", "description": "Delete leads."},
+    {"key": "leads.export", "module": "Leads", "action": "export", "description": "Export lead data."},
 ]
 
 PERMISSION_KEYS: frozenset[str] = frozenset(p["key"] for p in PERMISSION_CATALOG)
 
-_OPERATIONAL_MODULES = ["students", "trainers", "programs", "batches", "placement", "lab_access", "meetings"]
+_OPERATIONAL_MODULES = ["students", "trainers", "programs", "batches", "placement", "lab_access", "meetings", "leads"]
 
-# Default grants for the two editable system roles. Super Admin is not here —
-# its access is computed (see user_has_permission), never read from this table.
+# Default grants for the three editable system roles. Super Admin is not
+# here — its access is computed (see user_has_permission), never read from
+# this table.
 DEFAULT_GRANTS: dict[str, list[str]] = {
     "admin": [k for k in PERMISSION_KEYS if k.split(".")[0] in _OPERATIONAL_MODULES]
     + ["activity_logs.view"]
@@ -87,6 +94,15 @@ DEFAULT_GRANTS: dict[str, list[str]] = {
     # higher-trust actions (assign/close/delete/export/internal notes),
     # which stay Admin/Super-Admin-only.
     "support_admin": [f"{m}.view" for m in _OPERATIONAL_MODULES] + ["support.view", "support.reply", "support.change_status"],
+    # Leads Database Admin: full run of the leads pipeline, plus read-only
+    # visibility into the student and trainer databases (so a lead's
+    # progress into an actual enrolled student/trainer can be cross-checked)
+    # — nothing else. This role can only be assigned by a Super Admin (see
+    # RESTRICTED_ROLE_SLUGS in routes_admin_users.py), not because its
+    # permissions here are unusually dangerous, but so a plain Admin can't
+    # mint themselves a side-channel into the leads pipeline via a role they
+    # weren't given directly.
+    "leads_admin": [k for k in PERMISSION_KEYS if k.split(".")[0] == "leads"] + ["students.view", "trainers.view"],
 }
 
 

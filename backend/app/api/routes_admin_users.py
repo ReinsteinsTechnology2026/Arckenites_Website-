@@ -9,7 +9,7 @@ from app.crud.session import revoke_all_sessions
 from app.crud.user import generate_admin_username, get_by_username
 from app.database import get_db
 from app.models.admin_profile import AdminProfile
-from app.models.admin_role import SUPER_ADMIN_SLUG, AdminRole
+from app.models.admin_role import LEADS_ADMIN_SLUG, SUPER_ADMIN_SLUG, AdminRole
 from app.models.audit_log import AuthAuditLog, AuthEventType
 from app.models.chat import Conversation, DirectMessage
 from app.models.session import AuthSession
@@ -17,6 +17,11 @@ from app.models.user import RoleEnum, User
 from app.schemas.admin_users import AdminUserOut, CreateAdminUserRequest, UpdateAdminUserRequest
 
 router = APIRouter(prefix="/admin/admin-users", tags=["admin-users"])
+
+# Roles only a Super Admin actor may assign — full-access Super Admin itself,
+# plus Leads Database Admin (an explicit ask: that role must not be
+# self-service for a regular Admin to hand out).
+RESTRICTED_ROLE_SLUGS = {SUPER_ADMIN_SLUG, LEADS_ADMIN_SLUG}
 
 
 def _client_meta(request: Request) -> tuple[str, str]:
@@ -84,6 +89,11 @@ def create_admin_user(
     actor: User = Depends(require_permission("admin_users.create")),
 ):
     role = _get_role_or_400(db, payload.admin_role_id)
+    if role.slug in RESTRICTED_ROLE_SLUGS and (actor.admin_role is None or actor.admin_role.slug != SUPER_ADMIN_SLUG):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Only a Super Admin can create a {role.name} account.",
+        )
 
     username = generate_admin_username(db, payload.full_name)
     user = User(
@@ -135,15 +145,16 @@ def update_admin_user(
         new_role = _get_role_or_400(db, payload.admin_role_id)
         old_role = user.admin_role
 
-        # Only a Super Admin actor may assign or remove the Super Admin role.
-        is_super_admin_change = (
-            (old_role is not None and old_role.slug == SUPER_ADMIN_SLUG)
-            or new_role.slug == SUPER_ADMIN_SLUG
+        # Only a Super Admin actor may assign or remove a restricted role
+        # (Super Admin itself, or Leads Database Admin).
+        is_restricted_change = (
+            (old_role is not None and old_role.slug in RESTRICTED_ROLE_SLUGS)
+            or new_role.slug in RESTRICTED_ROLE_SLUGS
         )
-        if is_super_admin_change and actor.admin_role.slug != SUPER_ADMIN_SLUG:
+        if is_restricted_change and (actor.admin_role is None or actor.admin_role.slug != SUPER_ADMIN_SLUG):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Only a Super Admin can assign or remove the Super Admin role.",
+                detail="Only a Super Admin can assign or remove this role.",
             )
         # Last-Super-Admin protection: block moving the last active Super
         # Admin to a different role.

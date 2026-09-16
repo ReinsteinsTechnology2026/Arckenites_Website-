@@ -13,6 +13,10 @@ ADMIN_ROLE_ID = 2
 SUPPORT_ADMIN_ROLE_ID = 3
 
 SUPER_ADMIN_SLUG = "super_admin"
+# Custom system role (created by migration 8a2f4c6e9b1d, not one of the three
+# fixed-ID tiers above) that only a Super Admin may assign — see the
+# RESTRICTED_ROLE_SLUGS check in routes_admin_users.py.
+LEADS_ADMIN_SLUG = "leads_admin"
 
 
 class AdminRole(Base):

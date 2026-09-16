@@ -4,7 +4,7 @@
 <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('ak_theme') || 'dark');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Programs | Arckenites Hub</title>
+<title>Leads | Arckenites Hub</title>
 <meta name="robots" content="noindex, nofollow">
 
 <link rel="icon" href="assets/favicon.png" type="image/png">
@@ -39,7 +39,7 @@
         <ul class="admin-sidebar-group-list">
           <li><a href="admin-students.html" class="admin-sidebar-link" title="Students"><i class="fa-solid fa-user-graduate"></i><span class="label">Students</span></a></li>
           <li><a href="admin-staff.html" class="admin-sidebar-link" title="Trainers"><i class="fa-solid fa-chalkboard-user"></i><span class="label">Trainers</span></a></li>
-          <li><a href="admin-programs.html" class="admin-sidebar-link is-active" aria-current="page" title="Programs"><i class="fa-solid fa-diagram-project"></i><span class="label">Programs</span></a></li>
+          <li><a href="admin-programs.html" class="admin-sidebar-link" title="Programs"><i class="fa-solid fa-diagram-project"></i><span class="label">Programs</span></a></li>
           <li><a href="admin-batches.html" class="admin-sidebar-link" title="Batches"><i class="fa-solid fa-people-group"></i><span class="label">Batches</span></a></li>
           <li><a href="admin-class-schedule.html" class="admin-sidebar-link" title="Class Schedule"><i class="fa-solid fa-calendar-days"></i><span class="label">Class Schedule</span></a></li>
           <li><a href="admin-meetings.html" class="admin-sidebar-link" title="Meetings"><i class="fa-solid fa-video"></i><span class="label">Meetings</span></a></li>
@@ -56,14 +56,14 @@
         </ul>
       </div>
 
-      <div class="admin-sidebar-group">
-        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+      <div class="admin-sidebar-group is-open">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="true">
           <span>Database</span><i class="fa-solid fa-chevron-right"></i>
         </button>
         <ul class="admin-sidebar-group-list">
           <li><a href="admin-students.html?view=database" class="admin-sidebar-link" title="Student Database"><i class="fa-solid fa-database"></i><span class="label">Student Database</span></a></li>
           <li><a href="admin-staff.html" class="admin-sidebar-link" title="Staff Database"><i class="fa-solid fa-database"></i><span class="label">Staff Database</span></a></li>
-          <li><a href="admin-leads.html" class="admin-sidebar-link" title="Leads Database"><i class="fa-solid fa-address-book"></i><span class="label">Leads Database</span></a></li>
+          <li><a href="admin-leads.html" class="admin-sidebar-link is-active" aria-current="page" title="Leads Database"><i class="fa-solid fa-address-book"></i><span class="label">Leads Database</span></a></li>
         </ul>
       </div>
 
@@ -161,123 +161,99 @@
 
       <div class="admin-page-header">
         <div>
-          <h1>Programs</h1>
-          <p>Create, configure, and monitor every training program offered by the institute.</p>
+          <h1>Leads Database</h1>
+          <p>Track prospective students and customers from first contact through to enrollment.</p>
         </div>
         <div class="admin-page-header-actions">
-          <button type="button" class="btn btn-accent" id="toggleAddProgramBtn"><i class="fa-solid fa-plus"></i> Create New Program</button>
+          <button type="button" class="btn btn-primary-outline" id="exportLeadsBtn"><i class="fa-solid fa-file-excel"></i> Export to Excel</button>
+          <button type="button" class="btn btn-accent" id="toggleAddLeadBtn"><i class="fa-solid fa-user-plus"></i> Add New Lead</button>
         </div>
       </div>
 
-      <div class="admin-kpi-grid" id="programKpiGrid">
-        <div class="admin-kpi-card"><i class="fa-solid fa-diagram-project"></i><h3 id="kpiTotalPrograms">&mdash;</h3><p>Total Programs</p></div>
-        <div class="admin-kpi-card"><i class="fa-solid fa-circle-check"></i><h3 id="kpiActivePrograms">&mdash;</h3><p>Active Programs</p></div>
-        <div class="admin-kpi-card"><i class="fa-solid fa-circle-xmark"></i><h3 id="kpiInactivePrograms">&mdash;</h3><p>Inactive Programs</p></div>
-        <div class="admin-kpi-card"><i class="fa-solid fa-user-graduate"></i><h3 id="kpiTotalEnrolled">&mdash;</h3><p>Total Enrolled Students</p></div>
-        <div class="admin-kpi-card"><i class="fa-solid fa-clock"></i><h3 id="kpiUpcomingBatchPrograms">&mdash;</h3><p>Programs with Upcoming Batches</p></div>
-      </div>
-
-      <div class="form-card admin-inline-form" id="addProgramPanel" style="display:none;">
-        <h5>Create New Program</h5>
-        <form id="addProgramForm" novalidate>
+      <div class="form-card admin-inline-form" id="addLeadPanel" style="display:none;">
+        <h5>Add New Lead</h5>
+        <form id="addLeadForm" novalidate>
           <div class="admin-form-grid">
             <div>
-              <label class="form-label">Program Name</label>
-              <input type="text" class="form-control" id="programName" required>
+              <label class="form-label">Full Name</label>
+              <input type="text" class="form-control" id="newLeadName" required>
             </div>
             <div>
-              <label class="form-label">Category</label>
-              <input type="text" class="form-control" id="programCategory" placeholder="e.g. Certification">
+              <label class="form-label">Phone</label>
+              <input type="text" class="form-control" id="newLeadPhone">
             </div>
             <div>
-              <label class="form-label">Duration</label>
-              <input type="text" class="form-control" id="programDuration" placeholder="e.g. 12 weeks">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" id="newLeadEmail">
             </div>
             <div>
-              <label class="form-label">Mode</label>
-              <select class="form-select" id="programMode">
-                <option value="offline">Offline</option>
-                <option value="online">Online</option>
-                <option value="hybrid">Hybrid</option>
-              </select>
-            </div>
-            <div>
-              <label class="form-label">Maximum Capacity</label>
-              <input type="number" class="form-control" id="programCapacity" min="1" max="100000" placeholder="e.g. 60">
+              <label class="form-label">Source</label>
+              <input type="text" class="form-control" id="newLeadSource" placeholder="e.g. Website, Referral, Walk-in">
             </div>
           </div>
-          <div style="margin-top:16px;">
-            <label class="form-label">Short Description</label>
-            <textarea class="form-control" id="programDescription" rows="2"></textarea>
-          </div>
-          <div style="margin-top:16px;">
-            <label class="form-label">Eligibility</label>
-            <textarea class="form-control" id="programEligibility" rows="2"></textarea>
-          </div>
-          <div style="margin-top:16px;">
-            <label class="form-label">Program Objectives</label>
-            <textarea class="form-control" id="programObjectives" rows="2"></textarea>
-          </div>
-          <div class="login-error" id="addProgramError" style="display:none; margin-top:16px;"></div>
+          <div style="margin-top:16px;"><label class="form-label">Notes</label><textarea class="form-control" id="newLeadNotes" rows="2"></textarea></div>
+          <div class="login-error" id="addLeadError" style="display:none; margin-top:16px;"></div>
           <div class="admin-form-actions">
-            <button type="submit" class="btn btn-accent" id="addProgramSubmitBtn">Create Program</button>
-            <button type="button" class="btn btn-primary-outline" id="cancelAddProgramBtn">Cancel</button>
+            <button type="submit" class="btn btn-accent" id="addLeadSubmitBtn">Add Lead</button>
+            <button type="button" class="btn btn-primary-outline" id="cancelAddLeadBtn">Cancel</button>
           </div>
         </form>
       </div>
 
-      <div class="form-card admin-inline-form" id="editProgramPanel" style="display:none;">
-        <h5>Edit Program</h5>
-        <form id="editProgramForm" novalidate>
-          <input type="hidden" id="editProgramId">
+      <div class="form-card admin-inline-form" id="editLeadPanel" style="display:none;">
+        <h5>Edit Lead</h5>
+        <form id="editLeadForm" novalidate>
+          <input type="hidden" id="editLeadId">
           <div class="admin-form-grid">
             <div>
-              <label class="form-label">Program Name</label>
-              <input type="text" class="form-control" id="editProgramName" required>
+              <label class="form-label">Full Name</label>
+              <input type="text" class="form-control" id="editLeadName" required>
             </div>
             <div>
-              <label class="form-label">Category</label>
-              <input type="text" class="form-control" id="editProgramCategory">
+              <label class="form-label">Phone</label>
+              <input type="text" class="form-control" id="editLeadPhone">
             </div>
             <div>
-              <label class="form-label">Duration</label>
-              <input type="text" class="form-control" id="editProgramDuration">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" id="editLeadEmail">
             </div>
             <div>
-              <label class="form-label">Mode</label>
-              <select class="form-select" id="editProgramMode">
-                <option value="offline">Offline</option>
-                <option value="online">Online</option>
-                <option value="hybrid">Hybrid</option>
+              <label class="form-label">Source</label>
+              <input type="text" class="form-control" id="editLeadSource">
+            </div>
+            <div>
+              <label class="form-label">Status</label>
+              <select class="form-select" id="editLeadStatus">
+                <option value="new">New</option>
+                <option value="contacted">Contacted</option>
+                <option value="qualified">Qualified</option>
+                <option value="converted">Converted</option>
+                <option value="lost">Lost</option>
               </select>
             </div>
-            <div>
-              <label class="form-label">Maximum Capacity</label>
-              <input type="number" class="form-control" id="editProgramCapacity" min="1" max="100000">
-            </div>
           </div>
-          <div style="margin-top:16px;">
-            <label class="form-label">Short Description</label>
-            <textarea class="form-control" id="editProgramDescription" rows="2"></textarea>
-          </div>
-          <div style="margin-top:16px;">
-            <label class="form-label">Eligibility</label>
-            <textarea class="form-control" id="editProgramEligibility" rows="2"></textarea>
-          </div>
-          <div style="margin-top:16px;">
-            <label class="form-label">Program Objectives</label>
-            <textarea class="form-control" id="editProgramObjectives" rows="2"></textarea>
-          </div>
-          <div class="login-error" id="editProgramError" style="display:none; margin-top:16px;"></div>
+          <div style="margin-top:16px;"><label class="form-label">Notes</label><textarea class="form-control" id="editLeadNotes" rows="2"></textarea></div>
+          <div class="login-error" id="editLeadError" style="display:none; margin-top:16px;"></div>
           <div class="admin-form-actions">
-            <button type="submit" class="btn btn-accent" id="editProgramSubmitBtn">Save Changes</button>
-            <button type="button" class="btn btn-primary-outline" id="cancelEditProgramBtn">Cancel</button>
+            <button type="submit" class="btn btn-accent" id="editLeadSubmitBtn">Save Changes</button>
+            <button type="button" class="btn btn-primary-outline" id="cancelEditLeadBtn">Cancel</button>
           </div>
         </form>
       </div>
 
-      <div id="programCardGrid" class="program-card-grid">
-        <div class="admin-panel-empty">Loading&hellip;</div>
+      <div class="admin-panel">
+        <div class="admin-panel-header"><h2>All Leads</h2></div>
+        <table class="admin-activity-table">
+          <thead>
+            <tr>
+              <th>Name</th><th>Phone</th><th>Email</th><th>Source</th>
+              <th>Status</th><th>Added By</th><th>Created</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="leadsTableBody">
+            <tr><td colspan="8" class="admin-panel-empty">Loading&hellip;</td></tr>
+          </tbody>
+        </table>
       </div>
     </main>
   </div>
@@ -313,7 +289,7 @@
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=1"></script>
 <script src="js/theme.js?v=1"></script>
-<script src="js/admin-programs.js?v=1"></script>
+<script src="js/admin-leads.js?v=1"></script>
 <script src="js/chat.js?v=1"></script>
 
 </body>

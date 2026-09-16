@@ -105,6 +105,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   /* ---------- Roles (for the Role selects) ---------- */
+  // Super Admin and Leads Database Admin can only be assigned by a Super
+  // Admin (enforced server-side too — this just avoids offering a choice
+  // that would 403). A role already assigned to the admin being edited
+  // still shows up as the selected option even when hidden from new picks,
+  // since roleOptionsHtml is passed selectedId regardless of this filter.
+  const RESTRICTED_ROLE_SLUGS = ['super_admin', 'leads_admin'];
+  const isSuperAdmin = user.admin_role && user.admin_role.slug === 'super_admin';
   let roles = [];
   const loadRoles = async () => {
     try {
@@ -113,9 +120,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       roles = [];
     }
   };
-  const roleOptionsHtml = (selectedId) => roles.map((r) => `
-    <option value="${r.id}" ${r.id === selectedId ? 'selected' : ''}>${escapeHtml(r.name)}</option>
-  `).join('');
+  const roleOptionsHtml = (selectedId) => roles
+    .filter((r) => isSuperAdmin || !RESTRICTED_ROLE_SLUGS.includes(r.slug) || r.id === selectedId)
+    .map((r) => `<option value="${r.id}" ${r.id === selectedId ? 'selected' : ''}>${escapeHtml(r.name)}</option>`)
+    .join('');
 
   /* ---------- KPI cards ---------- */
   const kpiTotal = document.getElementById('kpiTotalAdmins');
