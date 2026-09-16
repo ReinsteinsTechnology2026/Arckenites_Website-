@@ -3,6 +3,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   const user = await ArckAuth.requireRole('admin');
   if (!user) return; // requireRole already redirected
 
+  /* ---------- KPI cards gated by permission ----------
+     Students/Trainers counts map cleanly onto students.view/trainers.view.
+     The other four cards (Total Users, Active Accounts, Logins Today,
+     Failed Logins) and the System Health / Recent Activity panels below
+     come from /dashboard/stats, /dashboard/activity and
+     /admin/system/health, which are gated server-side by role=="admin"
+     only — there's no existing permission key that cleanly maps to them,
+     so they're left as-is here rather than gating them behind a guessed or
+     invented key. */
+  if (!ArckAuth.hasPermission('students.view')) {
+    document.getElementById('kpiStudents').closest('.admin-kpi-card').style.display = 'none';
+  }
+  if (!ArckAuth.hasPermission('trainers.view')) {
+    document.getElementById('kpiStaff').closest('.admin-kpi-card').style.display = 'none';
+  }
+
   /* ---------- Greeting + profile ---------- */
   const hour = new Date().getHours();
   const timeOfDay = hour < 12 ? 'Morning' : hour < 17 ? 'Afternoon' : 'Evening';
