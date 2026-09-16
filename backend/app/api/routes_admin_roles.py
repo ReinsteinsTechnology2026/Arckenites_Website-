@@ -1,7 +1,9 @@
+import logging
 import re
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import delete, func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_permission
@@ -20,6 +22,15 @@ from app.schemas.admin_roles import (
 )
 
 router = APIRouter(prefix="/admin", tags=["admin-roles"])
+
+logger = logging.getLogger("roles")
+
+# The one safe, generic message shown to the browser when a role-permission
+# save fails at the database level (e.g. a permission key the code accepts
+# doesn't yet exist as a row in this database's permission catalog — see
+# PERMISSION_SAVE_ERROR docstring on create_role/update_role for the full
+# story). Never includes the underlying SQL/constraint detail.
+PERMISSION_SAVE_ERROR = "Could not save one or more of the selected permissions. Please try again, or contact an administrator if this keeps happening."
 
 
 def _client_meta(request: Request) -> tuple[str, str]:
@@ -100,7 +111,17 @@ def create_role(
     db.flush()
     for key in set(payload.permission_keys):
         db.add(AdminRolePermission(admin_role_id=role.id, permission_key=key))
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # A key passed the PERMISSION_KEYS check above (the code-level
+        # catalog) but has no matching row in this database's `permissions`
+        # table yet — e.g. a new permission was shipped in code but the
+        # database hasn't been synced with `python seed.py --rbac-only` yet
+        # (see deploy.sh). Fail safely rather than leak the raw DB error.
+        db.rollback()
+        logger.exception("Failed to save permission grants while creating role %r", payload.name)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=PERMISSION_SAVE_ERROR)
     db.refresh(role)
 
     ip, ua = _client_meta(request)
@@ -143,7 +164,14 @@ def update_role(
             db.add(AdminRolePermission(admin_role_id=role.id, permission_key=key))
 
     db.add(role)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # Same story as create_role above — a permission key valid in code
+        # but not yet present in this database's `permissions` table.
+        db.rollback()
+        logger.exception("Failed to save permission grants for role id=%s", role_id)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=PERMISSION_SAVE_ERROR)
     db.refresh(role)
 
     ip, ua = _client_meta(request)

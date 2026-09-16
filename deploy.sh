@@ -33,6 +33,9 @@ cd "$BACKEND_DIR"
 echo "Running database migrations..."
 "$VENV/alembic" upgrade head
 
+echo "Syncing permission catalog and default role grants..."
+"$VENV/python" seed.py --rbac-only
+
 echo "Restarting backend..."
 sudo -n systemctl restart arckenites-backend
 

@@ -8,7 +8,16 @@ Phase 5 (Student/Staff Management). The demo accounts are clearly marked
 as dev-only below and are safe to delete once real accounts exist.
 
 Run with: python seed.py   (from the backend/ directory, venv active)
+
+Run with: python seed.py --rbac-only   to upsert ONLY the permission catalog
+and default role grants (seed_rbac below), skipping the bootstrap admin
+check and the two dev-only demo accounts entirely. This is the form safe to
+run against production on every deploy (see deploy.sh) — the full run below
+must never touch a production database, since it creates the demo accounts
+with hardcoded passwords.
 """
+
+import sys
 
 from app.core.security import hash_password
 from app.crud.permissions import DEFAULT_GRANTS, PERMISSION_CATALOG
@@ -95,10 +104,16 @@ def seed_rbac(db):
 
 
 def main():
+    rbac_only = "--rbac-only" in sys.argv
+
     db = SessionLocal()
     try:
         seed_rbac(db)
         db.commit()
+
+        if rbac_only:
+            print("Done (--rbac-only: skipped bootstrap admin and demo accounts).")
+            return
 
         print("Checking bootstrap admin account...")
         existing_admin = (
