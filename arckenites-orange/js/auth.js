@@ -65,6 +65,14 @@ const ArckAuth = {
       return null; // onUnauthorized already redirected
     }
 
+    // Refresh the cached session with this fresh /auth/me response — without
+    // this, a role/permission change a Super Admin makes never shows up for
+    // the affected admin until they log out and back in, because
+    // hasPermission() reads the stale user object cached at login time, not
+    // this fresh one. Every dashboard page calls requireRole() on load, so
+    // this keeps permissions current as of the last navigation/reload.
+    ArckAPI.setSession(ArckAPI.getToken(), user);
+
     if (user.role !== expectedRole) {
       ArckAPI.clearSession();
       window.location.href = 'login.html';
