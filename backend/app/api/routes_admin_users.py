@@ -1,5 +1,8 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import delete, func, or_, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import require_permission
@@ -12,9 +15,12 @@ from app.models.admin_profile import AdminProfile
 from app.models.admin_role import LEADS_ADMIN_SLUG, SUPER_ADMIN_SLUG, AdminRole
 from app.models.audit_log import AuthAuditLog, AuthEventType
 from app.models.chat import Conversation, DirectMessage
+from app.models.lead import Lead
 from app.models.session import AuthSession
 from app.models.user import RoleEnum, User
 from app.schemas.admin_users import AdminUserOut, CreateAdminUserRequest, UpdateAdminUserRequest
+
+logger = logging.getLogger("admin_users")
 
 router = APIRouter(prefix="/admin/admin-users", tags=["admin-users"])
 
@@ -271,8 +277,25 @@ def delete_admin_user(
         db.execute(delete(DirectMessage).where(DirectMessage.conversation_id.in_(convo_ids)))
         db.execute(delete(Conversation).where(Conversation.id.in_(convo_ids)))
 
+    # Same story for leads this admin created — leads.created_by_id has no
+    # ON DELETE CASCADE either. Detach rather than delete, same reasoning as
+    # auth_audit_log above: the leads themselves are real business records
+    # that should survive the admin who happened to add them being removed.
+    db.execute(update(Lead).where(Lead.created_by_id == user.id).values(created_by_id=None))
+
     db.delete(user)  # cascades to admin_profile via the User.admin_profile relationship
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # Some other dependent record we don't know about yet is still
+        # pointing at this account — fail safely instead of a bare 500,
+        # without leaking the underlying SQL/constraint name to the client.
+        db.rollback()
+        logger.exception("Failed to delete admin user id=%s", admin_id)
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This admin has related records that prevent deletion. Contact engineering.",
+        )
 
     write_audit_event(
         db, AuthEventType.admin_user_deleted, ip, ua, user=actor, detail=f"Deleted admin {username}",
