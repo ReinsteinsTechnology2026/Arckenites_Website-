@@ -42,6 +42,28 @@ const ADMIN_PAGE_PERMISSIONS = {
   'admin-settings.html': 'settings.view',
 };
 
+/**
+ * The "coming soon" placeholder buttons (Placement Candidates, Companies,
+ * Job Opportunities, Placement Statistics) have no href — they're inert
+ * &lt;button disabled&gt; elements — so they can't be looked up in
+ * ADMIN_PAGE_PERMISSIONS by page. Left ungated, they kept the whole
+ * Placement category visible even for an admin with none of its real
+ * permissions (Interviews correctly hides, but these don't, so the
+ * category never empties out). Matched by label text instead, gated by the
+ * same permission as their one real, built sibling (Interviews ->
+ * placement.view) — these are the same module, just not built yet.
+ * Website Content / Careers are deliberately NOT here: that whole category
+ * has no corresponding permission in the catalog at all (nor does its one
+ * real link, Contact Enquiries — see ADMIN_PAGE_PERMISSIONS above), so
+ * there's nothing existing to gate them by.
+ */
+const ADMIN_COMING_SOON_PERMISSIONS = {
+  'Placement Candidates': 'placement.view',
+  'Companies': 'placement.view',
+  'Job Opportunities': 'placement.view',
+  'Placement Statistics': 'placement.view',
+};
+
 // Every link in this app is a bare relative filename, optionally with a
 // query string (e.g. "admin-students.html?view=database" for the Student
 // Database sidebar entry) — strip both the query and any path prefix so
@@ -62,6 +84,14 @@ function applySidebarPermissions(user) {
 
   document.querySelectorAll('.admin-sidebar-link[href]').forEach((link) => {
     const required = ADMIN_PAGE_PERMISSIONS[_adminPagePathname(link.getAttribute('href'))];
+    if (!required || permissions.includes(required)) return;
+    const item = link.closest('li') || link;
+    item.style.display = 'none';
+  });
+
+  document.querySelectorAll('.admin-sidebar-link.is-disabled').forEach((link) => {
+    const labelEl = link.querySelector('.label');
+    const required = labelEl && ADMIN_COMING_SOON_PERMISSIONS[labelEl.textContent.trim()];
     if (!required || permissions.includes(required)) return;
     const item = link.closest('li') || link;
     item.style.display = 'none';
