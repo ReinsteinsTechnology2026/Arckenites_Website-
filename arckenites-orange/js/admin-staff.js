@@ -195,6 +195,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
+  // Permission-gated visibility must be resolved before the first await
+  // below (loadTrainers hits the network) — otherwise "Add Trainer" and the
+  // delete row-menu item briefly render in their default (visible) state
+  // for however long that request takes, before this correction lands.
+  const toggleBtn = document.getElementById('toggleAddStaffBtn');
+  if (!ArckAuth.hasPermission('trainers.create')) toggleBtn.style.display = 'none';
+  if (!ArckAuth.hasPermission('trainers.delete')) {
+    const deleteMenuItem = rowMenu.querySelector('[data-action="delete"]');
+    if (deleteMenuItem) deleteMenuItem.style.display = 'none';
+  }
+
   let trainers = await loadTrainers();
   const findTrainer = (id) => trainers.find((t) => t.id === id);
   const upsertTrainer = (updated) => {
@@ -217,12 +228,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ---------- Add trainer ---------- */
   const addPanel = document.getElementById('addStaffPanel');
-  const toggleBtn = document.getElementById('toggleAddStaffBtn');
-  if (!ArckAuth.hasPermission('trainers.create')) toggleBtn.style.display = 'none';
-  if (!ArckAuth.hasPermission('trainers.delete')) {
-    const deleteMenuItem = rowMenu.querySelector('[data-action="delete"]');
-    if (deleteMenuItem) deleteMenuItem.style.display = 'none';
-  }
   const cancelBtn = document.getElementById('cancelAddStaffBtn');
   const form = document.getElementById('addStaffForm');
   const nameInput = document.getElementById('newStaffName');

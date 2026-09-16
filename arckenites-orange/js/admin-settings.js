@@ -103,6 +103,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
   };
+  // Resolved before this await (loadSettings hits the network) — otherwise
+  // the Save buttons/inputs briefly render enabled for however long that
+  // request takes, before this correction lands.
+  if (!ArckAuth.hasPermission('settings.edit')) {
+    document.querySelectorAll('[data-save-tab]').forEach((btn) => { btn.disabled = true; btn.title = 'You do not have permission to edit settings.'; });
+    document.querySelectorAll('#settingsTabs ~ div input, #settingsTabs ~ div select').forEach((el) => { el.disabled = true; });
+  }
+
   await loadSettings();
 
   const saveTab = async (tabName) => {
@@ -129,11 +137,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll('[data-save-tab]').forEach((btn) => {
     btn.addEventListener('click', () => saveTab(btn.dataset.saveTab));
   });
-
-  if (!ArckAuth.hasPermission('settings.edit')) {
-    document.querySelectorAll('[data-save-tab]').forEach((btn) => { btn.disabled = true; btn.title = 'You do not have permission to edit settings.'; });
-    document.querySelectorAll('#settingsTabs ~ div input, #settingsTabs ~ div select').forEach((el) => { el.disabled = true; });
-  }
 
   /* ---------- Security overview ---------- */
   const loadSecurityOverview = async () => {

@@ -665,6 +665,27 @@ a:focus-visible, button:focus-visible, input:focus-visible{
 .progress-track{ width:100%; height:10px; border-radius:var(--radius-md); background:color-mix(in srgb, var(--ink) 6%, transparent); border:1px solid var(--border-c); overflow:hidden; }
 .progress-fill{ height:100%; background:var(--primary); border-radius:var(--radius-md); transition:var(--transition); }
 
+/* ================= ADMIN AUTH-PENDING GUARD =================
+   Every admin-*.html page ships with <html class="auth-pending"> written
+   directly in its source (no JS needed for the initial state — see the
+   inline theme-flash-prevention script this pattern sits next to). The
+   whole shell (sidebar + page content) stays display:none — not merely
+   permission-filtered-later — until ArckAuth.requireRole() has resolved
+   the current user, applied sidebar/page permission filtering, and removed
+   this class as its very last synchronous step. Because JS only yields to
+   the browser's render pipeline at an await or when a function returns,
+   nothing between that removal and the calling page's own (synchronous)
+   permission-gated button hiding can ever paint in between — the shell
+   only ever becomes visible already-correct. See auth.js. */
+.admin-auth-loader{
+  display:none;
+  position:fixed; inset:0; z-index:9999;
+  background:var(--primary-darker);
+  align-items:center; justify-content:center;
+}
+html.auth-pending .admin-auth-loader{ display:flex; }
+html.auth-pending .admin-shell{ display:none; }
+
 /* ================= ADMIN DASHBOARD SHELL (sidebar layout) ================= */
 .admin-shell{ display:flex; min-height:100vh; }
 

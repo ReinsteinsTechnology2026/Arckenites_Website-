@@ -183,6 +183,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
+  // Resolved before the two awaits below (loadRoles/loadAdmins hit the
+  // network) — otherwise "Add Admin" briefly renders in its default
+  // (visible) state for however long those requests take.
+  const toggleBtn = document.getElementById('toggleAddAdminBtn');
+  if (!ArckAuth.hasPermission('admin_users.create')) {
+    toggleBtn.style.display = 'none';
+  }
+
   await loadRoles();
   let admins = await loadAdmins();
   const findAdmin = (id) => admins.find((a) => a.id === id);
@@ -206,7 +214,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ---------- Add admin ---------- */
   const addPanel = document.getElementById('addAdminPanel');
-  const toggleBtn = document.getElementById('toggleAddAdminBtn');
   const cancelBtn = document.getElementById('cancelAddAdminBtn');
   const form = document.getElementById('addAdminForm');
   const nameInput = document.getElementById('newAdminName');
@@ -506,10 +513,5 @@ document.addEventListener('DOMContentLoaded', async () => {
       case 'delete': showDeleteAccount(admin); break;
     }
   });
-
-  /* ---------- Hide Add button if not permitted (server still enforces regardless) ---------- */
-  if (!ArckAuth.hasPermission('admin_users.create')) {
-    toggleBtn.style.display = 'none';
-  }
 
 });

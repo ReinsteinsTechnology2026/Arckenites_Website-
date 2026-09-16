@@ -213,7 +213,23 @@ const ArckAuth = {
 
     if (user.role === 'admin' && document.querySelector('.admin-sidebar-nav')) {
       applySidebarPermissions(user);
-      if (!enforcePagePermission(user)) return null;
+      const pageOk = enforcePagePermission(user);
+      // Reveal as the LAST synchronous action, whether the page passed
+      // (real content, already correctly filtered) or failed (the Access
+      // Denied notice enforcePagePermission just wrote in place of it) —
+      // either way there is now something safe to show. Everything the
+      // calling page does immediately after this returns (its own
+      // hasPermission()-gated button hiding, all synchronous, no awaits in
+      // between) runs before the browser gets a chance to paint, so it is
+      // already reflected too. See the .admin-auth-loader / auth-pending
+      // rules in style.css for the other half of this.
+      document.documentElement.classList.remove('auth-pending');
+      if (!pageOk) return null;
+    } else {
+      // Defensive fallback for any page carrying the class outside the
+      // branch above (there shouldn't be one, but never leave a page stuck
+      // permanently hidden).
+      document.documentElement.classList.remove('auth-pending');
     }
 
     return user;

@@ -135,6 +135,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
+  // Resolved before the first await below (loadRoles hits the network) —
+  // otherwise "Add Role" briefly renders in its default (visible) state for
+  // however long that request takes, before this correction lands.
+  const toggleBtn = document.getElementById('toggleAddRoleBtn');
+  if (!ArckAuth.hasPermission('roles.create')) {
+    toggleBtn.style.display = 'none';
+  }
+
   let roles = await loadRoles();
   const findRole = (id) => roles.find((r) => r.id === id);
 
@@ -153,7 +161,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ---------- Add role ---------- */
   const addPanel = document.getElementById('addRolePanel');
-  const toggleBtn = document.getElementById('toggleAddRoleBtn');
   const cancelBtn = document.getElementById('cancelAddRoleBtn');
   const form = document.getElementById('addRoleForm');
   const nameInput = document.getElementById('newRoleName');
@@ -342,9 +349,5 @@ document.addEventListener('DOMContentLoaded', async () => {
       case 'delete': showDeleteRole(role); break;
     }
   });
-
-  if (!ArckAuth.hasPermission('roles.create')) {
-    toggleBtn.style.display = 'none';
-  }
 
 });
