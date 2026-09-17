@@ -70,9 +70,6 @@ class Batch(Base):
     sessions: Mapped[list["ClassSession"]] = relationship(
         back_populates="batch", cascade="all, delete-orphan"
     )
-    lab_access_entries: Mapped[list["LabAccess"]] = relationship(
-        back_populates="batch", cascade="all, delete-orphan"
-    )
     videos: Mapped[list["ClassVideo"]] = relationship(
         back_populates="batch", cascade="all, delete-orphan"
     )

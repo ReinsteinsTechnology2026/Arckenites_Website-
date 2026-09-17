@@ -9,7 +9,7 @@ from app.crud.audit import write_audit_event
 from app.database import get_db
 from app.models.audit_log import AuthEventType
 from app.models.batch import Batch, BatchEnrollment, BatchStatusEnum, BatchTypeEnum
-from app.models.batch_resources import ClassVideo, LabAccess, StudyMaterial
+from app.models.batch_resources import ClassVideo, StudyMaterial
 from app.models.class_session import ClassSession
 from app.models.program import Program
 from app.models.user import RoleEnum, User
@@ -27,9 +27,7 @@ from app.schemas.admin_batches import (
 from app.schemas.batch_resources import (
     ClassVideoOut,
     CreateClassVideoRequest,
-    CreateLabAccessRequest,
     CreateStudyMaterialRequest,
-    LabAccessOut,
     StudyMaterialOut,
 )
 from app.schemas.class_sessions import ClassSessionOut, CreateClassSessionRequest, UpdateClassSessionRequest
@@ -432,54 +430,17 @@ def delete_session(
 
 
 # ---------------------------------------------------------------------------
-# Lab access, class videos, study materials — same shape: a link (+ extra
-# fields for lab access) posted against a batch. List/create/delete only;
-# admins recreate an entry to change it rather than editing in place.
-# Gated by batches.view/batches.edit (not individually audit-logged — these
-# are batch content edits, not the kind of top-level action the Activity
-# Logs feature tracks; see the "don't log every minor interaction" scope note).
+# Class videos, study materials — same shape: a link posted against a batch.
+# List/create/delete only; admins recreate an entry to change it rather than
+# editing in place. Gated by batches.view/batches.edit (not individually
+# audit-logged — these are batch content edits, not the kind of top-level
+# action the Activity Logs feature tracks; see the "don't log every minor
+# interaction" scope note).
+#
+# The old lab-access (plaintext RDP credential) endpoints that used to live
+# here were removed — replaced by the VM Lab Access system (routes_admin_lab_vm.py,
+# routes_lab_vm_agent.py), which never exposes a password to the browser.
 # ---------------------------------------------------------------------------
-
-@router.get("/{batch_id}/lab-access", response_model=list[LabAccessOut])
-def list_lab_access(batch_id: int, db: Session = Depends(get_db), _actor: User = Depends(require_permission("batches.view"))):
-    batch = _get_batch_or_404(db, batch_id)
-    rows = db.scalars(select(LabAccess).where(LabAccess.batch_id == batch_id).order_by(LabAccess.created_at.desc())).all()
-    return [LabAccessOut(
-        id=r.id, batch_id=r.batch_id, batch_name=batch.name, title=r.title, access_url=r.access_url,
-        username=r.username, password=r.password, notes=r.notes, created_at=r.created_at,
-    ) for r in rows]
-
-
-@router.post("/{batch_id}/lab-access", response_model=LabAccessOut, status_code=201)
-def create_lab_access(
-    batch_id: int, payload: CreateLabAccessRequest,
-    db: Session = Depends(get_db), _actor: User = Depends(require_permission("batches.edit")),
-):
-    batch = _get_batch_or_404(db, batch_id)
-    entry = LabAccess(
-        batch_id=batch_id, title=payload.title, access_url=payload.access_url,
-        username=payload.username, password=payload.password, notes=payload.notes,
-    )
-    db.add(entry)
-    db.commit()
-    db.refresh(entry)
-    return LabAccessOut(
-        id=entry.id, batch_id=entry.batch_id, batch_name=batch.name, title=entry.title, access_url=entry.access_url,
-        username=entry.username, password=entry.password, notes=entry.notes, created_at=entry.created_at,
-    )
-
-
-@router.delete("/{batch_id}/lab-access/{entry_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_lab_access(
-    batch_id: int, entry_id: int, db: Session = Depends(get_db), _actor: User = Depends(require_permission("batches.edit")),
-):
-    entry = db.get(LabAccess, entry_id)
-    if entry is None or entry.batch_id != batch_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lab access entry not found")
-    db.delete(entry)
-    db.commit()
-    return None
-
 
 @router.get("/{batch_id}/videos", response_model=list[ClassVideoOut])
 def list_videos(batch_id: int, db: Session = Depends(get_db), _actor: User = Depends(require_permission("batches.view"))):

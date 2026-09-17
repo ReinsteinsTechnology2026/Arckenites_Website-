@@ -480,29 +480,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     return load;
   };
 
-  const loadLabAccess = setupSimpleResourcePanel({
-    endpoint: 'lab-access', toggleBtnId: 'toggleAddLabAccessBtn', panelId: 'addLabAccessPanel',
-    formId: 'addLabAccessForm', errorBoxId: 'addLabAccessError', submitBtnId: 'addLabAccessSubmitBtn',
-    cancelBtnId: 'cancelAddLabAccessBtn', tableBodyId: 'labAccessTableBody', focusFieldId: 'labTitle',
-    colspan: 6, emptyText: 'No lab access posted yet.',
-    buildBody: () => ({
-      title: document.getElementById('labTitle').value.trim(),
-      access_url: document.getElementById('labUrl').value.trim(),
-      username: document.getElementById('labUsername').value.trim() || null,
-      password: document.getElementById('labPassword').value.trim() || null,
-      notes: document.getElementById('labNotes').value.trim() || null,
-    }),
-    renderRow: (r) => `
-      <tr>
-        <td>${escapeHtml(r.title)}</td>
-        <td><code>${escapeHtml(r.access_url)}</code></td>
-        <td>${r.username ? escapeHtml(r.username) : '—'}</td>
-        <td>${r.password ? escapeHtml(r.password) : '—'}</td>
-        <td>${r.notes ? escapeHtml(r.notes) : '—'}</td>
-        <td><button type="button" class="table-action-btn is-danger" data-remove-id="${r.id}" title="Delete"><i class="fa-solid fa-trash"></i></button></td>
-      </tr>
-    `,
-  });
+  // The old per-batch Lab Access (plaintext RDP credentials) panel that used
+  // to be wired up here was removed — replaced by the VM Lab Access system
+  // (admin-lab-vm.html / admin-lab-vm.js), which never displays a password.
 
   const loadVideos = setupSimpleResourcePanel({
     endpoint: 'videos', toggleBtnId: 'toggleAddVideoBtn', panelId: 'addVideoPanel',
@@ -544,6 +524,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     `,
   });
 
-  await Promise.all([loadTrainers(), loadPrograms(), loadBatch(), loadSessions(), loadLabAccess(), loadVideos(), loadMaterials()]);
+  await Promise.all([loadTrainers(), loadPrograms(), loadBatch(), loadSessions(), loadVideos(), loadMaterials()]);
 
 });

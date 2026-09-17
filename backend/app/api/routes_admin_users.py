@@ -12,7 +12,7 @@ from app.crud.session import revoke_all_sessions
 from app.crud.user import generate_admin_username, get_by_username
 from app.database import get_db
 from app.models.admin_profile import AdminProfile
-from app.models.admin_role import LEADS_ADMIN_SLUG, SUPER_ADMIN_SLUG, AdminRole
+from app.models.admin_role import LAB_VM_ADMIN_SLUG, LEADS_ADMIN_SLUG, SUPER_ADMIN_SLUG, AdminRole
 from app.models.audit_log import AuthAuditLog, AuthEventType
 from app.models.chat import Conversation, DirectMessage
 from app.models.lead import Lead
@@ -25,9 +25,9 @@ logger = logging.getLogger("admin_users")
 router = APIRouter(prefix="/admin/admin-users", tags=["admin-users"])
 
 # Roles only a Super Admin actor may assign — full-access Super Admin itself,
-# plus Leads Database Admin (an explicit ask: that role must not be
-# self-service for a regular Admin to hand out).
-RESTRICTED_ROLE_SLUGS = {SUPER_ADMIN_SLUG, LEADS_ADMIN_SLUG}
+# plus Leads Database Admin and Lab VM Admin (an explicit ask for both:
+# neither role should be self-service for a regular Admin to hand out).
+RESTRICTED_ROLE_SLUGS = {SUPER_ADMIN_SLUG, LEADS_ADMIN_SLUG, LAB_VM_ADMIN_SLUG}
 
 
 def _client_meta(request: Request) -> tuple[str, str]:

@@ -4,7 +4,7 @@
 <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('ak_theme') || 'dark');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Users | Arckenites Hub</title>
+<title>VM Lab | Arckenites Hub</title>
 <meta name="robots" content="noindex, nofollow">
 
 <link rel="icon" href="assets/favicon.png" type="image/png">
@@ -34,8 +34,8 @@
         <i class="fa-solid fa-gauge-high"></i><span class="label">Dashboard</span>
       </a>
 
-      <div class="admin-sidebar-group">
-        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+      <div class="admin-sidebar-group is-open">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="true">
           <span>Management</span><i class="fa-solid fa-chevron-right"></i>
         </button>
         <ul class="admin-sidebar-group-list">
@@ -49,13 +49,13 @@
         </ul>
       </div>
 
-      <div class="admin-sidebar-group">
-        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+      <div class="admin-sidebar-group is-open">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="true">
           <span>Permissions</span><i class="fa-solid fa-chevron-right"></i>
         </button>
         <ul class="admin-sidebar-group-list">
           <li><a href="admin-lab-access.html" class="admin-sidebar-link" title="Lab Access"><i class="fa-solid fa-lock"></i><span class="label">Lab Access</span></a></li>
-          <li><a href="admin-lab-vm.html" class="admin-sidebar-link" title="VM Lab"><i class="fa-solid fa-desktop"></i><span class="label">VM Lab</span></a></li>
+          <li><a href="admin-lab-vm.html" class="admin-sidebar-link is-active" aria-current="page" title="VM Lab"><i class="fa-solid fa-desktop"></i><span class="label">VM Lab</span></a></li>
         </ul>
       </div>
 
@@ -94,12 +94,12 @@
         </ul>
       </div>
 
-      <div class="admin-sidebar-group is-open">
-        <button type="button" class="admin-sidebar-group-header" aria-expanded="true">
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
           <span>System</span><i class="fa-solid fa-chevron-right"></i>
         </button>
         <ul class="admin-sidebar-group-list">
-          <li><a href="admin-users.html" class="admin-sidebar-link is-active" aria-current="page" title="Admin Users"><i class="fa-solid fa-user-shield"></i><span class="label">Admin Users</span></a></li>
+          <li><a href="admin-users.html" class="admin-sidebar-link" title="Admin Users"><i class="fa-solid fa-user-shield"></i><span class="label">Admin Users</span></a></li>
           <li><a href="admin-roles.html" class="admin-sidebar-link" title="Roles &amp; Permissions"><i class="fa-solid fa-key"></i><span class="label">Roles &amp; Permissions</span></a></li>
           <li><a href="admin-activity-logs.html" class="admin-sidebar-link" title="Activity Logs"><i class="fa-solid fa-clock-rotate-left"></i><span class="label">Activity Logs</span></a></li>
           <li><a href="admin-settings.html" class="admin-sidebar-link" title="Settings"><i class="fa-solid fa-sliders"></i><span class="label">Settings</span></a></li>
@@ -146,11 +146,6 @@
       </div>
 
       <div class="admin-topbar-actions">
-        <button type="button" class="icon-btn" id="chatTopbarTrigger" aria-label="Messages">
-          <i class="fa-solid fa-comments"></i>
-          <span class="admin-notif-badge" id="chatBadge" style="display:none;">0</span>
-        </button>
-
         <button type="button" class="icon-btn theme-toggle-btn" aria-label="Switch to light theme" title="Switch to light theme"><i class="fa-solid fa-sun"></i></button>
         <span class="admin-avatar" id="adminAvatarInitials">A</span>
       </div>
@@ -164,76 +159,57 @@
 
       <div class="admin-page-header">
         <div>
-          <h1>Admin Users</h1>
-          <p>Manage who has access to the Admin Portal itself.</p>
+          <h1>VM Lab Management</h1>
+          <p>Grant students time-boxed RDP access to lab VMs. Expiration is enforced by the server, not the browser.</p>
         </div>
-        <div class="admin-page-header-actions">
-          <button type="button" class="btn btn-accent" id="toggleAddAdminBtn"><i class="fa-solid fa-user-plus"></i> Add Admin</button>
+        <div id="labVmHeaderActions"></div>
+      </div>
+
+      <div class="settings-tabs" style="padding:0 20px; margin-bottom:0;" id="labVmTabs">
+        <button type="button" class="settings-tab is-active" data-tab="access">Access</button>
+        <button type="button" class="settings-tab" data-tab="inventory">VM Inventory</button>
+      </div>
+
+      <div class="admin-panel" style="margin-top:0; border-top-left-radius:0;">
+
+        <div class="settings-tab-panel is-active" data-panel="access">
+          <div style="padding:20px 20px 0; display:flex; justify-content:flex-end;">
+            <button type="button" class="btn btn-accent" id="grantAccessBtn" style="display:none;">
+              <i class="fa-solid fa-plus"></i> Grant Access
+            </button>
+          </div>
+          <table class="admin-activity-table">
+            <thead>
+              <tr><th>Student</th><th>VM</th><th>Status</th><th>Remaining</th><th>Granted By</th><th>Action</th></tr>
+            </thead>
+            <tbody id="labVmAccessTableBody">
+              <tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr>
+            </tbody>
+          </table>
         </div>
-      </div>
 
-      <div class="admin-kpi-grid">
-        <div class="admin-kpi-card"><i class="fa-solid fa-user-shield"></i><h3 id="kpiTotalAdmins">—</h3><p>Total Admins</p></div>
-        <div class="admin-kpi-card"><i class="fa-solid fa-user-check"></i><h3 id="kpiActiveAdmins">—</h3><p>Active Admins</p></div>
-        <div class="admin-kpi-card"><i class="fa-solid fa-user-slash"></i><h3 id="kpiDisabledAdmins">—</h3><p>Disabled Admins</p></div>
-      </div>
-
-      <div class="form-card admin-inline-form" id="addAdminPanel" style="display:none;">
-        <h5>Add Admin</h5>
-        <form id="addAdminForm" novalidate>
-          <div class="admin-form-grid">
-            <div>
-              <label class="form-label">Full Name</label>
-              <input type="text" class="form-control" id="newAdminName" required>
-            </div>
-            <div>
-              <label class="form-label">Role</label>
-              <select class="form-select" id="newAdminRole" required></select>
-            </div>
-            <div>
-              <label class="form-label">Temporary Password</label>
-              <div class="password-field-row">
-                <input type="text" class="form-control" id="newAdminPassword" minlength="8" required>
-                <button type="button" class="btn btn-primary-outline" id="generateAdminPasswordBtn">Generate</button>
-              </div>
-            </div>
+        <div class="settings-tab-panel" data-panel="inventory">
+          <div style="padding:20px 20px 0; display:flex; justify-content:flex-end;">
+            <button type="button" class="btn btn-accent" id="addVmBtn" style="display:none;">
+              <i class="fa-solid fa-plus"></i> Add VM
+            </button>
           </div>
-          <div class="login-error" id="addAdminError" style="display:none;"></div>
-          <div class="admin-form-actions">
-            <button type="submit" class="btn btn-accent" id="addAdminSubmitBtn">Create Admin</button>
-            <button type="button" class="btn btn-primary-outline" id="cancelAddAdminBtn">Cancel</button>
-          </div>
-        </form>
-      </div>
+          <table class="admin-activity-table">
+            <thead>
+              <tr><th>Name</th><th>Host</th><th>Student Account</th><th>Agent</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody id="labVmInventoryTableBody">
+              <tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr>
+            </tbody>
+          </table>
+        </div>
 
-      <div class="dashboard-notice" id="newAdminNotice" style="display:none;"></div>
-
-      <div class="admin-panel">
-        <div class="admin-panel-header"><h2>All Admin Users</h2></div>
-        <table class="admin-activity-table">
-          <thead>
-            <tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Last Login</th><th>Created</th><th></th></tr>
-          </thead>
-          <tbody id="adminUsersTableBody">
-            <tr><td colspan="8" class="admin-panel-empty">Loading&hellip;</td></tr>
-          </tbody>
-        </table>
       </div>
     </main>
   </div>
 </div>
 
-<div class="row-action-menu" id="rowActionMenu">
-  <button type="button" class="admin-dropdown-link" data-action="view"><i class="fa-solid fa-id-card"></i> View Details</button>
-  <button type="button" class="admin-dropdown-link" data-action="edit"><i class="fa-solid fa-pen"></i> Edit Admin</button>
-  <button type="button" class="admin-dropdown-link" data-action="role"><i class="fa-solid fa-user-shield"></i> Change Role</button>
-  <button type="button" class="admin-dropdown-link" data-action="reset"><i class="fa-solid fa-key"></i> Reset Password</button>
-  <button type="button" class="admin-dropdown-link" data-action="sessions"><i class="fa-solid fa-display"></i> Revoke Sessions</button>
-  <button type="button" class="admin-dropdown-link" data-action="toggle-active"><i class="fa-solid fa-power-off"></i> <span data-toggle-label>Disable Account</span></button>
-  <div class="row-action-menu-divider"></div>
-  <button type="button" class="admin-dropdown-link is-danger" data-action="delete"><i class="fa-solid fa-trash"></i> Delete Account</button>
-</div>
-
+<!-- Shared modal (Add/Edit VM, Grant Access, one-time token display) -->
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" id="modal">
     <div class="modal-header">
@@ -245,38 +221,23 @@
   </div>
 </div>
 
-<div class="chat-backdrop" id="chatBackdrop"></div>
-<div class="chat-panel" id="chatPanel">
-  <div class="chat-panel-header">
-    <button type="button" class="icon-btn chat-back" id="chatBack" style="display:none;" aria-label="Back to conversations"><i class="fa-solid fa-arrow-left"></i></button>
-    <strong id="chatTitle">Messages</strong>
-    <button type="button" class="icon-btn" id="chatClose" aria-label="Close chat"><i class="fa-solid fa-xmark"></i></button>
+<!-- History modal -->
+<div class="chat-backdrop" id="labVmHistoryBackdrop" style="display:none;"></div>
+<div class="admin-panel" id="labVmHistoryModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:min(620px, 90vw); max-height:80vh; overflow-y:auto; z-index:1200;">
+  <div class="admin-panel-header" style="display:flex; align-items:center; justify-content:space-between;">
+    <h2 id="labVmHistoryTitle">Access History</h2>
+    <button type="button" class="icon-btn" id="labVmHistoryCloseBtn" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
   </div>
-  <div class="chat-body">
-    <div class="chat-list-view" id="chatListView">
-      <div class="chat-search-row">
-        <input type="text" class="form-control" id="chatSearchInput" placeholder="Search by username or name&hellip;" autocomplete="off">
-      </div>
-      <div id="chatSearchResults" class="chat-search-results" style="display:none;"></div>
-      <div class="chat-conversation-list" id="chatConversationList">
-        <div class="admin-panel-empty">Loading&hellip;</div>
-      </div>
-    </div>
-    <div class="chat-thread-view" id="chatThreadView" style="display:none;">
-      <div class="chat-messages" id="chatMessages"></div>
-      <form class="chat-input-row" id="chatForm">
-        <input type="text" class="form-control" id="chatInput" placeholder="Type a message&hellip;" autocomplete="off">
-        <button type="submit" class="btn btn-accent" id="chatSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
-      </form>
-    </div>
-  </div>
+  <table class="admin-activity-table">
+    <thead><tr><th>When</th><th>Action</th><th>By</th><th>Reason</th></tr></thead>
+    <tbody id="labVmHistoryTableBody"><tr><td colspan="4" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
+  </table>
 </div>
 
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=6"></script>
 <script src="js/theme.js?v=1"></script>
-<script src="js/admin-users.js?v=1"></script>
-<script src="js/chat.js?v=1"></script>
+<script src="js/admin-lab-vm.js?v=1"></script>
 
 </body>
 </html>

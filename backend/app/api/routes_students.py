@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
@@ -24,21 +24,23 @@ from app.database import get_db
 from app.models.audit_log import AuthEventType
 from app.models.batch import Batch, BatchEnrollment
 from app.models.batch_chat import BatchChatReadState, BatchMessage
-from app.models.batch_resources import ClassVideo, LabAccess, StudyMaterial
+from app.models.batch_resources import ClassVideo, StudyMaterial
 from app.models.class_session import ClassSession
 from app.models.interview_schedule import InterviewSchedule
 from app.models.lab_slot_booking import LabSlotBooking
+from app.models.lab_vm import LabVm, LabVmAccess, LabVmAccessStatus
 from app.models.support import SenderTypeEnum, SupportAttachment, SupportMessage, SupportTicket, TicketPriorityEnum, TicketStatusEnum
 from app.models.user import User
 from app.schemas.admin_students import CompleteProfileRequest
 from app.schemas.auth import MeResponse, UpdateMyProfileRequest, UpdateNotificationPreferenceRequest
 from app.schemas.batch_chat import BatchMessageOut, SendBatchMessageRequest
 from app.schemas.batch_members import BatchMembersOut
-from app.schemas.batch_resources import ClassVideoOut, LabAccessOut, StudyMaterialOut
+from app.schemas.batch_resources import ClassVideoOut, StudyMaterialOut
 from app.schemas.class_sessions import ClassSessionOut
 from app.schemas.interview_schedule import InterviewOut
 from app.schemas.lab_access import LabAccessStateOut
 from app.schemas.lab_slots import LabBookingOut, LabSlotBookRequest, LabSlotOut, LabSlotsPageOut, LabWeekSummaryOut
+from app.schemas.lab_vm import MyLabVmAccessOut
 from app.schemas.student_batches import StudentBatchCardOut
 from app.schemas.support import (
     AttachmentOut,
@@ -304,25 +306,64 @@ def my_lab_access_status(db: Session = Depends(get_db), user: User = Depends(req
     return compute_lab_access(db, user.id)
 
 
-@router.get("/me/lab-access", response_model=list[LabAccessOut])
-def my_lab_access(db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
-    state = compute_lab_access(db, user.id)
-    if state["status"] == "LOCKED":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Lab access is currently locked.")
 
-    rows = db.execute(
-        select(LabAccess)
-        .join(BatchEnrollment, BatchEnrollment.batch_id == LabAccess.batch_id)
-        .where(BatchEnrollment.student_id == user.id)
-        .order_by(LabAccess.created_at.desc())
-    ).scalars().all()
-    return [
-        LabAccessOut(
-            id=r.id, batch_id=r.batch_id, batch_name=r.batch.name, title=r.title, access_url=r.access_url,
-            username=r.username, password=r.password, notes=r.notes, created_at=r.created_at,
+@router.get("/me/lab-vm-access", response_model=MyLabVmAccessOut)
+def my_lab_vm_access(db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
+    """Student's own VM lab status — derived entirely from the authenticated
+    user, never a client-supplied student_id. Deliberately omits
+    host/port/username; those only ever appear via the connect-file
+    endpoint below, and only while status is genuinely active."""
+    now = datetime.now(timezone.utc)
+    access = db.scalar(
+        select(LabVmAccess).where(
+            LabVmAccess.student_id == user.id,
+            LabVmAccess.status == LabVmAccessStatus.active,
+            LabVmAccess.expires_at > now,
         )
-        for r in rows
-    ]
+    )
+    if access is None:
+        return MyLabVmAccessOut(has_access=False)
+
+    vm = db.get(LabVm, access.vm_id)
+    return MyLabVmAccessOut(
+        has_access=True,
+        vm_name=vm.name if vm else None,
+        status=access.status.value,
+        expires_at=access.expires_at,
+    )
+
+
+@router.get("/me/lab-vm-access/connect-file")
+def my_lab_vm_connect_file(db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
+    """Streams a credential-free .rdp file — full address + username only.
+    No password field: Windows prompts for it normally on connect, so the
+    actual account password is never embedded in a downloadable file."""
+    now = datetime.now(timezone.utc)
+    access = db.scalar(
+        select(LabVmAccess).where(
+            LabVmAccess.student_id == user.id,
+            LabVmAccess.status == LabVmAccessStatus.active,
+            LabVmAccess.expires_at > now,
+        )
+    )
+    if access is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="You do not have active VM lab access.")
+
+    vm = db.get(LabVm, access.vm_id)
+    if vm is None or not vm.is_active:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This VM is no longer available.")
+
+    rdp_content = (
+        f"full address:s:{vm.hostname}:{vm.rdp_port}\n"
+        f"username:s:{vm.student_rdp_username}\n"
+        "prompt for credentials:i:1\n"
+    )
+    filename = f"{vm.name.replace(' ', '_')}.rdp"
+    return Response(
+        content=rdp_content,
+        media_type="application/x-rdp",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 def _week_bounds(d: date) -> tuple[date, date]:

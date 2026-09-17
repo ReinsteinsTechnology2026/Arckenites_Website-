@@ -55,6 +55,7 @@
         </button>
         <ul class="admin-sidebar-group-list">
           <li><a href="admin-lab-access.html" class="admin-sidebar-link" title="Lab Access"><i class="fa-solid fa-lock"></i><span class="label">Lab Access</span></a></li>
+          <li><a href="admin-lab-vm.html" class="admin-sidebar-link" title="VM Lab"><i class="fa-solid fa-desktop"></i><span class="label">VM Lab</span></a></li>
         </ul>
       </div>
 
@@ -302,32 +303,10 @@
           </table>
         </div>
 
-        <div class="admin-panel">
-          <div class="admin-panel-header">
-            <h2>Lab Access</h2>
-            <button type="button" class="btn btn-primary-outline" id="toggleAddLabAccessBtn"><i class="fa-solid fa-plus"></i> Add Lab Access</button>
-          </div>
-          <div class="form-card admin-inline-form" id="addLabAccessPanel" style="display:none;">
-            <form id="addLabAccessForm" novalidate>
-              <div class="admin-form-grid">
-                <div><label class="form-label">Title</label><input type="text" class="form-control" id="labTitle" placeholder="e.g. Windows 11 Lab VM" required></div>
-                <div><label class="form-label">RDP Address (IP or Hostname)</label><input type="text" class="form-control" id="labUrl" placeholder="e.g. 192.168.1.50" required></div>
-                <div><label class="form-label">Username</label><input type="text" class="form-control" id="labUsername"></div>
-                <div><label class="form-label">Password</label><input type="text" class="form-control" id="labPassword"></div>
-              </div>
-              <div style="margin-top:16px;"><label class="form-label">Notes</label><textarea class="form-control" id="labNotes" rows="2"></textarea></div>
-              <div class="login-error" id="addLabAccessError" style="display:none; margin-top:16px;"></div>
-              <div class="admin-form-actions">
-                <button type="submit" class="btn btn-accent" id="addLabAccessSubmitBtn">Add</button>
-                <button type="button" class="btn btn-primary-outline" id="cancelAddLabAccessBtn">Cancel</button>
-              </div>
-            </form>
-          </div>
-          <table class="admin-activity-table">
-            <thead><tr><th>Title</th><th>RDP Address</th><th>Username</th><th>Password</th><th>Notes</th><th>Actions</th></tr></thead>
-            <tbody id="labAccessTableBody"><tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
-          </table>
-        </div>
+        <!-- The old per-batch Lab Access (plaintext RDP credentials) panel that
+             used to live here was removed — replaced by the VM Lab Access
+             system (admin-lab-vm.html), which never displays a password in
+             the browser. -->
 
         <div class="admin-panel">
           <div class="admin-panel-header">
@@ -440,10 +419,10 @@
 </div>
 
 <script src="js/api.js?v=2"></script>
-<script src="js/auth.js?v=5"></script>
+<script src="js/auth.js?v=6"></script>
 <script src="js/theme.js?v=1"></script>
 <script src="js/video-conference.js?v=1"></script>
-<script src="js/admin-batch-detail.js?v=5"></script>
+<script src="js/admin-batch-detail.js?v=6"></script>
 <script src="js/chat.js?v=1"></script>
 
 </body>

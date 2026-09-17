@@ -34,6 +34,7 @@ const ADMIN_PAGE_PERMISSIONS = {
   'admin-support.html': 'support.view',
   'admin-support-detail.html': 'support.view',
   'admin-lab-access.html': 'lab_access.view',
+  'admin-lab-vm.html': 'lab_vm.view',
   'admin-leads.html': 'leads.view',
   'admin-interviews.html': 'placement.view',
   'admin-users.html': 'admin_users.view',

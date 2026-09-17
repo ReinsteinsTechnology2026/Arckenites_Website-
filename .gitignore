@@ -21,3 +21,6 @@ Thumbs.db
 
 # Uploaded user files — runtime data, not source
 backend/uploads/
+
+# Windows Lab Agent — real per-VM token, never commit
+windows-lab-agent/config.ini

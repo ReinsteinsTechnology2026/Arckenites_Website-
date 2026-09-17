@@ -17,6 +17,10 @@ SUPER_ADMIN_SLUG = "super_admin"
 # fixed-ID tiers above) that only a Super Admin may assign — see the
 # RESTRICTED_ROLE_SLUGS check in routes_admin_users.py.
 LEADS_ADMIN_SLUG = "leads_admin"
+# Same story — only a Super Admin may assign this role (see
+# RESTRICTED_ROLE_SLUGS in routes_admin_users.py). Grants VM Lab Access
+# management (grant/revoke/inventory) to a role other than Super Admin.
+LAB_VM_ADMIN_SLUG = "lab_vm_admin"
 
 
 class AdminRole(Base):

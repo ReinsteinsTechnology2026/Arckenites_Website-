@@ -76,6 +76,15 @@ PERMISSION_CATALOG: list[dict] = [
     {"key": "leads.edit", "module": "Leads", "action": "edit", "description": "Edit lead details and status."},
     {"key": "leads.delete", "module": "Leads", "action": "delete", "description": "Delete leads."},
     {"key": "leads.export", "module": "Leads", "action": "export", "description": "Export lead data."},
+
+    # Deliberately NOT in _OPERATIONAL_MODULES below — a plain Admin does
+    # not get this by default, only a role explicitly granted it (e.g.
+    # lab_vm_admin) or Super Admin (always computed as having everything).
+    {"key": "lab_vm.view", "module": "VM Lab", "action": "view", "description": "View VM lab access status and history."},
+    {"key": "lab_vm.grant", "module": "VM Lab", "action": "grant", "description": "Grant a student VM lab access."},
+    {"key": "lab_vm.revoke", "module": "VM Lab", "action": "revoke", "description": "Revoke a student's VM lab access."},
+    {"key": "lab_vm.manage_vms", "module": "VM Lab", "action": "manage_vms", "description": "Add, edit, or remove VMs from the lab inventory."},
+    {"key": "lab_vm.view_history", "module": "VM Lab", "action": "view_history", "description": "View the full VM lab access audit history."},
 ]
 
 PERMISSION_KEYS: frozenset[str] = frozenset(p["key"] for p in PERMISSION_CATALOG)
@@ -103,6 +112,12 @@ DEFAULT_GRANTS: dict[str, list[str]] = {
     # mint themselves a side-channel into the leads pipeline via a role they
     # weren't given directly.
     "leads_admin": [k for k in PERMISSION_KEYS if k.split(".")[0] == "leads"] + ["students.view", "trainers.view"],
+    # Lab VM Admin: full run of the VM lab access system (grant/revoke/
+    # inventory/history), plus read-only visibility into the student
+    # database (so a grant can be issued against a real, confirmed
+    # student). Super-Admin-only to assign, same reasoning as leads_admin —
+    # see RESTRICTED_ROLE_SLUGS in routes_admin_users.py.
+    "lab_vm_admin": [k for k in PERMISSION_KEYS if k.split(".")[0] == "lab_vm"] + ["students.view"],
 }
 
 

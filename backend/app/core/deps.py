@@ -1,15 +1,18 @@
+import hashlib
 import uuid
 from datetime import datetime, timezone
 
 import jwt
 from fastapi import Depends, HTTPException, Query, WebSocket, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.core.security import decode_access_token
 from app.crud.permissions import user_has_permission
 from app.database import get_db
+from app.models.lab_vm import LabVm
 from app.models.session import AuthSession
 from app.models.user import User
 
@@ -96,6 +99,39 @@ def require_permission(permission_key: str):
         return user
 
     return _dependency
+
+
+def hash_vm_agent_token(token: str) -> str:
+    """Plain SHA-256 hex digest — deliberately not bcrypt. The token is a
+    32-byte cryptographically random secret (secrets.token_urlsafe), not a
+    human-chosen password, so there's no brute-forceable low-entropy input
+    to slow down; a fast, indexable digest is what actually lets
+    require_vm_agent look the VM up by an equality match in one query."""
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def require_vm_agent(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> LabVm:
+    """Authenticates a Windows Lab Agent, not a human — completely separate
+    from get_current_user's JWT/AuthSession path. Each VM has its own
+    bearer token (shown once at creation, stored here only as a hash), so
+    one compromised or offline VM can never be used to impersonate another
+    VM, a student, or an admin."""
+    unauthorized = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Not authenticated",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    if credentials is None:
+        raise unauthorized
+
+    token_hash = hash_vm_agent_token(credentials.credentials)
+    vm = db.scalar(select(LabVm).where(LabVm.agent_token_hash == token_hash))
+    if vm is None or not vm.is_active:
+        raise unauthorized
+    return vm
 
 
 async def get_ws_user(websocket: WebSocket, db: Session, *, required_role: str | None = None) -> User | None:

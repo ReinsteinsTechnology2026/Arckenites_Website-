@@ -1,0 +1,33 @@
+; Copy this file to config.ini on the lab VM and fill in the real values.
+; config.ini is never committed to git (see .gitignore) — it holds this
+; VM's own bearer token, which is a real secret.
+
+[server]
+; The Arckenites Hub API base URL. In production this is:
+;   https://arckenites.com/api
+; Do not point this at a raw IP unless you know the backend is reachable
+; there directly (normally Caddy + Cloudflare sit in front of it).
+base_url = https://arckenites.com/api
+
+; This VM's own agent token — shown ONCE when a Super Admin adds this VM
+; under VM Lab Management > VM Inventory > Add VM, or when they use
+; "Regenerate Token" for an existing VM. This is NOT the JWT secret, NOT
+; the database password, and NOT any other global secret — it identifies
+; and authenticates only this one VM.
+agent_token = REPLACE_WITH_TOKEN_FROM_ADMIN_PANEL
+
+[agent]
+; How often (seconds) this agent checks in with the server.
+poll_interval_sec = 30
+
+; If the server can't be reached for this many consecutive checks, the
+; agent assumes it can no longer confirm authorization and revokes the
+; last-known student's access as a fail-safe, rather than leaving it
+; active indefinitely. 5 x 30s = ~2.5 minutes of grace before that happens.
+consecutive_failures_before_failsafe = 5
+
+[safety]
+; Comma-separated extra local account names this agent must NEVER touch,
+; in addition to "Administrator" (always protected, hardcoded). Add any
+; other admin/service accounts that exist on this specific VM.
+extra_protected_accounts =

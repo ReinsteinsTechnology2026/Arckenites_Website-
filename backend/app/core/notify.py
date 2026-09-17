@@ -69,3 +69,16 @@ def notify_lab_access_change(recipient: User, status: str, reason: str | None) -
         + (f"\n\nReason: {reason}" if reason else "")
         + "\n\nLog in to check your current status: https://arckenites.com",
     )
+
+
+def notify_lab_vm_access_change(recipient: User, vm_name: str, event: str, reason: str | None = None) -> None:
+    """VM Lab Access system — deliberately named distinctly from
+    notify_lab_access_change above, which belongs to the separate,
+    unrelated lock/unlock lab-access feature."""
+    notify_user(
+        recipient,
+        f"VM Lab Access — {vm_name}",
+        f"{event}\n\nVM: {vm_name}"
+        + (f"\n\nReason: {reason}" if reason else "")
+        + "\n\nLog in to check your current status: https://arckenites.com",
+    )

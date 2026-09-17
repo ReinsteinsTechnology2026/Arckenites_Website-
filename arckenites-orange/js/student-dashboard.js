@@ -680,113 +680,101 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Refresh while the Lab panel is open, so a status change made by an
   // admin shows up without the student needing to log out/in.
   setInterval(() => {
-    if (labPanelSection.style.display !== 'none') { loadLabAccessStatus(); loadLabEnvironment(); }
+    if (labPanelSection.style.display !== 'none') { loadLabAccessStatus(); loadMyVmAccess(); }
   }, 20000);
 
-  /* ---------- Lab Environment (RDP) credentials ---------- */
+  /* ---------- VM Lab Access ---------- */
+  // Replaces the old plaintext-RDP "Lab Environment" card. The countdown
+  // shown here is purely cosmetic — it is re-synced from the server's own
+  // expires_at on every poll, never computed from a value the browser made
+  // up. Whether the student can actually get in is decided by the backend
+  // (and, separately, by the Windows Agent on the VM itself) — this panel
+  // only ever reflects that, it never grants anything itself.
   const labEnvironmentBody = document.getElementById('labEnvironmentBody');
+  let currentVmAccess = null;
+  let vmCountdownTimer = null;
 
-  const labEnvCardHtml = (entry) => `
-    <div class="lab-env-card">
-      <div class="lab-env-card-title">${escapeHtml(entry.title)}</div>
-      <div class="lab-env-card-batch">${escapeHtml(entry.batch_name)}</div>
-      <div class="lab-env-field-grid">
-        <div class="lab-env-field">
-          <label>IP / Address</label>
-          <div class="lab-env-field-value">
-            <span>${escapeHtml(entry.access_url)}</span>
-            <button type="button" data-copy="${escapeHtml(entry.access_url)}" title="Copy"><i class="fa-solid fa-copy"></i></button>
-          </div>
-        </div>
-        ${entry.username ? `
-        <div class="lab-env-field">
-          <label>Username</label>
-          <div class="lab-env-field-value">
-            <span>${escapeHtml(entry.username)}</span>
-            <button type="button" data-copy="${escapeHtml(entry.username)}" title="Copy"><i class="fa-solid fa-copy"></i></button>
-          </div>
-        </div>` : ''}
-        ${entry.password ? `
-        <div class="lab-env-field">
-          <label>Password</label>
-          <div class="lab-env-field-value">
-            <span class="lab-env-password" data-value="${escapeHtml(entry.password)}">••••••••</span>
-            <button type="button" data-toggle-password title="Show/Hide"><i class="fa-solid fa-eye"></i></button>
-            <button type="button" data-copy="${escapeHtml(entry.password)}" title="Copy"><i class="fa-solid fa-copy"></i></button>
-          </div>
-        </div>` : ''}
-      </div>
-      <div style="margin-top:14px;">
-        <button type="button" class="btn btn-accent" data-connect-rdp="${entry.id}" data-host="${escapeHtml(entry.access_url)}" data-user="${escapeHtml(entry.username || '')}" data-title="${escapeHtml(entry.title)}">
-          <i class="fa-solid fa-desktop"></i> Connect via Remote Desktop
+  const formatVmRemaining = (expiresAtIso) => {
+    const ms = new Date(expiresAtIso).getTime() - Date.now();
+    if (ms <= 0) return '00:00:00';
+    const totalSec = Math.floor(ms / 1000);
+    const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+    const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+    const s = String(totalSec % 60).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  };
+
+  const renderVmAccessActive = (access) => {
+    labEnvironmentBody.innerHTML = `
+      <div class="lab-env-card">
+        <div class="lab-env-card-title"><i class="fa-solid fa-circle" style="color:#12b76a; font-size:.6rem;"></i> ${escapeHtml(access.vm_name)}</div>
+        <div class="lab-env-card-batch">Access expires ${new Date(access.expires_at).toLocaleString()}</div>
+        <div style="margin:14px 0; font-size:1.6rem; font-weight:600; font-variant-numeric:tabular-nums;" id="vmCountdownDisplay">${formatVmRemaining(access.expires_at)}</div>
+        <button type="button" class="btn btn-accent" id="connectVmBtn">
+          <i class="fa-solid fa-desktop"></i> Connect to VM
         </button>
+        <div class="lab-env-notes"><i class="fa-solid fa-circle-info"></i> This countdown is informational — your access is checked by the server on every connection, not by this timer.</div>
       </div>
-      ${entry.notes ? `<div class="lab-env-notes"><i class="fa-solid fa-circle-info"></i> ${escapeHtml(entry.notes)}</div>` : ''}
-    </div>
-  `;
+    `;
+    document.getElementById('connectVmBtn').addEventListener('click', downloadVmConnectFile);
 
-  // Downloads a .rdp file pre-filled with the server address and username —
-  // double-clicking it launches Windows' native Remote Desktop Connection
-  // already pointed at the right VM. The password is deliberately never
-  // embedded (RDP files can't safely carry a plaintext password), so the
-  // student still pastes it into mstsc's own prompt from the copy button above.
-  const connectViaRdp = (host, username, title) => {
-    const lines = [
-      'full address:s:' + host,
-      'prompt for credentials:i:1',
-      'authentication level:i:0',
-    ];
-    if (username) lines.splice(1, 0, 'username:s:' + username);
-    const blob = new Blob([lines.join('\r\n') + '\r\n'], { type: 'application/x-rdp' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${(title || 'lab-vm').replace(/[^a-z0-9\-_ ]/gi, '')}.rdp`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  };
-
-  const loadLabEnvironment = async () => {
-    try {
-      const entries = await ArckAPI.request('/students/me/lab-access');
-      labEnvironmentBody.innerHTML = entries.length
-        ? entries.map(labEnvCardHtml).join('')
-        : '<div class="admin-panel-empty">No lab environment has been set up for your batch yet.</div>';
-    } catch (err) {
-      if (err.status === 403) {
-        labEnvironmentBody.innerHTML = `<div class="lab-env-locked"><i class="fa-solid fa-lock"></i> ${escapeHtml(err.detail || 'Lab access is currently locked.')}</div>`;
-      } else {
-        labEnvironmentBody.innerHTML = '<div class="admin-panel-empty">Couldn\'t load lab environment details.</div>';
+    clearInterval(vmCountdownTimer);
+    vmCountdownTimer = setInterval(() => {
+      const el = document.getElementById('vmCountdownDisplay');
+      if (!el) { clearInterval(vmCountdownTimer); return; }
+      el.textContent = formatVmRemaining(access.expires_at);
+      if (new Date(access.expires_at).getTime() <= Date.now()) {
+        clearInterval(vmCountdownTimer);
+        loadMyVmAccess(); // re-poll immediately so the real (server-decided) state takes over
       }
+    }, 1000);
+  };
+
+  const renderVmAccessNone = () => {
+    labEnvironmentBody.innerHTML = `
+      <div class="admin-panel-empty" style="text-align:left; padding:24px 0;">
+        <i class="fa-solid fa-lock" style="margin-right:8px;"></i>
+        <strong>ACCESS EXPIRED — contact administrator</strong>
+        <p style="margin:8px 0 0; color:var(--muted); font-size:.88rem;">You do not currently have VM lab access. An administrator can grant you time-boxed access from the admin panel.</p>
+      </div>
+    `;
+  };
+
+  const downloadVmConnectFile = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/students/me/lab-vm-access/connect-file`, {
+        headers: { Authorization: `Bearer ${ArckAPI.getToken()}` },
+      });
+      if (!res.ok) throw new Error('Could not get connection file');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(currentVmAccess?.vm_name || 'lab-vm').replace(/[^a-z0-9\-_ ]/gi, '')}.rdp`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (_) {
+      window.alert('Could not download the connection file. Your access may have just expired — refresh and try again.');
     }
   };
 
-  labEnvironmentBody.addEventListener('click', (e) => {
-    const connectBtn = e.target.closest('[data-connect-rdp]');
-    if (connectBtn) {
-      connectViaRdp(connectBtn.dataset.host, connectBtn.dataset.user, connectBtn.dataset.title);
-      return;
+  const loadMyVmAccess = async () => {
+    try {
+      const access = await ArckAPI.request('/students/me/lab-vm-access');
+      currentVmAccess = access.has_access ? access : null;
+      if (access.has_access) {
+        renderVmAccessActive(access);
+      } else {
+        clearInterval(vmCountdownTimer);
+        renderVmAccessNone();
+      }
+    } catch (_) {
+      clearInterval(vmCountdownTimer);
+      labEnvironmentBody.innerHTML = '<div class="admin-panel-empty">Couldn\'t load VM lab access status.</div>';
     }
-    const toggleBtn = e.target.closest('[data-toggle-password]');
-    if (toggleBtn) {
-      const span = toggleBtn.parentElement.querySelector('.lab-env-password');
-      const icon = toggleBtn.querySelector('i');
-      const revealed = span.textContent !== '••••••••';
-      span.textContent = revealed ? '••••••••' : span.dataset.value;
-      icon.className = revealed ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
-      return;
-    }
-    const copyBtn = e.target.closest('[data-copy]');
-    if (copyBtn) {
-      navigator.clipboard.writeText(copyBtn.dataset.copy).then(() => {
-        const icon = copyBtn.querySelector('i');
-        icon.className = 'fa-solid fa-check';
-        setTimeout(() => { icon.className = 'fa-solid fa-copy'; }, 1200);
-      });
-    }
-  });
+  };
 
   /* ---------- Lab Slot Booking ---------- */
   const labWeekSummaryEl = document.getElementById('labWeekSummary');
@@ -1149,7 +1137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadMaterials();
   await loadVideos();
   loadLabAccessStatus(); // independent of the slot list below — never lets one block the other
-  loadLabEnvironment();
+  loadMyVmAccess();
   await loadLabSlots();
   await loadMyMeetings();
   await loadTickets();

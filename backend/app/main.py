@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
@@ -10,6 +12,8 @@ from app.api.routes_admin_contact_enquiries import router as admin_contact_enqui
 from app.api.routes_admin_leads import router as admin_leads_router
 from app.api.routes_admin_interviews import router as admin_interviews_router
 from app.api.routes_admin_lab_access import router as admin_lab_access_router
+from app.api.routes_admin_lab_vm import router as admin_lab_vm_router
+from app.api.routes_lab_vm_agent import router as lab_vm_agent_router
 from app.api.routes_admin_meetings import router as admin_meetings_router
 from app.api.routes_meetings import router as meetings_router
 from app.api.routes_admin_programs import router as admin_programs_router
@@ -31,6 +35,7 @@ from app.api.routes_staff import router as staff_router
 from app.api.routes_students import router as students_router
 from app.api.routes_video import router as video_router
 from app.config import settings
+from app.core.lab_vm_watchdog import run_lab_vm_watchdog
 from app.core.rate_limit import limiter
 from app.crud.audit import write_audit_event
 from app.database import SessionLocal
@@ -84,6 +89,8 @@ app.include_router(admin_batches_router, prefix="/api")
 app.include_router(admin_class_schedule_router, prefix="/api")
 app.include_router(admin_interviews_router, prefix="/api")
 app.include_router(admin_lab_access_router, prefix="/api")
+app.include_router(admin_lab_vm_router, prefix="/api")
+app.include_router(lab_vm_agent_router, prefix="/api")
 app.include_router(admin_meetings_router, prefix="/api")
 app.include_router(meetings_router, prefix="/api")
 app.include_router(admin_programs_router, prefix="/api")
@@ -101,3 +108,12 @@ app.include_router(profile_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(contact_router, prefix="/api")
 app.include_router(video_router, prefix="/api")
+
+
+@app.on_event("startup")
+async def _start_lab_vm_watchdog() -> None:
+    """First startup event in this app — safe to add (confirmed no
+    existing one to conflict with). See lab_vm_watchdog.py for why a plain
+    asyncio background task is the right tool here rather than a
+    scheduler library."""
+    asyncio.create_task(run_lab_vm_watchdog())
