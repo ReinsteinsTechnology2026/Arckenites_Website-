@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_vm_agent
+from app.core.lab_vm_secrets import decrypt_rdp_password
 from app.database import get_db
 from app.models.lab_vm import LabVm, LabVmAccess, LabVmAccessAuditLog, LabVmAccessStatus
 from app.models.user import User
@@ -36,15 +37,24 @@ def agent_heartbeat(
     )
     db.commit()
 
+    # The agent needs the VM's current password applied regardless of
+    # whether access is active — while inactive, this is the freshly
+    # rotated "nobody knows it" value the student's old grant left behind.
+    current_password = decrypt_rdp_password(vm.current_agent_password_encrypted) if vm.current_agent_password_encrypted else None
+
     if access is None:
-        return VmAgentHeartbeatResponse(status="none")
+        return VmAgentHeartbeatResponse(status="none", student_username=vm.student_rdp_username, rdp_password=current_password)
 
     student = db.get(User, access.student_id)
+    if not student:
+        return VmAgentHeartbeatResponse(status="none", student_username=vm.student_rdp_username, rdp_password=current_password)
+
     return VmAgentHeartbeatResponse(
         status="active",
         student_username=vm.student_rdp_username,
         expires_at=access.expires_at,
-    ) if student else VmAgentHeartbeatResponse(status="none")
+        rdp_password=current_password,
+    )
 
 
 @router.post("/events", status_code=204)

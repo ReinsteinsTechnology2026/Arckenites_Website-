@@ -210,6 +210,35 @@ def force_logoff(username: str, config: AgentConfig) -> None:
         logger.info("Logged off %s (session %s) — access expired/revoked", username, session_id)
 
 
+def set_account_password(username: str, password: str, config: AgentConfig) -> None:
+    """Sets username's local Windows account password to the server's
+    current rotating value for this VM. Uses win32net.NetUserSetInfo
+    (level 1003, password-only) rather than shelling out to `net user
+    <username> <password>` deliberately — a password passed as a plain
+    subprocess argument briefly appears in that process's command line,
+    visible to anything enumerating processes on the machine (Task
+    Manager's "Command line" column, `wmic process list`, etc.) for the
+    duration of the call. NetUserSetInfo never puts the password on a
+    command line at all.
+
+    Imported lazily so this module stays importable (and its other
+    functions testable) on a machine without pywin32 installed; only this
+    one function actually needs it."""
+    if is_protected_account(username, config):
+        logger.error("Refusing to set a password for protected account %r", username)
+        return
+    try:
+        import win32net
+    except ImportError:
+        logger.error("pywin32 not installed — cannot set account password for %s", username)
+        return
+    try:
+        win32net.NetUserSetInfo(None, username, 1003, {"password": password})
+        logger.info("Rotated RDP password for %s", username)  # never logs the password itself
+    except Exception:
+        logger.exception("Failed to set password for %s", username)
+
+
 # ---------------------------------------------------------------------------
 # The poll loop itself
 # ---------------------------------------------------------------------------
@@ -259,6 +288,15 @@ class LabAgentRunner:
 
         status = heartbeat.get("status")
         student_username = heartbeat.get("student_username")
+        rdp_password = heartbeat.get("rdp_password")
+
+        # Applied every poll regardless of status — while active this is
+        # the password the student was shown; while inactive it's the
+        # freshly rotated, nobody-shown value the server generated the
+        # instant the previous grant ended. Idempotent (safe to re-apply
+        # the same value repeatedly).
+        if student_username and rdp_password:
+            set_account_password(student_username, rdp_password, self.config)
 
         if status == "active" and student_username:
             grant_rdp_group_membership(student_username, self.config)

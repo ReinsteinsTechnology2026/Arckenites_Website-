@@ -25,6 +25,7 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 
+from app.core.lab_vm_secrets import encrypt_rdp_password, generate_windows_compliant_password
 from app.core.notify import notify_lab_vm_access_change
 from app.database import SessionLocal
 from app.models.lab_vm import LabVm, LabVmAccess, LabVmAccessAuditLog, LabVmAccessStatus
@@ -50,6 +51,7 @@ def sweep_expired_lab_vm_access_once() -> int:
 
         for row in rows:
             row.status = LabVmAccessStatus.expired
+            row.rdp_password_encrypted = None
             db.add(row)
             db.add(LabVmAccessAuditLog(
                 student_id=row.student_id,
@@ -58,6 +60,15 @@ def sweep_expired_lab_vm_access_once() -> int:
                 performed_by=None,
                 reason=None,
             ))
+            # Rotate the VM's account password away the moment its grant
+            # expires — the same backstop applied on explicit revoke, so a
+            # student who wrote the password down can't reuse it after
+            # their time is up, independent of the agent's own group-
+            # membership enforcement.
+            vm = db.get(LabVm, row.vm_id)
+            if vm is not None:
+                vm.current_agent_password_encrypted = encrypt_rdp_password(generate_windows_compliant_password())
+                db.add(vm)
             expired_count += 1
 
         if expired_count:

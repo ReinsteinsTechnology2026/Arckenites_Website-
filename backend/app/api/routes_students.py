@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import require_role
 from app.core.lab_access import compute_lab_access
+from app.core.lab_vm_secrets import decrypt_rdp_password
 from app.core.lab_slots import LAB_BOOKING_HORIZON_DAYS, LAB_SLOT_CAPACITY, LAB_SLOT_HOURS, LAB_SLOT_TEMPLATE, LAB_WEEKLY_HOUR_CAP
 from app.core.uploads import MAX_FILES_PER_MESSAGE, get_upload_path, save_upload
 from app.core.video import generate_batch_room_name
@@ -310,9 +311,9 @@ def my_lab_access_status(db: Session = Depends(get_db), user: User = Depends(req
 @router.get("/me/lab-vm-access", response_model=MyLabVmAccessOut)
 def my_lab_vm_access(db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
     """Student's own VM lab status — derived entirely from the authenticated
-    user, never a client-supplied student_id. Deliberately omits
-    host/port/username; those only ever appear via the connect-file
-    endpoint below, and only while status is genuinely active."""
+    user, never a client-supplied student_id. Connection details and the
+    current rotating password are included only while status is genuinely
+    active (live expires_at check, not just the stored status column)."""
     now = datetime.now(timezone.utc)
     access = db.scalar(
         select(LabVmAccess).where(
@@ -325,11 +326,18 @@ def my_lab_vm_access(db: Session = Depends(get_db), user: User = Depends(require
         return MyLabVmAccessOut(has_access=False)
 
     vm = db.get(LabVm, access.vm_id)
+    if vm is None:
+        return MyLabVmAccessOut(has_access=False)
+
     return MyLabVmAccessOut(
         has_access=True,
-        vm_name=vm.name if vm else None,
+        vm_name=vm.name,
         status=access.status.value,
         expires_at=access.expires_at,
+        hostname=vm.hostname,
+        rdp_port=vm.rdp_port,
+        student_rdp_username=vm.student_rdp_username,
+        rdp_password=decrypt_rdp_password(access.rdp_password_encrypted) if access.rdp_password_encrypted else None,
     )
 
 

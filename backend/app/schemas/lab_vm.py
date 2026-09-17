@@ -74,15 +74,25 @@ class LabVmAccessOut(BaseModel):
 
 
 class MyLabVmAccessOut(BaseModel):
-    """What a student sees about their own access — deliberately no
-    hostname/port/username fields; those only appear once status is
-    active, via the separate connect-file endpoint, never in this status
-    payload (so an expired/revoked student can't harvest connection
-    details just by polling this endpoint)."""
+    """What a student sees about their own access. Connection details
+    (hostname/port/username) and the current rotating rdp_password are
+    populated ONLY while has_access is true — an expired/revoked student
+    polling this endpoint gets none of it, since the fields are simply
+    absent rather than stale. rdp_password is intentionally shown here:
+    it is a short-lived, auto-rotating secret tied to this one grant, not
+    the VM's real Administrator password, and it stops working the
+    instant this grant ends (both because the Windows Agent removes RDP
+    group membership AND because the password itself is rotated away) —
+    the group-membership check is the real access control; the password
+    is not what enforcement relies on."""
     has_access: bool
     vm_name: str | None = None
     status: str | None = None
     expires_at: datetime | None = None
+    hostname: str | None = None
+    rdp_port: int | None = None
+    student_rdp_username: str | None = None
+    rdp_password: str | None = None
 
 
 class LabVmAuditEntryOut(BaseModel):
@@ -99,8 +109,17 @@ class LabVmAuditEntryOut(BaseModel):
 
 class VmAgentHeartbeatResponse(BaseModel):
     status: str  # "active" | "none"
+    # The VM's configured student account name — always present once a VM
+    # has ever had a grant, regardless of status, since the agent needs it
+    # both to grant/revoke RDP group membership AND to apply rdp_password
+    # below even while status is "none" (rotating the password away).
     student_username: str | None = None
     expires_at: datetime | None = None
+    # The password the agent should currently have set on student_username's
+    # Windows account — present whenever the server has a current value for
+    # this VM, active or not. The agent applies this every poll
+    # (idempotent); never logged by the agent.
+    rdp_password: str | None = None
 
 
 class VmAgentEventRequest(BaseModel):

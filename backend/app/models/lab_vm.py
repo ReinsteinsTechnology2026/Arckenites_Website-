@@ -20,16 +20,19 @@ from app.database import Base
 
 
 class LabVm(Base):
-    """A physical/virtual Windows lab machine students RDP into. Inventory
-    only — never exposes the student RDP account's password anywhere in the
-    portal; that's communicated to students separately, same as the plan
-    that replaced this feature's insecure predecessor required.
+    """A physical/virtual Windows lab machine students RDP into. The
+    student account's password is a short-lived, auto-rotating secret (see
+    current_agent_password_encrypted below) — never the VM's real
+    Administrator password, which this system never generates, stores, or
+    displays. A student only ever sees the current rotating password while
+    their own grant is active; it dies the instant that grant ends.
 
-    agent_token_hash is the ONLY credential the Windows Agent running on
-    this VM has — a per-VM secret generated once at creation time, shown to
-    the admin exactly once, and stored here only as a SHA-256 hash (never
-    plaintext), same principle as a password hash. It is completely
-    separate from the portal's own JWT secret."""
+    agent_token_hash is a SEPARATE credential — the ONLY one the Windows
+    Agent running on this VM authenticates itself with — a per-VM secret
+    generated once at creation time, shown to the admin exactly once, and
+    stored here only as a SHA-256 hash (never plaintext), same principle as
+    a password hash. It is completely separate from the portal's own JWT
+    secret and from the rotating RDP password above."""
 
     __tablename__ = "lab_vms"
 
@@ -48,6 +51,14 @@ class LabVm(Base):
 
     agent_token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
     agent_last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    # The password the agent should currently have set on student_rdp_username's
+    # Windows account — Fernet-encrypted at rest (core/lab_vm_secrets.py), never
+    # plaintext in the DB. Rotated to a fresh, nobody-shown value the instant a
+    # grant ends (revoke/expiry), so a student who saved/wrote down the password
+    # can't reuse it later even if group membership enforcement were ever
+    # bypassed — this is a second, independent layer, not the primary one.
+    current_agent_password_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -93,6 +104,13 @@ class LabVmAccess(Base):
 
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     revoked_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+
+    # Snapshot of the password that was live on the VM's student account for
+    # THIS grant, Fernet-encrypted — only ever decrypted and shown back to
+    # the student while this row's status is still 'active'. Cleared (set to
+    # None) the moment this row is revoked/expired, so it can never leak via
+    # a later export/inspection even though nothing currently serializes it.
+    rdp_password_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(

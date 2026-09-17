@@ -710,10 +710,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         <div class="lab-env-card-title"><i class="fa-solid fa-circle" style="color:#12b76a; font-size:.6rem;"></i> ${escapeHtml(access.vm_name)}</div>
         <div class="lab-env-card-batch">Access expires ${new Date(access.expires_at).toLocaleString()}</div>
         <div style="margin:14px 0; font-size:1.6rem; font-weight:600; font-variant-numeric:tabular-nums;" id="vmCountdownDisplay">${formatVmRemaining(access.expires_at)}</div>
-        <button type="button" class="btn btn-accent" id="connectVmBtn">
-          <i class="fa-solid fa-desktop"></i> Connect to VM
-        </button>
-        <div class="lab-env-notes"><i class="fa-solid fa-circle-info"></i> This countdown is informational — your access is checked by the server on every connection, not by this timer.</div>
+        <div class="lab-env-field-grid">
+          <div class="lab-env-field">
+            <label>Address</label>
+            <div class="lab-env-field-value">
+              <span>${escapeHtml(access.hostname)}</span>
+              <button type="button" data-copy="${escapeHtml(access.hostname)}" title="Copy"><i class="fa-solid fa-copy"></i></button>
+            </div>
+          </div>
+          <div class="lab-env-field">
+            <label>Username</label>
+            <div class="lab-env-field-value">
+              <span>${escapeHtml(access.student_rdp_username)}</span>
+              <button type="button" data-copy="${escapeHtml(access.student_rdp_username)}" title="Copy"><i class="fa-solid fa-copy"></i></button>
+            </div>
+          </div>
+          <div class="lab-env-field">
+            <label>Password</label>
+            <div class="lab-env-field-value">
+              <span class="lab-env-password" data-value="${escapeHtml(access.rdp_password || '')}">••••••••</span>
+              <button type="button" data-toggle-password title="Show/Hide"><i class="fa-solid fa-eye"></i></button>
+              <button type="button" data-copy="${escapeHtml(access.rdp_password || '')}" title="Copy"><i class="fa-solid fa-copy"></i></button>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <button type="button" class="btn btn-accent" id="connectVmBtn">
+            <i class="fa-solid fa-desktop"></i> Connect to VM
+          </button>
+        </div>
+        <div class="lab-env-notes"><i class="fa-solid fa-circle-info"></i> This password is temporary and unique to this session — it stops working the moment your access ends. The countdown above is informational; the server (and the VM itself) decide when access actually ends, not this timer.</div>
       </div>
     `;
     document.getElementById('connectVmBtn').addEventListener('click', downloadVmConnectFile);
@@ -759,6 +785,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       window.alert('Could not download the connection file. Your access may have just expired — refresh and try again.');
     }
   };
+
+  labEnvironmentBody.addEventListener('click', (e) => {
+    const toggleBtn = e.target.closest('[data-toggle-password]');
+    if (toggleBtn) {
+      const span = toggleBtn.parentElement.querySelector('.lab-env-password');
+      const icon = toggleBtn.querySelector('i');
+      const revealed = span.textContent !== '••••••••';
+      span.textContent = revealed ? '••••••••' : span.dataset.value;
+      icon.className = revealed ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
+      return;
+    }
+    const copyBtn = e.target.closest('[data-copy]');
+    if (copyBtn) {
+      navigator.clipboard.writeText(copyBtn.dataset.copy).then(() => {
+        const icon = copyBtn.querySelector('i');
+        icon.className = 'fa-solid fa-check';
+        setTimeout(() => { icon.className = 'fa-solid fa-copy'; }, 1200);
+      });
+    }
+  });
 
   const loadMyVmAccess = async () => {
     try {

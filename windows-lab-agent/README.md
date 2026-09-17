@@ -30,9 +30,35 @@ Every `poll_interval_sec` (default 30s), the agent:
    removes that student's account from the "Remote Desktop Users" group,
    and if that account currently has an active RDP session on this
    machine, runs `logoff <session>` to end it immediately.
+4. Sets the student account's Windows password to whatever the Hub's
+   response says it should currently be — every poll, active or not (see
+   §1a below). This never touches the VM's real Administrator password.
 
 That's the entire enforcement surface: one group membership, one
-`logoff` command, scoped to exactly the account the server named.
+`logoff` command, and one password value, all scoped to exactly the
+account the server named.
+
+### 1a. The rotating password (defense in depth, not the primary control)
+
+The **actual** access control is step 2/3 above — Windows itself refuses
+an RDP logon from an account that isn't in "Remote Desktop Users",
+regardless of whether the caller knows a valid password. Knowing the
+password alone gets a student nowhere once their account is out of that
+group.
+
+On top of that, the Hub also generates a fresh, random password for the
+student account every time access is granted, and rotates it to a new,
+nobody-shown value the instant that access ends (revoke or expiry) —
+never the VM's real Administrator password, which this system never
+touches, generates, or displays anywhere. The agent applies whatever
+password the Hub currently reports via `win32net.NetUserSetInfo`
+(never via a `net user <username> <password>` subprocess call, which
+would briefly expose the plaintext password in that process's own
+command line to anything else enumerating processes on the machine).
+
+This means even if a student writes the password down, it stops working
+the moment their grant ends — a second, independent reason access can't
+outlive its window, on top of the group-membership removal.
 
 ## 2. What this agent deliberately never does
 
@@ -44,7 +70,10 @@ That's the entire enforcement surface: one group membership, one
   (logging an error instead) if the server-reported username matches a
   protected account. This protects against a misconfigured VM inventory
   entry as much as a malicious one.
-- **Never modifies any account's password.**
+- **Never modifies the Administrator account's password, or any protected
+  account's password** — only the designated student account's password
+  rotates, and only because the Hub told this agent to set it to a
+  specific value it generated.
 - **Never logs off or restricts anyone except the one specific student
   account** the Hub currently names — another logged-in session (e.g. an
   admin doing maintenance) is never touched.
@@ -135,12 +164,15 @@ VM is being decommissioned from the lab pool.
 
 ## 9. Testing without a real lab VM
 
-`agent_core.py` contains all enforcement logic with no pywin32/Windows
-Service dependency, so its logic (protected-account checks, heartbeat
-parsing, the fail-safe counter) can be unit-tested anywhere Python runs,
-by mocking `subprocess.run` and the HTTP calls. `service.py` is a thin
-wrapper that has not itself been exercised — it requires an actual
-Windows Service host to run meaningfully.
+`agent_core.py` has no *module-level* pywin32/Windows Service dependency
+(only `set_account_password` lazily imports `win32net`, inside the
+function, so the import can be mocked via `sys.modules`), so its logic
+(protected-account checks, heartbeat parsing, the fail-safe counter,
+group-membership and password-rotation decisions) can be unit-tested
+anywhere Python runs, by mocking `subprocess.run`, `win32net`, and the
+HTTP calls — 17 such tests currently pass. `service.py` is a thin wrapper
+that has not itself been exercised — it requires an actual Windows
+Service host to run meaningfully.
 
 ## 10. Known limitations / what's not verified yet
 
@@ -154,6 +186,12 @@ Windows Service host to run meaningfully.
   an *already-open* RDP session (vs. only the next connection attempt) has
   not been confirmed — this is why `force_logoff` is also called, so an
   already-open session doesn't linger past its expiration regardless.
+- `win32net.NetUserSetInfo` for rotating the student account's password
+  has only been unit-tested with a mocked `win32net` module — it has not
+  been run against a real local Windows account. Whether it requires the
+  target account to already exist (it does — this agent never creates
+  accounts) and how it behaves against domain vs. local accounts has not
+  been confirmed on real hardware.
 
 Until each of these has been confirmed on a real lab VM, treat RDP
 enforcement as **not yet proven**, only implemented.

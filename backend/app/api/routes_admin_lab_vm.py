@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import hash_vm_agent_token, require_permission
+from app.core.lab_vm_secrets import encrypt_rdp_password, generate_windows_compliant_password
 from app.database import get_db
 from app.models.lab_vm import LabVm, LabVmAccess, LabVmAccessAuditLog, LabVmAccessStatus
 from app.models.user import RoleEnum, User
@@ -219,16 +220,31 @@ def grant_lab_vm_access(
         existing_active.status = LabVmAccessStatus.revoked
         existing_active.revoked_at = now
         existing_active.revoked_by = actor.id
+        existing_active.rdp_password_encrypted = None
         db.add(existing_active)
         db.add(LabVmAccessAuditLog(
             student_id=student_id, vm_id=existing_active.vm_id, action="REVOKED",
             performed_by=actor.id, reason="Superseded by new grant",
         ))
+        # Rotate away the password on whichever VM this superseded grant was
+        # for — it may be a different VM than the one being granted below.
+        old_vm = db.get(LabVm, existing_active.vm_id)
+        if old_vm is not None:
+            old_vm.current_agent_password_encrypted = encrypt_rdp_password(generate_windows_compliant_password())
+            db.add(old_vm)
+
+    # A fresh, random password for this specific grant — never the VM's real
+    # Administrator password. The agent applies it to student_rdp_username's
+    # account on its next heartbeat; it's shown to the student only while
+    # this grant stays active, and rotated away the instant it doesn't.
+    new_password = generate_windows_compliant_password()
+    vm.current_agent_password_encrypted = encrypt_rdp_password(new_password)
+    db.add(vm)
 
     access = LabVmAccess(
         student_id=student_id, vm_id=vm.id, status=LabVmAccessStatus.active,
         granted_at=now, expires_at=now + timedelta(minutes=payload.duration_minutes),
-        granted_by=actor.id,
+        granted_by=actor.id, rdp_password_encrypted=encrypt_rdp_password(new_password),
     )
     db.add(access)
     db.add(LabVmAccessAuditLog(student_id=student_id, vm_id=vm.id, action="GRANTED", performed_by=actor.id))
@@ -270,15 +286,24 @@ def revoke_lab_vm_access(
     access.status = LabVmAccessStatus.revoked
     access.revoked_at = now
     access.revoked_by = actor.id
+    access.rdp_password_encrypted = None
     db.add(access)
     db.add(LabVmAccessAuditLog(
         student_id=student_id, vm_id=access.vm_id, action="REVOKED",
         performed_by=actor.id, reason=payload.reason,
     ))
-    db.commit()
-    db.refresh(access)
 
     vm = db.get(LabVm, access.vm_id)
+    if vm is not None:
+        # Rotate the VM's account password away immediately — this is what
+        # makes "revoke" actually final even if the student wrote the
+        # password down; group-membership removal (done by the agent on its
+        # next heartbeat) is the primary control, this is the backstop.
+        vm.current_agent_password_encrypted = encrypt_rdp_password(generate_windows_compliant_password())
+        db.add(vm)
+
+    db.commit()
+    db.refresh(access)
     return LabVmAccessOut(
         id=access.id, student_id=student_id, student_name=student.full_name,
         vm_id=access.vm_id, vm_name=vm.name if vm else "—", status=access.status.value,
