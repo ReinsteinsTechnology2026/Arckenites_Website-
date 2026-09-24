@@ -31,10 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const detailsError = document.getElementById('detailsError');
   const detailsSubmitBtn = document.getElementById('detailsSubmitBtn');
 
+  const DETAILS_SUBMIT_LABEL = detailsSubmitBtn.textContent;
+
   detailsForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     detailsError.style.display = 'none';
     detailsSubmitBtn.disabled = true;
+    detailsSubmitBtn.textContent = 'Sending verification code...';
 
     const fullName = document.getElementById('regFullName').value.trim();
     const mobile = document.getElementById('regMobile').value.trim();
@@ -45,6 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
         method: 'POST', auth: false,
         body: { full_name: fullName, mobile_number: mobile, email },
       });
+      // Only ever reached when the backend has confirmed the email actually
+      // left the server — a failed send raises here instead (503, caught
+      // below), so this step never advances on a message that was never
+      // delivered.
       currentEmail = email;
       document.getElementById('otpSentToEmail').textContent = maskEmail(email);
       document.getElementById('otpInput').value = '';
@@ -54,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
       detailsError.style.display = 'block';
     } finally {
       detailsSubmitBtn.disabled = false;
+      detailsSubmitBtn.textContent = DETAILS_SUBMIT_LABEL;
     }
   });
 
@@ -87,21 +95,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   resendOtpBtn.addEventListener('click', async () => {
     resendOtpBtn.disabled = true;
+    const resendLabel = resendOtpBtn.textContent;
+    resendOtpBtn.textContent = 'Sending...';
     otpError.style.display = 'none';
     try {
       await ArckAPI.request('/community/register/resend-otp', {
         method: 'POST', auth: false,
         body: { email: currentEmail },
       });
-      otpError.className = 'login-error';
+      // Reached only once the backend confirms a real send (or the request
+      // was silently rate-limited) — either way the previous code is now
+      // invalid, so the user must use whatever arrives from this call.
       otpError.style.color = 'var(--accent)';
       otpError.textContent = 'If eligible, a new code has been sent to your email.';
       otpError.style.display = 'block';
-    } catch (_) {
+    } catch (err) {
       otpError.style.color = '';
-      otpError.textContent = 'Could not resend the code right now. Please try again shortly.';
+      otpError.textContent = err.detail || 'Could not resend the code right now. Please try again shortly.';
       otpError.style.display = 'block';
     } finally {
+      resendOtpBtn.textContent = resendLabel;
       setTimeout(() => { resendOtpBtn.disabled = false; }, 15000);
     }
   });

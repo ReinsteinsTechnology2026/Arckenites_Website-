@@ -59,6 +59,7 @@ logger = logging.getLogger("community_auth")
 
 GENERIC_OTP_ERROR = "Invalid or expired verification code."
 GENERIC_TOKEN_ERROR = "Your verification session has expired. Please verify your email again."
+EMAIL_SEND_FAILED_ERROR = "We couldn't send the verification email right now. Please try again later."
 
 
 def _client_meta(request: Request) -> tuple[str, str]:
@@ -92,11 +93,28 @@ def _within_resend_window(reg: CommunityRegistration, now: datetime) -> bool:
     return (now - reg.otp_window_started_at).total_seconds() < OTP_SEND_WINDOW_MINUTES * 60
 
 
-def _issue_otp(db: Session, reg: CommunityRegistration, full_name_for_email: str) -> None:
+class OtpIssueResult:
+    """Distinguishes WHY no fresh OTP went out, because the caller must
+    treat these very differently:
+      - SENT: a real send was attempted and smtplib confirmed it succeeded.
+      - RATE_LIMITED: no send was attempted at all (this window's send cap
+        is used up) — stays silent/generic, same as before, so this never
+        becomes an email-enumeration oracle.
+      - FAILED: a real send was attempted and it did NOT succeed — this
+        must NOT be reported to the caller as success. This is the bug
+        that let the OTP screen show up for an email that was never
+        actually delivered."""
+    SENT = "sent"
+    RATE_LIMITED = "rate_limited"
+    FAILED = "failed"
+
+
+def _issue_otp(db: Session, reg: CommunityRegistration, full_name_for_email: str) -> str:
     """Generates and stores a fresh OTP, respecting the send-rate window,
-    then emails it. Silently no-ops (rate limited) if the window's send
-    cap has already been reached — the caller always returns the same
-    generic response either way, so this never becomes an oracle."""
+    then emails it — and reports back whether that email actually left the
+    server successfully. The OTP hash is only committed once smtplib has
+    confirmed delivery to the mail server, so a failed send never leaves
+    behind a "valid" OTP the user has no way to receive."""
     now = datetime.now(timezone.utc)
 
     if reg.otp_window_started_at is None or not _within_resend_window(reg, now):
@@ -104,19 +122,30 @@ def _issue_otp(db: Session, reg: CommunityRegistration, full_name_for_email: str
         reg.otp_send_count = 0
 
     if reg.otp_send_count >= OTP_MAX_SENDS_PER_WINDOW:
-        return  # rate limited — caller still returns the generic message
+        db.add(reg)
+        db.commit()
+        return OtpIssueResult.RATE_LIMITED
 
     otp = generate_otp()
+    sent = _send_otp_email(reg.email, full_name_for_email, otp)
+
+    # Counts toward the rate-limit window either way — a failing SMTP
+    # relay must not become a way to trigger unlimited send attempts.
+    reg.otp_send_count += 1
+
+    if not sent:
+        logger.error("Community OTP email delivery failed stage=SMTP")
+        db.add(reg)
+        db.commit()
+        return OtpIssueResult.FAILED
+
     reg.otp_hash = hash_otp(otp)
     reg.otp_expires_at = otp_expiry()
     reg.otp_attempts = 0
-    reg.otp_send_count += 1
     reg.status = CommunityRegistrationStatus.pending
     db.add(reg)
     db.commit()
-
-    if not _send_otp_email(reg.email, full_name_for_email, otp):
-        logger.warning("Community OTP email failed to send for a pending registration")
+    return OtpIssueResult.SENT
 
 
 @router.post("/register/start", response_model=GenericMessageOut)
@@ -147,8 +176,17 @@ def start_registration(request: Request, payload: StartCommunityRegistrationRequ
         reg.mobile_number = payload.mobile_number
 
     write_audit_event(db, AuthEventType.community_registration_started, ip, ua, username_attempted=email)
-    _issue_otp(db, reg, payload.full_name)
-    write_audit_event(db, AuthEventType.community_otp_sent, ip, ua, username_attempted=email)
+    result = _issue_otp(db, reg, payload.full_name)
+
+    if result == OtpIssueResult.FAILED:
+        # Honest failure — never claim an email went out when smtplib
+        # didn't confirm it. This does not leak whether `email` is
+        # eligible: it fires identically for any address whenever the
+        # mail relay itself is down, which is the only time it fires.
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=EMAIL_SEND_FAILED_ERROR)
+
+    if result == OtpIssueResult.SENT:
+        write_audit_event(db, AuthEventType.community_otp_sent, ip, ua, username_attempted=email)
 
     return GenericMessageOut(detail=GENERIC_REGISTRATION_MESSAGE)
 
@@ -161,8 +199,11 @@ def resend_otp(request: Request, payload: ResendCommunityOtpRequest, db: Session
 
     reg = db.scalar(select(CommunityRegistration).where(CommunityRegistration.email == email))
     if reg is not None and reg.status == CommunityRegistrationStatus.pending:
-        _issue_otp(db, reg, reg.full_name)
-        write_audit_event(db, AuthEventType.community_otp_resent, ip, ua, username_attempted=email)
+        result = _issue_otp(db, reg, reg.full_name)
+        if result == OtpIssueResult.FAILED:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=EMAIL_SEND_FAILED_ERROR)
+        if result == OtpIssueResult.SENT:
+            write_audit_event(db, AuthEventType.community_otp_resent, ip, ua, username_attempted=email)
 
     # Identical response whether or not a registration exists, whether or
     # not it was rate-limited — see the module docstring.
