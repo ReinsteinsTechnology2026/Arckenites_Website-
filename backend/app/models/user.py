@@ -11,6 +11,12 @@ class RoleEnum(str, enum.Enum):
     admin = "admin"
     staff = "staff"
     student = "student"
+    # Self-registered public members (join-community flow) — a peer of
+    # student/staff, not an admin sub-role. Has no entry in the admin
+    # permission system (get_effective_permissions/user_has_permission
+    # only apply to role == admin); its own endpoints are gated by
+    # require_role("community") exactly like student/staff endpoints are.
+    community = "community"
 
 
 class User(Base):
@@ -54,6 +60,9 @@ class User(Base):
     admin_profile: Mapped["AdminProfile"] = relationship(
         back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
+    community_profile: Mapped["CommunityProfile"] = relationship(
+        back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
 
     @property
     def program(self) -> str | None:
@@ -87,6 +96,8 @@ class User(Base):
             return self.student_profile.phone
         if self.role == RoleEnum.staff and self.staff_profile:
             return self.staff_profile.phone
+        if self.role == RoleEnum.community and self.community_profile:
+            return self.community_profile.mobile_number
         return None
 
     @property
@@ -97,6 +108,8 @@ class User(Base):
             return self.staff_profile.email
         if self.role == RoleEnum.admin and self.admin_profile:
             return self.admin_profile.email
+        if self.role == RoleEnum.community and self.community_profile:
+            return self.community_profile.email
         return None
 
     @property

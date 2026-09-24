@@ -9,6 +9,7 @@ from starlette.responses import JSONResponse
 from app.api.routes_admin_batches import router as admin_batches_router
 from app.api.routes_admin_class_schedule import router as admin_class_schedule_router
 from app.api.routes_admin_contact_enquiries import router as admin_contact_enquiries_router
+from app.api.routes_admin_community import router as admin_community_router
 from app.api.routes_admin_leads import router as admin_leads_router
 from app.api.routes_admin_interviews import router as admin_interviews_router
 from app.api.routes_admin_lab_access import router as admin_lab_access_router
@@ -26,6 +27,7 @@ from app.api.routes_admin_support import router as admin_support_router
 from app.api.routes_admin_users import router as admin_users_router
 from app.api.routes_auth import router as auth_router
 from app.api.routes_chat import router as chat_router
+from app.api.routes_community_auth import router as community_auth_router
 from app.api.routes_contact import router as contact_router
 from app.api.routes_dashboard import router as dashboard_router
 from app.api.routes_health import router as health_router
@@ -96,6 +98,7 @@ app.include_router(meetings_router, prefix="/api")
 app.include_router(admin_programs_router, prefix="/api")
 app.include_router(admin_contact_enquiries_router, prefix="/api")
 app.include_router(admin_leads_router, prefix="/api")
+app.include_router(admin_community_router, prefix="/api")
 app.include_router(admin_users_router, prefix="/api")
 app.include_router(admin_roles_router, prefix="/api")
 app.include_router(admin_activity_logs_router, prefix="/api")
@@ -107,6 +110,7 @@ app.include_router(staff_router, prefix="/api")
 app.include_router(profile_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(contact_router, prefix="/api")
+app.include_router(community_auth_router, prefix="/api")
 app.include_router(video_router, prefix="/api")
 
 

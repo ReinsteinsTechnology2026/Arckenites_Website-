@@ -4,7 +4,7 @@
 <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('ak_theme') || 'dark');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lab Access | Arckenites Hub</title>
+<title>Community Database | Arckenites Hub</title>
 <meta name="robots" content="noindex, nofollow">
 
 <link rel="icon" href="assets/favicon.png" type="image/png">
@@ -54,20 +54,20 @@
           <span>Permissions</span><i class="fa-solid fa-chevron-right"></i>
         </button>
         <ul class="admin-sidebar-group-list">
-          <li><a href="admin-lab-access.html" class="admin-sidebar-link is-active" aria-current="page" title="Lab Access"><i class="fa-solid fa-lock"></i><span class="label">Lab Access</span></a></li>
+          <li><a href="admin-lab-access.html" class="admin-sidebar-link" title="Lab Access"><i class="fa-solid fa-lock"></i><span class="label">Lab Access</span></a></li>
           <li><a href="admin-lab-vm.html" class="admin-sidebar-link" title="VM Lab"><i class="fa-solid fa-desktop"></i><span class="label">VM Lab</span></a></li>
         </ul>
       </div>
 
-      <div class="admin-sidebar-group">
-        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+      <div class="admin-sidebar-group is-open">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="true">
           <span>Database</span><i class="fa-solid fa-chevron-right"></i>
         </button>
         <ul class="admin-sidebar-group-list">
           <li><a href="admin-students.html?view=database" class="admin-sidebar-link" title="Student Database"><i class="fa-solid fa-database"></i><span class="label">Student Database</span></a></li>
           <li><a href="admin-staff.html" class="admin-sidebar-link" title="Staff Database"><i class="fa-solid fa-database"></i><span class="label">Staff Database</span></a></li>
           <li><a href="admin-leads.html" class="admin-sidebar-link" title="Leads Database"><i class="fa-solid fa-address-book"></i><span class="label">Leads Database</span></a></li>
-          <li><a href="admin-community.html" class="admin-sidebar-link" title="Community Database"><i class="fa-solid fa-people-roof"></i><span class="label">Community Database</span></a></li>
+          <li><a href="admin-community.html" class="admin-sidebar-link is-active" aria-current="page" title="Community Database"><i class="fa-solid fa-people-roof"></i><span class="label">Community Database</span></a></li>
         </ul>
       </div>
 
@@ -160,25 +160,36 @@
 
       <div class="admin-page-header">
         <div>
-          <h1>Lab Access</h1>
-          <p>Control each student's access to the Lab individually — independent of their batch.</p>
+          <h1>Community Database</h1>
+          <p>Members who joined via the public Community registration flow.</p>
+        </div>
+        <div class="admin-page-header-actions">
+          <button type="button" class="btn btn-primary-outline" id="exportCommunityBtn"><i class="fa-solid fa-file-excel"></i> Export to Excel</button>
         </div>
       </div>
 
       <div class="admin-panel">
-        <div style="padding:20px 20px 0;">
-          <label class="form-label">Batch</label>
-          <select class="form-select" id="labAccessBatchSelect" style="max-width:360px;">
-            <option value="">Select a batch&hellip;</option>
-          </select>
+        <div style="padding:20px 20px 0; display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+          <div style="flex:1; min-width:220px;">
+            <label class="form-label">Search</label>
+            <input type="text" class="form-control" id="communitySearchInput" placeholder="Search by name, email or mobile">
+          </div>
+          <div style="min-width:160px;">
+            <label class="form-label">Status</label>
+            <select class="form-select" id="communityStatusFilter">
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
         </div>
 
         <table class="admin-activity-table">
           <thead>
-            <tr><th>Student</th><th>Student ID</th><th>Slot</th><th>Slot Status</th><th>Last Modified</th><th>Action</th></tr>
+            <tr><th>ID</th><th>Name</th><th>Mobile</th><th>Email</th><th>Email Status</th><th>Status</th><th>Joined</th><th>Action</th></tr>
           </thead>
-          <tbody id="labAccessTableBody">
-            <tr><td colspan="6" class="admin-panel-empty">Select a batch to view its students.</td></tr>
+          <tbody id="communityTableBody">
+            <tr><td colspan="8" class="admin-panel-empty">Loading&hellip;</td></tr>
           </tbody>
         </table>
       </div>
@@ -186,23 +197,10 @@
   </div>
 </div>
 
-<!-- History modal -->
-<div class="chat-backdrop" id="labHistoryBackdrop" style="display:none;"></div>
-<div class="admin-panel" id="labHistoryModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:min(560px, 90vw); max-height:80vh; overflow-y:auto; z-index:1200;">
-  <div class="admin-panel-header" style="display:flex; align-items:center; justify-content:space-between;">
-    <h2 id="labHistoryTitle">Access History</h2>
-    <button type="button" class="icon-btn" id="labHistoryCloseBtn" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
-  </div>
-  <table class="admin-activity-table">
-    <thead><tr><th>When</th><th>Admin</th><th>Action</th><th>Change</th><th>Reason</th></tr></thead>
-    <tbody id="labHistoryTableBody"><tr><td colspan="5" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
-  </table>
-</div>
-
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=7"></script>
 <script src="js/theme.js?v=1"></script>
-<script src="js/admin-lab-access.js?v=2"></script>
+<script src="js/admin-community.js?v=1"></script>
 
 </body>
 </html>

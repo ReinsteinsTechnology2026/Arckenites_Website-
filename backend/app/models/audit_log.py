@@ -76,6 +76,20 @@ class AuthEventType(str, enum.Enum):
     meeting_recording_stopped = "meeting_recording_stopped"
     meeting_recording_deleted = "meeting_recording_deleted"
 
+    # Community join flow — login/logout for a Community user reuse the
+    # generic login_success/login_failure/logout events above (routes_auth.py
+    # doesn't branch by role), so only the registration-specific steps get
+    # their own event types here. Never carries the OTP value, password, or
+    # verification token itself — see routes_community_auth.py.
+    community_registration_started = "community_registration_started"
+    community_otp_sent = "community_otp_sent"
+    community_otp_verified = "community_otp_verified"
+    community_otp_failed = "community_otp_failed"
+    community_otp_resent = "community_otp_resent"
+    community_account_created = "community_account_created"
+    community_member_enabled = "community_member_enabled"
+    community_member_disabled = "community_member_disabled"
+
 
 class AuthAuditLog(Base):
     __tablename__ = "auth_audit_log"

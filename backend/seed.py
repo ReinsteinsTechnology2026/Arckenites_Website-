@@ -24,6 +24,7 @@ from app.crud.permissions import DEFAULT_GRANTS, PERMISSION_CATALOG
 from app.database import SessionLocal
 from app.models.admin_profile import AdminProfile
 from app.models.admin_role import AdminRole, AdminRolePermission, Permission, SUPER_ADMIN_ROLE_ID
+from app.models.community import CommunityProfile
 from app.models.staff import StaffProfile
 from app.models.student import StudentProfile
 from app.models.user import RoleEnum, User

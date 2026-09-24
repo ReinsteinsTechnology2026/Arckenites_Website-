@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join the Community | Arckenites</title>
+<meta name="description" content="Join the Arckenites Community — verify your email and create your account.">
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-mark"><img src="assets/logo.png" alt="Arckenites"></div>
+</div>
+
+<div class="cookie-banner" id="cookieBanner">
+  <p>We use cookies to improve your experience on Arckenites. By continuing, you agree to our <a href="privacy-policy.html">Privacy Policy</a>.</p>
+  <button class="btn btn-accent btn-sm" id="cookieAccept">Accept</button>
+</div>
+
+<nav class="navbar navbar-expand-lg fixed-top" id="mainNavbar">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">
+      <img src="assets/logo-wordmark.png" alt="Arckenites" class="brand-mark brand-mark--wordmark">
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav mx-auto align-items-lg-center">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+      </ul>
+
+      <div class="d-flex align-items-center gap-2 nav-actions">
+        <a href="login.html" class="btn btn-primary-outline" id="loginBtn">Login</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header class="page-hero text-center">
+  <div class="hero-bg"></div>
+  <div class="container">
+    <div class="breadcrumb-custom"><a href="index.html">Home</a><span>/</span><span>Join Community</span></div>
+    <h1>Join Arckenites Community</h1>
+    <p>Verify your email and create your account to join.</p>
+  </div>
+</header>
+
+<section class="content-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-5 col-md-7">
+
+        <div class="form-card" data-aos="fade-up" data-step="details">
+          <div class="course-icon mx-auto mb-3"><i class="fa-solid fa-user-plus"></i></div>
+          <h5 class="mb-1 text-center">Join Arckenites Community</h5>
+          <p class="text-center text-muted mb-3" style="font-size:.85rem;">Announcements, updates and community notifications.</p>
+          <form id="detailsForm" novalidate>
+            <div class="row g-3">
+              <div class="col-12"><label class="form-label">Full Name</label><input type="text" class="form-control" id="regFullName" autocomplete="name" required></div>
+              <div class="col-12"><label class="form-label">Mobile Number</label><input type="tel" class="form-control" id="regMobile" autocomplete="tel" required></div>
+              <div class="col-12"><label class="form-label">Email Address</label><input type="email" class="form-control" id="regEmail" autocomplete="email" required></div>
+              <div class="col-12 login-error" id="detailsError" style="display:none;"></div>
+              <div class="col-12"><button type="submit" class="btn btn-accent w-100" id="detailsSubmitBtn">Verify Email</button></div>
+            </div>
+          </form>
+          <p class="text-center mt-3 mb-0" style="font-size:.85rem;">Already have a community account? <a href="login.html">Log in</a></p>
+        </div>
+
+        <div class="form-card" data-aos="fade-up" data-step="otp" style="display:none;">
+          <div class="course-icon mx-auto mb-3"><i class="fa-solid fa-envelope-circle-check"></i></div>
+          <h5 class="mb-1 text-center">Verify Your Email</h5>
+          <p class="text-center text-muted mb-3" style="font-size:.85rem;">OTP sent to: <strong id="otpSentToEmail"></strong></p>
+          <form id="otpForm" novalidate>
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label">Enter OTP</label>
+                <input type="text" class="form-control text-center" id="otpInput" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code" style="letter-spacing:.5em; font-size:1.3rem;" required>
+              </div>
+              <div class="col-12 login-error" id="otpError" style="display:none;"></div>
+              <div class="col-12"><button type="submit" class="btn btn-accent w-100" id="otpSubmitBtn">Verify OTP</button></div>
+            </div>
+          </form>
+          <p class="text-center mt-3 mb-0" style="font-size:.85rem;">
+            Didn't receive it? <button type="button" class="btn btn-link p-0 align-baseline" id="resendOtpBtn">Resend OTP</button>
+          </p>
+        </div>
+
+        <div class="form-card" data-aos="fade-up" data-step="password" style="display:none;">
+          <div class="course-icon mx-auto mb-3"><i class="fa-solid fa-circle-check"></i></div>
+          <h5 class="mb-1 text-center">Email Verified</h5>
+          <p class="text-center text-muted mb-3" style="font-size:.85rem;">Your email has been successfully verified. Create your Community password.</p>
+          <form id="passwordForm" novalidate>
+            <div class="row g-3">
+              <div class="col-12"><label class="form-label">New Password</label><input type="password" class="form-control" id="regPassword" autocomplete="new-password" required></div>
+              <div class="col-12"><label class="form-label">Confirm Password</label><input type="password" class="form-control" id="regPasswordConfirm" autocomplete="new-password" required></div>
+              <div class="col-12 login-error" id="passwordError" style="display:none;"></div>
+              <div class="col-12"><button type="submit" class="btn btn-accent w-100" id="passwordSubmitBtn">Set Password</button></div>
+            </div>
+          </form>
+        </div>
+
+        <div class="form-card text-center" data-aos="fade-up" data-step="done" style="display:none;">
+          <div class="course-icon mx-auto mb-3"><i class="fa-solid fa-circle-check"></i></div>
+          <h5 class="mb-1">Account Created</h5>
+          <p class="text-muted mb-3" style="font-size:.85rem;">Your Community account is ready. You can now log in with your email and password.</p>
+          <a href="login.html" class="btn btn-accent w-100">Go to Login</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <a class="navbar-brand" href="index.html">
+          <img src="assets/logo-wordmark.png" alt="Arckenites" class="brand-mark brand-mark--wordmark">
+        </a>
+        <p class="footer-about">Premium IT training institute helping students and professionals build careers in technology through industry-ready programs.</p>
+      </div>
+      <div class="col-lg-4">
+        <h6>Contact</h6>
+        <ul class="footer-contact">
+          <li><i class="fa-solid fa-envelope"></i> contact@arckenites.com</li>
+          <li><i class="fa-solid fa-phone"></i> +91 98765 43210</li>
+        </ul>
+      </div>
+    </div>
+    <hr>
+    <div class="footer-bottom">
+      <p>&copy; <span id="year"></span> Arckenites. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="terms.html">Terms &amp; Conditions</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="js/script.js"></script>
+<script src="js/api.js?v=2"></script>
+<script src="js/auth.js?v=7"></script>
+<script src="js/community-register.js?v=1"></script>
+
+</body>
+</html>

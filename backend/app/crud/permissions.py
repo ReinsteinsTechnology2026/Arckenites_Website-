@@ -85,6 +85,14 @@ PERMISSION_CATALOG: list[dict] = [
     {"key": "lab_vm.revoke", "module": "VM Lab", "action": "revoke", "description": "Revoke a student's VM lab access."},
     {"key": "lab_vm.manage_vms", "module": "VM Lab", "action": "manage_vms", "description": "Add, edit, or remove VMs from the lab inventory."},
     {"key": "lab_vm.view_history", "module": "VM Lab", "action": "view_history", "description": "View the full VM lab access audit history."},
+
+    # Also deliberately NOT in _OPERATIONAL_MODULES — same reasoning as
+    # lab_vm above. Community members themselves have no permissions at all
+    # (role == community, not role == admin — see get_effective_permissions);
+    # these keys only govern which ADMIN can see the Community Database.
+    {"key": "community.view", "module": "Community", "action": "view", "description": "View the community members database."},
+    {"key": "community.edit", "module": "Community", "action": "edit", "description": "Enable or disable a community member's account."},
+    {"key": "community.export", "module": "Community", "action": "export", "description": "Export community member data."},
 ]
 
 PERMISSION_KEYS: frozenset[str] = frozenset(p["key"] for p in PERMISSION_CATALOG)
