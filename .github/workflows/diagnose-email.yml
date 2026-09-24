@@ -8,6 +8,11 @@ name: Diagnose Community Email
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/diagnose-email.yml'
 
 jobs:
   diagnose:
