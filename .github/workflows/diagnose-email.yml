@@ -1,0 +1,55 @@
+name: Diagnose Community Email
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/diagnose-email.yml'
+
+jobs:
+  diagnose:
+    runs-on: self-hosted
+
+    steps:
+      - name: Check email transport configuration presence (no secret values printed)
+        run: |
+          cd /opt/arckenites/backend
+          venv/bin/python - <<'PYEOF'
+          from app.config import settings
+
+          def present(v):
+              return "YES" if v else "NO"
+
+          print("=== Microsoft Graph ===")
+          print("MS_GRAPH_TENANT_ID configured:", present(settings.ms_graph_tenant_id))
+          print("MS_GRAPH_CLIENT_ID configured:", present(settings.ms_graph_client_id))
+          print("MS_GRAPH_CLIENT_SECRET configured:", present(settings.ms_graph_client_secret))
+          print("MS_GRAPH_SENDER_EMAIL configured:", present(settings.ms_graph_sender_email))
+          print("ms_graph_configured (all four present):", settings.ms_graph_configured)
+          print()
+          print("=== SMTP (fallback) ===")
+          print("SMTP_USERNAME configured:", present(settings.smtp_username))
+          print("SMTP_PASSWORD configured:", present(settings.smtp_password))
+          print("SMTP_FROM_ADDRESS configured:", present(settings.smtp_from_address))
+          print()
+
+          if settings.ms_graph_configured:
+              print("=== Real Graph token acquisition test (no email sent) ===")
+              import msal
+              try:
+                  app = msal.ConfidentialClientApplication(
+                      client_id=settings.ms_graph_client_id,
+                      client_credential=settings.ms_graph_client_secret,
+                      authority=f"https://login.microsoftonline.com/{settings.ms_graph_tenant_id}",
+                  )
+                  result = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
+                  if result and "access_token" in result:
+                      print("RESULT: Token acquisition succeeded — Graph credentials are valid.")
+                  else:
+                      print("RESULT: FAILED — error=", (result or {}).get("error", "unknown"))
+              except Exception as exc:
+                  print("RESULT: FAILED — error_type=", type(exc).__name__)
+          else:
+              print("RESULT: Microsoft Graph not fully configured yet — send_email() will use SMTP fallback (or skip, if that's also unconfigured).")
+          PYEOF
