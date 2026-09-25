@@ -30,6 +30,23 @@ class Settings(BaseSettings):
     smtp_from_address: str = ""
     smtp_from_name: str = "Arckenites"
 
+    # Microsoft Graph — the preferred outbound-email transport when configured
+    # (see core/email.py). Uses the OAuth2 client-credentials flow against an
+    # Entra app registration with Mail.Send (Application) permission, so it
+    # works even with Microsoft Entra Security Defaults enabled and does NOT
+    # depend on Basic SMTP auth being allowed for the mailbox. SMTP above
+    # stays as the fallback transport only when Graph is left unconfigured
+    # (e.g. local dev against a personal Gmail account) — the two are never
+    # both attempted for the same message.
+    ms_graph_tenant_id: str = ""
+    ms_graph_client_id: str = ""
+    ms_graph_client_secret: str = ""
+    ms_graph_sender_email: str = ""
+
+    @property
+    def ms_graph_configured(self) -> bool:
+        return bool(self.ms_graph_tenant_id and self.ms_graph_client_id and self.ms_graph_client_secret and self.ms_graph_sender_email)
+
     @field_validator("database_url")
     @classmethod
     def _use_psycopg3_driver(cls, v: str) -> str:

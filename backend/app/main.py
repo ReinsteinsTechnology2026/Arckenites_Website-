@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -121,3 +122,28 @@ async def _start_lab_vm_watchdog() -> None:
     asyncio background task is the right tool here rather than a
     scheduler library."""
     asyncio.create_task(run_lab_vm_watchdog())
+
+
+@app.on_event("startup")
+async def _log_email_transport() -> None:
+    """Surfaces which outbound-email transport is active (and whether it's
+    only partially configured) at boot, rather than only discovering a
+    misconfiguration on the first real send attempt. Never logs any of the
+    values themselves — only which fields are present."""
+    graph_fields = {
+        "ms_graph_tenant_id": bool(settings.ms_graph_tenant_id),
+        "ms_graph_client_id": bool(settings.ms_graph_client_id),
+        "ms_graph_client_secret": bool(settings.ms_graph_client_secret),
+        "ms_graph_sender_email": bool(settings.ms_graph_sender_email),
+    }
+    logger = logging.getLogger("email")
+
+    if settings.ms_graph_configured:
+        logger.info("Outbound email transport: Microsoft Graph (sender=%s)", settings.ms_graph_sender_email)
+    elif any(graph_fields.values()):
+        missing = [k for k, present in graph_fields.items() if not present]
+        logger.warning("Microsoft Graph is partially configured — missing: %s. Falling back to SMTP.", ", ".join(missing))
+    elif settings.smtp_username and settings.smtp_password and settings.smtp_from_address:
+        logger.info("Outbound email transport: SMTP (%s)", settings.smtp_host)
+    else:
+        logger.warning("No outbound email transport is configured — all emails (Community OTP, notifications) will fail to send.")
