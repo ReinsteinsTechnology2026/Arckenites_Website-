@@ -1,0 +1,61 @@
+name: Diagnose Community Email
+
+# Manual-only (in practice: push-to-this-file-triggered, since workflow_dispatch
+# needs repo admin rights not currently available), read-only diagnostic.
+# Reports whether the production SMTP configuration is present and whether a
+# real SMTP connect+STARTTLS+AUTH succeeds — but NEVER sends a message and
+# NEVER prints any secret value (only presence booleans and exception class
+# names).
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/diagnose-email.yml'
+
+jobs:
+  diagnose:
+    runs-on: self-hosted
+
+    steps:
+      - name: Check SMTP configuration presence and real connectivity (no send, no secrets printed)
+        run: |
+          cd /opt/arckenites/backend
+          venv/bin/python - <<'PYEOF'
+          import smtplib
+          from app.config import settings
+
+          def present(v):
+              return "YES" if v else "NO"
+
+          print("=== SMTP configuration presence (values never printed) ===")
+          print("SMTP_HOST:", present(settings.smtp_host), "value_hint(len):", len(settings.smtp_host))
+          print("SMTP_PORT:", settings.smtp_port)
+          print("SMTP_USERNAME configured:", present(settings.smtp_username))
+          print("SMTP_PASSWORD configured:", present(settings.smtp_password))
+          print("SMTP_FROM_ADDRESS configured:", present(settings.smtp_from_address))
+          print("SMTP_FROM_NAME configured:", present(settings.smtp_from_name))
+          print()
+
+          if not (settings.smtp_username and settings.smtp_password and settings.smtp_from_address):
+              print("RESULT: Not fully configured — send_email() will short-circuit and never attempt a connection.")
+              raise SystemExit(0)
+
+          print("=== Real SMTP connectivity test (connect + STARTTLS + AUTH only — no message sent) ===")
+          stage = "CONNECT"
+          try:
+              with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=10) as server:
+                  print(f"{stage}: OK")
+                  stage = "STARTTLS"
+                  server.starttls()
+                  print(f"{stage}: OK")
+                  stage = "AUTH"
+                  server.login(settings.smtp_username, settings.smtp_password)
+                  print(f"{stage}: OK")
+              print("RESULT: SMTP configuration is valid — connect, STARTTLS, and AUTH all succeeded.")
+          except smtplib.SMTPAuthenticationError:
+              print(f"RESULT: FAILED at stage={stage} — the SMTP server rejected the configured username/password.")
+          except Exception as exc:
+              print(f"RESULT: FAILED at stage={stage} — error_type={type(exc).__name__}")
+          PYEOF
