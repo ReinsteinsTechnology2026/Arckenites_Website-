@@ -50,6 +50,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     sections.forEach((s) => observer.observe(s));
   }
 
+  /* ---------- Chats (the widget itself is driven by js/chat.js) ---------- */
+  document.querySelectorAll('[data-open-chat]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      closeMobileSidebar();
+      document.getElementById('chatFloatBtn')?.click();
+    });
+  });
+
   /* ---------- Profile menu ---------- */
   const profileTrigger = document.getElementById('communityProfileTrigger');
   const profilePanel = document.getElementById('communityProfilePanel');

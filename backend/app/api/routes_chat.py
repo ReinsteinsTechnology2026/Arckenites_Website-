@@ -17,6 +17,19 @@ from app.schemas.chat import ConversationOut, MessageOut, SendMessageBody, UserS
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 
+def _can_chat(a: User, b: User) -> bool:
+    """Community members may only talk to admins and staff, and nobody else
+    can reach or find a community member. Every other pairing is unchanged."""
+    a_community = a.role == RoleEnum.community
+    b_community = b.role == RoleEnum.community
+    if not (a_community or b_community):
+        return True
+    if a_community and b_community:
+        return False
+    other = b if a_community else a
+    return other.role in (RoleEnum.admin, RoleEnum.staff)
+
+
 def _get_or_create_conversation(db: Session, id1: int, id2: int) -> Conversation:
     a, b = (id1, id2) if id1 < id2 else (id2, id1)
     convo = db.scalar(
@@ -60,11 +73,16 @@ def search_users(
     user: User = Depends(get_current_user),
 ):
     like = f"%{q}%"
+    visible_roles = (
+        [RoleEnum.admin, RoleEnum.staff] if user.role == RoleEnum.community
+        else [RoleEnum.admin, RoleEnum.staff, RoleEnum.student]
+    )
     rows = db.scalars(
         select(User)
         .where(
             User.id != user.id,
             User.is_active.is_(True),
+            User.role.in_(visible_roles),
             or_(User.username.ilike(like), User.full_name.ilike(like)),
         )
         .order_by(User.full_name)
@@ -92,7 +110,7 @@ def list_conversations(
     for convo in convos:
         other_id = _other_user_id(convo, user.id)
         other = db.get(User, other_id)
-        if other is None:
+        if other is None or not _can_chat(user, other):
             continue
         seen_other_ids.add(other_id)
 
@@ -144,7 +162,7 @@ def get_messages(
     user: User = Depends(get_current_user),
 ):
     other = db.get(User, other_user_id)
-    if other is None:
+    if other is None or not _can_chat(user, other):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     convo = _get_or_create_conversation(db, user.id, other_user_id)
@@ -167,7 +185,7 @@ async def _handle_send(db: Session, sender: User, recipient_id: int, body_text: 
     if recipient_id == sender.id:
         return None
     recipient = db.get(User, recipient_id)
-    if recipient is None:
+    if recipient is None or not _can_chat(sender, recipient):
         return None
 
     convo = _get_or_create_conversation(db, sender.id, recipient_id)
