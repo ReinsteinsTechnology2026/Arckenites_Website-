@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community | Arckenites</title>
+<meta name="description" content="Discover updates, announcements and opportunities from the Arckenites Community.">
+
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css?v=18">
+
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-mark"><img src="assets/logo.png" alt="Arckenites"></div>
+</div>
+
+<div class="cookie-banner" id="cookieBanner">
+  <p>We use cookies to improve your experience on Arckenites. By continuing, you agree to our <a href="privacy-policy.html">Privacy Policy</a>.</p>
+  <button class="btn btn-accent btn-sm" id="cookieAccept">Accept</button>
+</div>
+
+<nav class="navbar navbar-expand-lg fixed-top" id="mainNavbar">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">
+      <img src="assets/logo-wordmark.png" alt="Arckenites" class="brand-mark brand-mark--wordmark">
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav mx-auto align-items-lg-center">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link active" href="community.html" aria-current="page">Community</a></li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+      </ul>
+
+      <div class="d-flex align-items-center gap-2 nav-actions" id="communityNavActions">
+        <a href="login.html" class="btn btn-primary-outline" id="loginBtn">Login</a>
+        <a href="community-register.html" class="btn btn-accent">Join Community</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header class="community-hero">
+  <div class="container">
+    <div class="breadcrumb-custom"><a href="index.html">Home</a><span>/</span><span>Community</span></div>
+    <h1>Welcome to the Arckenites Community</h1>
+    <p>Discover updates, announcements, opportunities and more.</p>
+    <a href="community-register.html" class="btn btn-accent" id="communityHeroCta">Join the Community</a>
+  </div>
+</header>
+
+<section class="community-section" data-aos="fade-up">
+  <h2><i class="fa-solid fa-bullhorn" style="color:var(--accent); margin-right:8px;"></i>Latest Announcements</h2>
+  <div class="community-card" style="padding:0;">
+    <div class="community-empty">
+      <i class="fa-solid fa-bullhorn"></i>
+      <strong>No public announcements yet</strong>
+      <p>Stay connected — new announcements will appear here.</p>
+    </div>
+  </div>
+</section>
+
+<section class="community-section" data-aos="fade-up">
+  <h2><i class="fa-solid fa-arrows-rotate" style="color:var(--accent); margin-right:8px;"></i>Latest Updates</h2>
+  <div class="community-card" style="padding:0;">
+    <div class="community-empty">
+      <i class="fa-solid fa-arrows-rotate"></i>
+      <strong>No public updates yet</strong>
+      <p>Community updates will be published here as they happen.</p>
+    </div>
+  </div>
+</section>
+
+<section class="community-section" data-aos="fade-up">
+  <h2><i class="fa-solid fa-star" style="color:var(--accent); margin-right:8px;"></i>Community Highlights</h2>
+  <div class="community-card-grid">
+    <div class="community-card">
+      <i class="fa-solid fa-briefcase community-card-icon"></i>
+      <h3>Opportunities</h3>
+      <p>Placement drives, internships and career opportunities shared with members.</p>
+    </div>
+    <div class="community-card">
+      <i class="fa-solid fa-graduation-cap community-card-icon"></i>
+      <h3>Training Updates</h3>
+      <p>Program news, schedules and learning resources from Arckenites.</p>
+    </div>
+    <div class="community-card">
+      <i class="fa-solid fa-bell community-card-icon"></i>
+      <h3>Member Notifications</h3>
+      <p>Get important notices delivered to your member dashboard.</p>
+      <button type="button" class="btn btn-primary-outline btn-sm mt-3" data-requires-membership>Open my notifications</button>
+    </div>
+  </div>
+</section>
+
+<section class="community-section" data-aos="fade-up">
+  <div class="community-card" style="text-align:center; padding:32px 24px;">
+    <h3 style="font-size:1.15rem;">Ready to stay connected?</h3>
+    <p style="margin:6px 0 18px;">Create your free community account to receive updates and notifications.</p>
+    <a href="community-register.html" class="btn btn-accent">Join the Community</a>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <p>&copy; <span id="year"></span> Arckenites. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="terms.html">Terms &amp; Conditions</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="js/script.js"></script>
+<script src="js/api.js?v=2"></script>
+<script src="js/community-join-popup.js?v=1"></script>
+<script src="js/community-public.js?v=1"></script>
+
+</body>
+</html>

@@ -14,7 +14,7 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=17">
+<link rel="stylesheet" href="css/style.css?v=18">
 
 </head>
 <body>
@@ -30,30 +30,17 @@
     </div>
 
     <nav class="admin-sidebar-nav">
-      <button type="button" class="admin-sidebar-link is-active" data-panel="announcements"><i class="fa-solid fa-bullhorn"></i><span class="label">Announcements</span></button>
-      <button type="button" class="admin-sidebar-link" data-panel="updates"><i class="fa-solid fa-arrows-rotate"></i><span class="label">Updates</span></button>
-      <button type="button" class="admin-sidebar-link" data-panel="notifications"><i class="fa-solid fa-bell"></i><span class="label">Notifications</span></button>
-    </nav>
+      <div class="community-nav-label">Community</div>
+      <a href="#overview" class="admin-sidebar-link is-active" data-anchor="overview"><i class="fa-solid fa-house"></i><span class="label">Overview</span></a>
+      <a href="#announcements" class="admin-sidebar-link" data-anchor="announcements"><i class="fa-solid fa-bullhorn"></i><span class="label">Announcements</span></a>
+      <a href="#updates" class="admin-sidebar-link" data-anchor="updates"><i class="fa-solid fa-arrows-rotate"></i><span class="label">Updates</span></a>
+      <a href="#notifications" class="admin-sidebar-link" data-anchor="notifications"><i class="fa-solid fa-bell"></i><span class="label">Notifications</span></a>
 
-    <div class="admin-sidebar-logout">
-      <div class="admin-dropdown admin-sidebar-account">
-        <button type="button" class="admin-profile-trigger" id="communityProfileTrigger">
-          <span class="label">Account</span>
-          <i class="fa-solid fa-chevron-up"></i>
-        </button>
-        <div class="admin-dropdown-panel" id="communityProfilePanel">
-          <div class="admin-profile-meta">
-            <strong id="communityProfileName">Member</strong>
-            <span>Community</span>
-          </div>
-          <a class="admin-dropdown-link" href="change-password.html"><i class="fa-solid fa-key"></i> Change Password</a>
-          <button type="button" class="admin-dropdown-link" id="communityProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-        </div>
-      </div>
-      <button type="button" class="admin-sidebar-link" id="communitySidebarLogout" title="Logout" style="display:none;">
-        <i class="fa-solid fa-right-from-bracket"></i><span class="label">Logout</span>
-      </button>
-    </div>
+      <div class="community-nav-divider"></div>
+      <div class="community-nav-label">Account</div>
+      <a href="change-password.html" class="admin-sidebar-link"><i class="fa-solid fa-key"></i><span class="label">Change Password</span></a>
+      <button type="button" class="admin-sidebar-link" id="communitySidebarLogout"><i class="fa-solid fa-right-from-bracket"></i><span class="label">Logout</span></button>
+    </nav>
   </aside>
 
   <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
@@ -64,43 +51,90 @@
         <button type="button" class="icon-btn admin-mobile-toggle" id="adminMobileToggle" aria-label="Open menu">
           <i class="fa-solid fa-bars"></i>
         </button>
+        <a class="community-brand-mini" href="community-dashboard.html"><img src="assets/logo-wordmark.png" alt="Arckenites"><span>Community</span></a>
       </div>
 
       <div class="admin-topbar-actions">
         <button type="button" class="icon-btn theme-toggle-btn" aria-label="Switch to light theme" title="Switch to light theme"><i class="fa-solid fa-sun"></i></button>
-        <span class="admin-avatar" id="communityAvatarInitials">C</span>
+        <div class="admin-dropdown">
+          <button type="button" class="admin-avatar community-avatar-btn" id="communityProfileTrigger" aria-haspopup="true" aria-label="Account menu">
+            <span id="communityAvatarInitials">C</span>
+          </button>
+          <div class="admin-dropdown-panel" id="communityProfilePanel">
+            <div class="admin-profile-meta">
+              <strong id="communityProfileName">Member</strong>
+              <span>Community member</span>
+            </div>
+            <a class="admin-dropdown-link" href="change-password.html"><i class="fa-solid fa-key"></i> Change Password</a>
+            <button type="button" class="admin-dropdown-link" id="communityProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+          </div>
+        </div>
       </div>
     </header>
 
-    <main class="admin-main">
+    <main class="admin-main community-main">
       <div class="admin-server-banner" id="adminServerBanner">
         <i class="fa-solid fa-triangle-exclamation"></i>
         Cannot reach the Arckenites server. Check that the backend is running, then refresh this page.
       </div>
 
-      <section data-panel="announcements">
-        <div class="admin-page-header">
-          <div>
-            <h1>Announcements</h1>
-            <p>Welcome, <span id="communityWelcomeName">member</span>. Community announcements will appear here.</p>
+      <section class="community-hero-card" id="overview">
+        <div class="community-hero-text">
+          <h1 id="communityWelcome">Welcome to Arckenites Community <span aria-hidden="true">👋</span></h1>
+          <p>Stay connected with the latest updates, announcements, opportunities and community activities.</p>
+        </div>
+        <div class="community-hero-art" aria-hidden="true"><i class="fa-solid fa-people-group"></i></div>
+      </section>
+
+      <section class="community-stats" aria-label="Your membership">
+        <div class="admin-kpi-card community-stat">
+          <i class="fa-solid fa-circle-check"></i>
+          <h3 id="communityStatus">—</h3>
+          <p>Community status</p>
+        </div>
+        <div class="admin-kpi-card community-stat">
+          <i class="fa-solid fa-envelope-circle-check"></i>
+          <h3 id="communityEmailStatus" class="community-stat-small">—</h3>
+          <p>Email verified</p>
+        </div>
+      </section>
+
+      <section class="community-block" id="announcements">
+        <div class="community-block-header">
+          <h2><i class="fa-solid fa-bullhorn"></i> Latest Announcements</h2>
+        </div>
+        <div class="admin-panel">
+          <div class="community-empty">
+            <i class="fa-solid fa-bullhorn"></i>
+            <strong>No announcements yet</strong>
+            <p>New announcements from Arckenites will appear here.</p>
           </div>
         </div>
+      </section>
+
+      <section class="community-block" id="updates">
+        <div class="community-block-header">
+          <h2><i class="fa-solid fa-arrows-rotate"></i> Recent Updates</h2>
+        </div>
         <div class="admin-panel">
-          <div class="admin-panel-empty" style="padding:40px 20px;">No announcements yet — check back soon.</div>
+          <div class="community-empty">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            <strong>No updates yet</strong>
+            <p>Community updates will appear here.</p>
+          </div>
         </div>
       </section>
 
-      <section data-panel="updates" style="display:none;">
-        <div class="admin-page-header"><div><h1>Updates</h1></div></div>
-        <div class="admin-panel">
-          <div class="admin-panel-empty" style="padding:40px 20px;">No updates yet — check back soon.</div>
+      <section class="community-block" id="notifications">
+        <div class="community-block-header">
+          <h2><i class="fa-solid fa-bell"></i> Notifications</h2>
         </div>
-      </section>
-
-      <section data-panel="notifications" style="display:none;">
-        <div class="admin-page-header"><div><h1>Notifications</h1></div></div>
         <div class="admin-panel">
-          <div class="admin-panel-empty" style="padding:40px 20px;">No notifications yet.</div>
+          <div class="community-empty">
+            <i class="fa-solid fa-bell"></i>
+            <strong>No notifications yet</strong>
+            <p>Important notices for members will show up here.</p>
+          </div>
         </div>
       </section>
     </main>
@@ -110,7 +144,7 @@
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=7"></script>
 <script src="js/theme.js?v=1"></script>
-<script src="js/community-dashboard.js?v=1"></script>
+<script src="js/community-dashboard.js?v=2"></script>
 
 </body>
 </html>

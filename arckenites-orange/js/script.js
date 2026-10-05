@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ---------- Back to top ---------- */
-  document.getElementById('backToTop').addEventListener('click', () => {
+  document.getElementById('backToTop')?.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
@@ -41,14 +41,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchClose = document.getElementById('searchClose');
   const searchInput = document.getElementById('courseSearchInput');
 
-  searchToggle.addEventListener('click', () => {
+  searchToggle?.addEventListener('click', () => {
     searchBar.classList.toggle('open');
     if (searchBar.classList.contains('open')) setTimeout(() => searchInput.focus(), 300);
   });
-  searchClose.addEventListener('click', () => searchBar.classList.remove('open'));
+  searchClose?.addEventListener('click', () => searchBar.classList.remove('open'));
 
   /* ---------- Course search (redirects to courses page with query) ---------- */
-  searchInput.addEventListener('keydown', (e) => {
+  searchInput?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && searchInput.value.trim()) {
       window.location.href = `courses.html?search=${encodeURIComponent(searchInput.value.trim())}`;
     }
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ---------- Newsletter form (demo submit) ---------- */
   const newsletterForm = document.getElementById('newsletterForm');
-  newsletterForm.addEventListener('submit', (e) => {
+  newsletterForm?.addEventListener('submit', (e) => {
     e.preventDefault();
     const input = newsletterForm.querySelector('input');
     input.value = '';
