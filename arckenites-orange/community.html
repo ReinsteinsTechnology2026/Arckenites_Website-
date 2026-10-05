@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
-<link rel="stylesheet" href="css/style.css?v=18">
+<link rel="stylesheet" href="css/style.css?v=19">
 
 </head>
 <body>
@@ -58,62 +58,83 @@
   <div class="container">
     <div class="breadcrumb-custom"><a href="index.html">Home</a><span>/</span><span>Community</span></div>
     <h1>Welcome to the Arckenites Community</h1>
-    <p>Discover updates, announcements, opportunities and more.</p>
-    <a href="community-register.html" class="btn btn-accent" id="communityHeroCta">Join the Community</a>
+    <p>Discover announcements, updates, opportunities and more.</p>
+    <div class="community-hero-actions">
+      <a href="community-register.html" class="btn btn-accent" id="communityHeroCta">Join the Community</a>
+      <a href="#explore" class="btn btn-primary-outline">Explore Community</a>
+    </div>
   </div>
 </header>
 
-<section class="community-section" data-aos="fade-up">
-  <h2><i class="fa-solid fa-bullhorn" style="color:var(--accent); margin-right:8px;"></i>Latest Announcements</h2>
-  <div class="community-card" style="padding:0;">
-    <div class="community-empty">
-      <i class="fa-solid fa-bullhorn"></i>
-      <strong>No public announcements yet</strong>
-      <p>Stay connected — new announcements will appear here.</p>
-    </div>
-  </div>
-</section>
+<main id="explore" class="community-page">
 
-<section class="community-section" data-aos="fade-up">
-  <h2><i class="fa-solid fa-arrows-rotate" style="color:var(--accent); margin-right:8px;"></i>Latest Updates</h2>
-  <div class="community-card" style="padding:0;">
-    <div class="community-empty">
-      <i class="fa-solid fa-arrows-rotate"></i>
-      <strong>No public updates yet</strong>
-      <p>Community updates will be published here as they happen.</p>
-    </div>
-  </div>
-</section>
+  <div class="cl-grid" data-aos="fade-up">
+    <section class="cc-card cc-card-main" id="announcements">
+      <header class="cc-card-head">
+        <span class="cc-card-icon"><i class="fa-solid fa-bullhorn"></i></span>
+        <div>
+          <h2>Latest Announcements</h2>
+          <p>Important news from the Arckenites team.</p>
+        </div>
+      </header>
+      <div class="community-empty">
+        <span class="community-empty-icon"><i class="fa-solid fa-bullhorn"></i></span>
+        <strong>No public announcements yet</strong>
+        <p>New announcements will appear here.</p>
+      </div>
+    </section>
 
-<section class="community-section" data-aos="fade-up">
-  <h2><i class="fa-solid fa-star" style="color:var(--accent); margin-right:8px;"></i>Community Highlights</h2>
-  <div class="community-card-grid">
-    <div class="community-card">
-      <i class="fa-solid fa-briefcase community-card-icon"></i>
-      <h3>Opportunities</h3>
-      <p>Placement drives, internships and career opportunities shared with members.</p>
-    </div>
-    <div class="community-card">
-      <i class="fa-solid fa-graduation-cap community-card-icon"></i>
-      <h3>Training Updates</h3>
-      <p>Program news, schedules and learning resources from Arckenites.</p>
-    </div>
-    <div class="community-card">
-      <i class="fa-solid fa-bell community-card-icon"></i>
-      <h3>Member Notifications</h3>
-      <p>Get important notices delivered to your member dashboard.</p>
-      <button type="button" class="btn btn-primary-outline btn-sm mt-3" data-requires-membership>Open my notifications</button>
-    </div>
+    <aside class="cc-card cc-card-side" id="highlights">
+      <header class="cc-card-head">
+        <span class="cc-card-icon"><i class="fa-solid fa-star"></i></span>
+        <div>
+          <h2>Community Highlights</h2>
+          <p>What members can expect.</p>
+        </div>
+      </header>
+      <div class="cc-quick">
+        <div class="cc-quick-item"><i class="fa-solid fa-briefcase"></i><span>Opportunities shared with members</span></div>
+        <div class="cc-quick-item"><i class="fa-solid fa-graduation-cap"></i><span>Training and program updates</span></div>
+        <div class="cc-quick-item"><i class="fa-solid fa-bell"></i><span>Member notifications</span></div>
+      </div>
+      <div class="cl-side-actions">
+        <button type="button" class="btn btn-primary-outline" data-requires-membership>Open my notifications</button>
+      </div>
+    </aside>
   </div>
-</section>
 
-<section class="community-section" data-aos="fade-up">
-  <div class="community-card" style="text-align:center; padding:32px 24px;">
-    <h3 style="font-size:1.15rem;">Ready to stay connected?</h3>
-    <p style="margin:6px 0 18px;">Create your free community account to receive updates and notifications.</p>
-    <a href="community-register.html" class="btn btn-accent">Join the Community</a>
+  <div class="cl-grid" data-aos="fade-up">
+    <section class="cc-card cc-card-main" id="updates">
+      <header class="cc-card-head">
+        <span class="cc-card-icon"><i class="fa-solid fa-arrows-rotate"></i></span>
+        <div>
+          <h2>Latest Updates</h2>
+          <p>Recent changes and news for the community.</p>
+        </div>
+      </header>
+      <div class="community-empty">
+        <span class="community-empty-icon"><i class="fa-solid fa-arrows-rotate"></i></span>
+        <strong>No public updates yet</strong>
+        <p>Community updates will be published here.</p>
+      </div>
+    </section>
+
+    <section class="cc-card cc-card-side" id="join">
+      <header class="cc-card-head">
+        <span class="cc-card-icon"><i class="fa-solid fa-user-plus"></i></span>
+        <div>
+          <h2>Stay connected</h2>
+          <p>Create a free community account.</p>
+        </div>
+      </header>
+      <p class="cc-side-copy">Members receive announcements, updates and notifications on their dashboard.</p>
+      <div class="cl-side-actions">
+        <a href="community-register.html" class="btn btn-accent">Join the Community</a>
+      </div>
+    </section>
   </div>
-</section>
+
+</main>
 
 <footer class="footer">
   <div class="container">
@@ -131,7 +152,7 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script src="js/script.js"></script>
 <script src="js/api.js?v=2"></script>
-<script src="js/community-join-popup.js?v=1"></script>
+<script src="js/community-join-popup.js?v=2"></script>
 <script src="js/community-public.js?v=1"></script>
 
 </body>

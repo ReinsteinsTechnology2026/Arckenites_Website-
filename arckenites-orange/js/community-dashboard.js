@@ -16,7 +16,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Real account data only — no counts exist for announcements/updates/notifications yet.
   document.getElementById('communityStatus').textContent = user.is_active ? 'Active' : 'Inactive';
-  document.getElementById('communityEmailStatus').textContent = user.email || 'Not on file';
+  // Never render the address itself on the dashboard; only whether one is on file.
+  document.getElementById('communityEmailStatus').textContent = user.email ? 'Verified' : 'Not on file';
+  document.getElementById('communityMembership').textContent = 'Community Member';
 
   /* ---------- Sidebar: mobile off-canvas ---------- */
   const sidebar = document.getElementById('communitySidebar');
@@ -32,9 +34,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   const setActive = (name) => {
     anchorLinks.forEach((a) => a.classList.toggle('is-active', a.dataset.anchor === name));
   };
+  // A clicked link stays highlighted until the visitor scrolls themselves.
+  // Without this, a section that cannot reach the reading band (e.g. the
+  // last row when the page is at its bottom) is never highlighted after click.
+  let lockedAnchor = null;
+  const releaseLock = () => { lockedAnchor = null; };
+  ['wheel', 'touchmove', 'keydown'].forEach((evt) => window.addEventListener(evt, releaseLock, { passive: true }));
+
   anchorLinks.forEach((link) => {
     link.addEventListener('click', () => {
-      setActive(link.dataset.anchor);
+      lockedAnchor = link.dataset.anchor;
+      setActive(lockedAnchor);
       closeMobileSidebar();
     });
   });
@@ -45,6 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     .filter(Boolean);
   if ('IntersectionObserver' in window && sections.length) {
     const observer = new IntersectionObserver((entries) => {
+      if (lockedAnchor) return;
       entries.forEach((entry) => { if (entry.isIntersecting) setActive(entry.target.id); });
     }, { rootMargin: '-40% 0px -55% 0px' });
     sections.forEach((s) => observer.observe(s));

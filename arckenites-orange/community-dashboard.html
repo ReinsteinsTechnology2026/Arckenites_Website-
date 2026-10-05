@@ -14,14 +14,14 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=18">
+<link rel="stylesheet" href="css/style.css?v=19">
 
 </head>
 <body>
 
 <div class="admin-auth-loader" id="adminAuthLoader"><div class="loader-mark"><img src="assets/logo.png" alt="Arckenites"></div></div>
 
-<div class="admin-shell">
+<div class="admin-shell community-shell">
 
   <aside class="admin-sidebar" id="communitySidebar">
     <div class="admin-sidebar-brand">
@@ -47,7 +47,7 @@
   <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
 
   <div class="admin-shell-main">
-    <header class="admin-topbar">
+    <header class="admin-topbar community-topbar">
       <div class="admin-topbar-left">
         <button type="button" class="icon-btn admin-mobile-toggle" id="adminMobileToggle" aria-label="Open menu">
           <i class="fa-solid fa-bars"></i>
@@ -79,75 +79,124 @@
         Cannot reach the Arckenites server. Check that the backend is running, then refresh this page.
       </div>
 
-      <section class="community-hero-card" id="overview">
-        <div class="community-hero-text">
-          <h1 id="communityWelcome">Welcome to Arckenites Community <span aria-hidden="true">👋</span></h1>
-          <p>Stay connected with the latest updates, announcements, opportunities and community activities.</p>
+      <section class="cc-hero" id="overview">
+        <div class="cc-hero-text">
+          <p class="cc-eyebrow">Arckenites Community</p>
+          <h1 id="communityWelcome">Welcome back! <span aria-hidden="true">👋</span></h1>
+          <p class="cc-hero-sub">Stay connected with the latest announcements, updates, opportunities and community activities.</p>
         </div>
-        <div class="community-hero-art" aria-hidden="true"><i class="fa-solid fa-people-group"></i></div>
+        <div class="cc-hero-art" aria-hidden="true"><i class="fa-solid fa-people-group"></i></div>
       </section>
 
-      <section class="community-stats" aria-label="Your membership">
-        <div class="admin-kpi-card community-stat">
-          <i class="fa-solid fa-circle-check"></i>
-          <h3 id="communityStatus">—</h3>
-          <p>Community status</p>
+      <section class="cc-overview" aria-label="Membership overview">
+        <div class="cc-stat">
+          <span class="cc-stat-icon"><i class="fa-solid fa-circle-check"></i></span>
+          <div>
+            <span class="cc-stat-label">Account status</span>
+            <strong id="communityStatus">—</strong>
+            <span class="cc-stat-note">Community membership</span>
+          </div>
         </div>
-        <div class="admin-kpi-card community-stat">
-          <i class="fa-solid fa-envelope-circle-check"></i>
-          <h3 id="communityEmailStatus" class="community-stat-small">—</h3>
-          <p>Email verified</p>
+        <div class="cc-stat">
+          <span class="cc-stat-icon"><i class="fa-solid fa-envelope-circle-check"></i></span>
+          <div>
+            <span class="cc-stat-label">Email status</span>
+            <strong id="communityEmailStatus">—</strong>
+            <span class="cc-stat-note">Account verification</span>
+          </div>
+        </div>
+        <div class="cc-stat">
+          <span class="cc-stat-icon"><i class="fa-solid fa-id-badge"></i></span>
+          <div>
+            <span class="cc-stat-label">Membership</span>
+            <strong id="communityMembership">Community Member</strong>
+            <span class="cc-stat-note">Current role</span>
+          </div>
         </div>
       </section>
 
-      <section class="community-block" id="announcements">
-        <div class="community-block-header">
-          <h2><i class="fa-solid fa-bullhorn"></i> Latest Announcements</h2>
-        </div>
-        <div class="admin-panel">
+      <div class="cc-grid">
+        <section class="cc-card cc-card-main" id="announcements">
+          <header class="cc-card-head">
+            <span class="cc-card-icon"><i class="fa-solid fa-bullhorn"></i></span>
+            <div>
+              <h2>Latest Announcements</h2>
+              <p>Important news from the Arckenites team.</p>
+            </div>
+          </header>
           <div class="community-empty">
-            <i class="fa-solid fa-bullhorn"></i>
+            <span class="community-empty-icon"><i class="fa-solid fa-bullhorn"></i></span>
             <strong>No announcements yet</strong>
             <p>New announcements from Arckenites will appear here.</p>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="community-block" id="updates">
-        <div class="community-block-header">
-          <h2><i class="fa-solid fa-arrows-rotate"></i> Recent Updates</h2>
-        </div>
-        <div class="admin-panel">
+        <aside class="cc-card cc-card-side" id="highlights">
+          <header class="cc-card-head">
+            <span class="cc-card-icon"><i class="fa-solid fa-star"></i></span>
+            <div>
+              <h2>Community Highlights</h2>
+              <p>Stay connected with Arckenites.</p>
+            </div>
+          </header>
+          <p class="cc-side-copy">Explore announcements, updates and opportunities from Arckenites.</p>
+          <a href="community.html" class="btn btn-accent cc-side-cta">Explore Community</a>
+
+          <h3 class="cc-side-title">Quick actions</h3>
+          <div class="cc-quick">
+            <a href="community.html" class="cc-quick-item"><i class="fa-solid fa-compass"></i><span>Explore community</span><i class="fa-solid fa-chevron-right cc-quick-arrow"></i></a>
+            <button type="button" class="cc-quick-item" data-open-chat><i class="fa-solid fa-comments"></i><span>Open chats</span><i class="fa-solid fa-chevron-right cc-quick-arrow"></i></button>
+            <a href="change-password.html" class="cc-quick-item"><i class="fa-solid fa-key"></i><span>Change password</span><i class="fa-solid fa-chevron-right cc-quick-arrow"></i></a>
+          </div>
+        </aside>
+      </div>
+
+      <div class="cc-grid">
+        <section class="cc-card cc-card-main" id="updates">
+          <header class="cc-card-head">
+            <span class="cc-card-icon"><i class="fa-solid fa-arrows-rotate"></i></span>
+            <div>
+              <h2>Latest Updates</h2>
+              <p>Recent changes and news for members.</p>
+            </div>
+          </header>
           <div class="community-empty">
-            <i class="fa-solid fa-arrows-rotate"></i>
+            <span class="community-empty-icon"><i class="fa-solid fa-arrows-rotate"></i></span>
             <strong>No updates yet</strong>
             <p>Community updates will appear here.</p>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="community-block" id="notifications">
-        <div class="community-block-header">
-          <h2><i class="fa-solid fa-bell"></i> Notifications</h2>
-        </div>
-        <div class="admin-panel">
-          <div class="community-empty">
-            <i class="fa-solid fa-bell"></i>
-            <strong>No notifications yet</strong>
-            <p>Important notices for members will show up here.</p>
+        <section class="cc-card cc-card-side" id="notifications">
+          <header class="cc-card-head">
+            <span class="cc-card-icon"><i class="fa-solid fa-bell"></i></span>
+            <div>
+              <h2>Notifications</h2>
+              <p>Your personal alerts.</p>
+            </div>
+          </header>
+          <div class="cc-caught-up">
+            <span class="cc-caught-up-icon"><i class="fa-solid fa-circle-check"></i></span>
+            <strong>You're all caught up 🎉</strong>
+            <p>You don't have any new notifications.</p>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   </div>
 </div>
 
+<script src="js/api.js?v=2"></script>
+<script src="js/auth.js?v=7"></script>
+<script src="js/theme.js?v=1"></script>
+<script src="js/chat.js?v=1"></script>
+<script src="js/community-dashboard.js?v=5"></script>
+
+<div class="chat-backdrop" id="chatBackdrop"></div>
 <button type="button" class="chat-float" id="chatFloatBtn" aria-label="Messages">
   <i class="fa-solid fa-comments"></i>
   <span class="admin-notif-badge" id="chatBadge" style="display:none;">0</span>
 </button>
-
-<div class="chat-backdrop" id="chatBackdrop"></div>
 <div class="chat-panel" id="chatPanel">
   <div class="chat-panel-header">
     <button type="button" class="icon-btn chat-back" id="chatBack" style="display:none;" aria-label="Back to conversations"><i class="fa-solid fa-arrow-left"></i></button>
@@ -173,12 +222,6 @@
     </div>
   </div>
 </div>
-
-<script src="js/api.js?v=2"></script>
-<script src="js/auth.js?v=7"></script>
-<script src="js/theme.js?v=1"></script>
-<script src="js/chat.js?v=1"></script>
-<script src="js/community-dashboard.js?v=3"></script>
 
 </body>
 </html>

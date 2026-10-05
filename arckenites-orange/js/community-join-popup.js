@@ -8,8 +8,7 @@
     'fa-arrows-rotate|Community updates',
     'fa-bullhorn|Important announcements',
     'fa-bell|Notifications',
-    'fa-briefcase|Community opportunities',
-    'fa-id-badge|Exclusive member information',
+    'fa-briefcase|Opportunities',
   ];
 
   let backdrop = null;
@@ -27,7 +26,7 @@
         <div class="community-join-body">
           <div class="community-join-icon"><i class="fa-solid fa-rocket"></i></div>
           <h3 id="communityJoinTitle" class="community-join-title">Join Arckenites Community</h3>
-          <p style="margin-bottom:18px;">Stay connected with Arckenites.</p>
+          <p class="community-join-lead">Join the Arckenites Community to receive updates, announcements and opportunities.</p>
           <ul class="community-join-benefits">
             ${ICON_POINTS.map((p) => {
               const [icon, label] = p.split('|');
@@ -38,7 +37,6 @@
         <div class="community-join-footer">
           <a href="community-register.html" class="btn btn-accent community-join-cta">Register Now</a>
           <a href="login.html" class="btn btn-primary-outline">Login</a>
-          <p class="community-join-already">Already a member? <a href="login.html">Log in</a></p>
           <button type="button" class="btn btn-link community-join-continue" data-join-close>Continue Exploring</button>
         </div>
       </div>`;
