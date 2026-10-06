@@ -11,6 +11,7 @@ from app.api.routes_admin_batches import router as admin_batches_router
 from app.api.routes_admin_class_schedule import router as admin_class_schedule_router
 from app.api.routes_admin_contact_enquiries import router as admin_contact_enquiries_router
 from app.api.routes_admin_community import router as admin_community_router
+from app.api.routes_admin_community_posts import router as admin_community_posts_router
 from app.api.routes_admin_leads import router as admin_leads_router
 from app.api.routes_admin_interviews import router as admin_interviews_router
 from app.api.routes_admin_lab_access import router as admin_lab_access_router
@@ -29,6 +30,7 @@ from app.api.routes_admin_users import router as admin_users_router
 from app.api.routes_auth import router as auth_router
 from app.api.routes_chat import router as chat_router
 from app.api.routes_community_auth import router as community_auth_router
+from app.api.routes_community_posts import router as community_posts_router
 from app.api.routes_contact import router as contact_router
 from app.api.routes_dashboard import router as dashboard_router
 from app.api.routes_health import router as health_router
@@ -38,6 +40,7 @@ from app.api.routes_staff import router as staff_router
 from app.api.routes_students import router as students_router
 from app.api.routes_video import router as video_router
 from app.config import settings
+from app.core.community_posts import run_community_post_email_worker
 from app.core.lab_vm_watchdog import run_lab_vm_watchdog
 from app.core.rate_limit import limiter
 from app.crud.audit import write_audit_event
@@ -100,6 +103,7 @@ app.include_router(admin_programs_router, prefix="/api")
 app.include_router(admin_contact_enquiries_router, prefix="/api")
 app.include_router(admin_leads_router, prefix="/api")
 app.include_router(admin_community_router, prefix="/api")
+app.include_router(admin_community_posts_router, prefix="/api")
 app.include_router(admin_users_router, prefix="/api")
 app.include_router(admin_roles_router, prefix="/api")
 app.include_router(admin_activity_logs_router, prefix="/api")
@@ -112,6 +116,7 @@ app.include_router(profile_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(contact_router, prefix="/api")
 app.include_router(community_auth_router, prefix="/api")
+app.include_router(community_posts_router, prefix="/api")
 app.include_router(video_router, prefix="/api")
 
 
@@ -122,6 +127,14 @@ async def _start_lab_vm_watchdog() -> None:
     asyncio background task is the right tool here rather than a
     scheduler library."""
     asyncio.create_task(run_lab_vm_watchdog())
+
+
+@app.on_event("startup")
+async def _start_community_post_email_worker() -> None:
+    """Drains the queued Community announcement/update emails in the
+    background. Admin publish requests never wait on email delivery; the
+    queue is in the database, so a restart resumes where it left off."""
+    asyncio.create_task(run_community_post_email_worker())
 
 
 @app.on_event("startup")

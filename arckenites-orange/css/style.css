@@ -1517,6 +1517,21 @@ body.is-database-view .col-database{ display:table-cell; }
 .community-hero-actions{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
 .community-join-lead{ color:var(--muted); margin:0 0 18px; font-size:.95rem; }
 
+/* Duplicate-registration notice (js/community-register.js) */
+.community-dup-notice{ border:1px solid rgba(255,110,48,.35); background:rgba(255,110,48,.08); border-radius:12px; padding:14px 16px; margin-top:14px; color:var(--ink); }
+.community-dup-notice strong{ display:block; margin-bottom:4px; font-size:.95rem; }
+.community-dup-notice p{ margin:0 0 12px; color:var(--muted); font-size:.88rem; }
+.community-dup-actions{ display:flex; flex-wrap:wrap; gap:8px; }
+.community-dup-actions .btn{ flex:1 1 auto; text-align:center; }
+
+/* Published announcements/updates (js/community-posts.js) */
+.cc-post-list{ display:flex; flex-direction:column; gap:12px; }
+.cc-post{ border:1px solid var(--border-c); border-radius:12px; padding:16px 18px; }
+.cc-post h3{ font-size:1rem; font-weight:600; margin:0 0 6px; }
+.cc-post p{ margin:0; color:var(--muted); font-size:.9rem; line-height:1.6; white-space:pre-line; }
+.cc-post-meta{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px; font-size:.78rem; color:var(--muted-2); }
+.cc-badge{ padding:2px 9px; border-radius:999px; background:rgba(255,110,48,.12); color:var(--accent); font-weight:600; font-size:.72rem; }
+
 .community-join-already a{ color:var(--accent); font-weight:600; }
 @media (max-height:620px){
   .community-join-backdrop{ padding:12px; }

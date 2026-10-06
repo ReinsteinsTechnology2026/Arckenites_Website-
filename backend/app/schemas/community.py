@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, field_validator
 # rather than pydantic's EmailStr, which would pull in a new dependency
 # (email-validator) not currently installed anywhere in this project.
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+_MOBILE_ALLOWED_RE = re.compile(r"^\+?[0-9 ()\-.]+$")
 
 
 def _validate_email_str(value: str) -> str:
@@ -32,6 +33,9 @@ class StartCommunityRegistrationRequest(BaseModel):
     full_name: str = Field(min_length=2, max_length=200)
     mobile_number: str = Field(min_length=7, max_length=20)
     email: str = Field(min_length=3, max_length=255)
+    # True only when the user explicitly chooses "Start Again" on an
+    # in-progress registration. Otherwise a repeated submit is not a restart.
+    restart: bool = False
 
     @field_validator("full_name")
     @classmethod
@@ -41,11 +45,16 @@ class StartCommunityRegistrationRequest(BaseModel):
     @field_validator("mobile_number")
     @classmethod
     def _validate_mobile(cls, v: str) -> str:
-        digits = v.strip()
-        cleaned = digits[1:] if digits.startswith("+") else digits
-        if not cleaned.isdigit() or not (7 <= len(cleaned) <= 15):
+        # Spaces, dashes, dots and brackets are allowed as separators; a leading
+        # "+" is allowed. The stored display value keeps what the user typed;
+        # comparisons use core/community_identity.normalize_mobile.
+        raw = v.strip()
+        if not _MOBILE_ALLOWED_RE.match(raw):
             raise ValueError("Enter a valid mobile number.")
-        return digits
+        digit_count = len(re.sub(r"\D", "", raw))
+        if not (7 <= digit_count <= 15):
+            raise ValueError("Enter a valid mobile number.")
+        return raw
 
     @field_validator("email")
     @classmethod

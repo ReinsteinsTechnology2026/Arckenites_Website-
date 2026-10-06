@@ -93,6 +93,11 @@ PERMISSION_CATALOG: list[dict] = [
     {"key": "community.view", "module": "Community", "action": "view", "description": "View the community members database."},
     {"key": "community.edit", "module": "Community", "action": "edit", "description": "Enable or disable a community member's account."},
     {"key": "community.export", "module": "Community", "action": "export", "description": "Export community member data."},
+    # Creating, editing, and publishing announcements/updates. Publishing is
+    # the action that emails verified members, so it is kept separate from
+    # community.edit (which only toggles account status). Not in
+    # _OPERATIONAL_MODULES, so a plain Admin only gets it when granted.
+    {"key": "community.publish", "module": "Community", "action": "publish", "description": "Create, edit, and publish community announcements and updates (publishing emails verified members)."},
 ]
 
 PERMISSION_KEYS: frozenset[str] = frozenset(p["key"] for p in PERMISSION_CATALOG)

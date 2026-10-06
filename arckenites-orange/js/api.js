@@ -89,7 +89,12 @@ const ArckAPI = {
     }
 
     if (!res.ok) {
-      throw new ApiError(res.status, (data && data.detail) || 'Something went wrong.');
+      const err = new ApiError(res.status, (data && data.detail) || 'Something went wrong.');
+      // Optional machine-readable code and supporting text some endpoints add
+      // (e.g. duplicate-registration responses). Additive only; never secrets.
+      err.code = data && data.code;
+      err.hint = data && data.hint;
+      throw err;
     }
 
     return data;

@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     seed_admin1_username: str = "admin1@arckenites.com"
     seed_admin1_password: str = "admin#001"
 
+    # Public site origin used to build links inside outbound emails (the
+    # "View on Arckenites Community" button). Never hardcode it in templates.
+    public_site_url: str = "https://arckenites.com"
+
     # Self-hosted Jitsi deployment backing the Meetings module — never
     # hardcode this in frontend JS; every meeting join URL is built from it.
     meet_domain: str = "meet.arckenites.com"

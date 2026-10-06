@@ -15,7 +15,10 @@ Never logs: the client secret, the acquired access token, or the message
 body/OTP. On any failure, only a short, secret-free reason is logged.
 """
 
+import email.utils
 import logging
+from dataclasses import dataclass
+from datetime import datetime, timezone
 
 import httpx
 import msal
@@ -66,19 +69,76 @@ def _acquire_token() -> str | None:
     return result["access_token"]
 
 
-def send_email_via_graph(to_address: str, subject: str, body: str) -> bool:
-    """Sends a plain-text email as settings.ms_graph_sender_email via
-    Microsoft Graph's sendMail. Returns True only once Graph has accepted
-    the request (HTTP 202) — never assumes success."""
+# HTTP statuses that mean "not accepted, try again later" rather than "this
+# message is wrong". Graph throttles with 429 and reports overload with 503;
+# the gateway codes are transient for the same reason.
+RETRYABLE_STATUS_CODES = frozenset({429, 502, 503, 504})
+
+# Retry-After values above this are clamped; a longer wait is not useful to a
+# background worker and would strand the delivery.
+MAX_RETRY_AFTER_SECONDS = 6 * 60 * 60
+
+
+@dataclass(frozen=True)
+class GraphSendResult:
+    """Outcome of one sendMail call.
+
+    accepted             Graph returned 202: the message was queued.
+    retryable            The message was not accepted and it is safe to try
+                         again later (throttled, overloaded, or never reached
+                         Graph). Retrying cannot duplicate an email.
+    retry_after_seconds  Graph's Retry-After, when it was given.
+    error_code           A short, secret-free category for logs and the
+                         delivery record. Never a message body or address.
+    """
+
+    accepted: bool
+    retryable: bool = False
+    retry_after_seconds: int | None = None
+    error_code: str | None = None
+
+
+def _parse_retry_after(value: str | None) -> int | None:
+    """Retry-After is either delta-seconds or an HTTP date (RFC 9110)."""
+    if not value:
+        return None
+    value = value.strip()
+    try:
+        return min(max(int(value), 0), MAX_RETRY_AFTER_SECONDS)
+    except ValueError:
+        pass
+    try:
+        when = email.utils.parsedate_to_datetime(value)
+    except (TypeError, ValueError):
+        return None
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=timezone.utc)
+    seconds = int((when - datetime.now(timezone.utc)).total_seconds())
+    return min(max(seconds, 0), MAX_RETRY_AFTER_SECONDS)
+
+
+def send_email_via_graph_result(to_address: str, subject: str, body: str, html_body: str | None = None) -> GraphSendResult:
+    """Sends one message through Microsoft Graph and classifies the outcome.
+
+    Retryable: token acquisition failed (no request was sent), the connection
+    could not be opened (no request was sent), or Graph answered 429/502/503/504.
+
+    Not retryable: any other HTTP error (for example an invalid recipient).
+
+    Not retried, because the request may already have been accepted: a read
+    or write timeout after the request was sent. Retrying could send the same
+    email twice, which is worse than one unconfirmed delivery.
+    """
     token = _acquire_token()
     if token is None:
-        return False
+        return GraphSendResult(accepted=False, retryable=True, error_code="token_unavailable")
 
     url = GRAPH_SEND_MAIL_URL_TEMPLATE.format(sender=settings.ms_graph_sender_email)
+    content_type, content = ("HTML", html_body) if html_body is not None else ("Text", body)
     payload = {
         "message": {
             "subject": subject,
-            "body": {"contentType": "Text", "content": body},
+            "body": {"contentType": content_type, "content": content},
             "toRecipients": [{"emailAddress": {"address": to_address}}],
         },
         "saveToSentItems": False,
@@ -91,12 +151,16 @@ def send_email_via_graph(to_address: str, subject: str, body: str) -> bool:
             json=payload,
             timeout=10,
         )
+    except (httpx.ConnectError, httpx.ConnectTimeout) as exc:
+        # The connection was never established, so Graph never saw the request.
+        logger.error("Microsoft Graph sendMail not attempted error_type=%s", type(exc).__name__)
+        return GraphSendResult(accepted=False, retryable=True, error_code="connect_failed")
     except httpx.HTTPError as exc:
         logger.error("Microsoft Graph sendMail request failed error_type=%s", type(exc).__name__)
-        return False
+        return GraphSendResult(accepted=False, retryable=False, error_code="delivery_unknown")
 
     if response.status_code == 202:
-        return True
+        return GraphSendResult(accepted=True)
 
     # Graph error responses are JSON like {"error": {"code": "...",
     # "message": "..."}} — the "message" text can echo back request
@@ -108,4 +172,17 @@ def send_email_via_graph(to_address: str, subject: str, body: str) -> bool:
     except Exception:
         pass
     logger.error("Microsoft Graph sendMail failed status=%s error_code=%s", response.status_code, error_code)
-    return False
+
+    if response.status_code in RETRYABLE_STATUS_CODES:
+        retry_after = _parse_retry_after(response.headers.get("Retry-After"))
+        return GraphSendResult(
+            accepted=False, retryable=True, retry_after_seconds=retry_after,
+            error_code=f"http_{response.status_code}",
+        )
+    return GraphSendResult(accepted=False, retryable=False, error_code=str(error_code)[:64])
+
+
+def send_email_via_graph(to_address: str, subject: str, body: str, html_body: str | None = None) -> bool:
+    """Boolean form used by the OTP and notification emails. Behaviour is
+    unchanged: True only once Graph has accepted the request (HTTP 202)."""
+    return send_email_via_graph_result(to_address, subject, body, html_body).accepted

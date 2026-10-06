@@ -14,13 +14,16 @@ collapse into the same "Invalid or expired verification code." text.
 """
 
 import logging
+from contextlib import contextmanager
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import func, select
+from fastapi.responses import JSONResponse
+from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.community_identity import normalize_mobile
 from app.core.email import send_email
 from app.core.otp import (
     OTP_MAX_ATTEMPTS,
@@ -39,7 +42,7 @@ from app.core.rate_limit import limiter
 from app.core.security import hash_password, validate_password_strength
 from app.crud.audit import write_audit_event
 from app.crud.system_settings import get_settings
-from app.database import get_db
+from app.database import engine, get_db
 from app.models.audit_log import AuthEventType
 from app.models.community import CommunityProfile, CommunityRegistration, CommunityRegistrationStatus
 from app.models.user import RoleEnum, User
@@ -70,6 +73,65 @@ def _client_meta(request: Request) -> tuple[str, str]:
 
 def _username_taken(db: Session, email: str) -> bool:
     return db.scalar(select(User.id).where(func.lower(User.username) == email)) is not None
+
+
+def _email_registered(db: Session, email: str) -> bool:
+    """True when the email already belongs to any account, or to a completed
+    Community account (checked case-insensitively on both)."""
+    if _username_taken(db, email):
+        return True
+    return db.scalar(
+        select(CommunityProfile.id).where(func.lower(CommunityProfile.email) == email)
+    ) is not None
+
+
+def _mobile_registered(db: Session, mobile_normalized: str) -> bool:
+    return db.scalar(
+        select(CommunityProfile.id).where(CommunityProfile.mobile_normalized == mobile_normalized)
+    ) is not None
+
+
+# User-facing duplicate wording. `detail` is the heading shown to the user,
+# `hint` the supporting text. Nothing here identifies an account: no id, no
+# role, no creation date, no password status.
+DUPLICATE_COPY = {
+    "email": (
+        "email_registered",
+        "This email address is already registered.",
+        "An account already exists with this email address. Please log in instead.",
+    ),
+    "mobile": (
+        "mobile_registered",
+        "This mobile number is already registered.",
+        "An account already exists with this mobile number. Please log in or use another mobile number.",
+    ),
+    "both": (
+        "credentials_registered",
+        "This email address and mobile number are already registered.",
+        "An Arckenites Community account already exists with these details. Please log in instead.",
+    ),
+}
+
+IN_PROGRESS_COPY = (
+    "registration_in_progress",
+    "Registration already started for this email address.",
+    "Continue with the verification code we sent, or start again to receive a new code.",
+)
+
+
+def _duplicate_response(email_taken: bool, mobile_taken: bool) -> JSONResponse:
+    key = "both" if (email_taken and mobile_taken) else ("email" if email_taken else "mobile")
+    code, heading, hint = DUPLICATE_COPY[key]
+    return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"detail": heading, "code": code, "hint": hint})
+
+
+def _in_progress_response() -> JSONResponse:
+    code, heading, hint = IN_PROGRESS_COPY
+    return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"detail": heading, "code": code, "hint": hint})
+
+
+def _otp_still_valid(reg: CommunityRegistration, now: datetime) -> bool:
+    return bool(reg.otp_hash) and reg.otp_expires_at is not None and reg.otp_expires_at > now
 
 
 def _send_otp_email(email: str, full_name: str, otp: str) -> bool:
@@ -148,32 +210,88 @@ def _issue_otp(db: Session, reg: CommunityRegistration, full_name_for_email: str
     return OtpIssueResult.SENT
 
 
+@contextmanager
+def _registration_lock(email: str):
+    """Serializes registration starts for one email address across requests.
+
+    Uses a session-level Postgres advisory lock on a dedicated connection that
+    is held for the whole request. A transactional lock would not work here:
+    the request commits partway through (the audit log commits), which would
+    release it early and let a second request slip in between "check for a
+    valid code" and "issue a code", sending two OTP emails. Unique constraints
+    alone do not prevent that, because the registration row already exists.
+    """
+    key = f"community_registration:{email}"
+    with engine.connect() as conn:
+        conn.execute(text("SELECT pg_advisory_lock(hashtext(:k))"), {"k": key})
+        try:
+            yield
+        finally:
+            conn.execute(text("SELECT pg_advisory_unlock(hashtext(:k))"), {"k": key})
+            conn.commit()
+
+
 @router.post("/register/start", response_model=GenericMessageOut)
 @limiter.limit("5/minute")
 def start_registration(request: Request, payload: StartCommunityRegistrationRequest, db: Session = Depends(get_db)):
+    with _registration_lock(payload.email):
+        return _start_registration_locked(request, payload, db)
+
+
+def _start_registration_locked(request: Request, payload: StartCommunityRegistrationRequest, db: Session):
     ip, ua = _client_meta(request)
     email = payload.email  # already lowercased by the schema validator
+    mobile_normalized = normalize_mobile(payload.mobile_number)
 
-    # An email already belonging to a real account (any role) never gets an
-    # OTP and never reveals that fact.
-    if _username_taken(db, email):
+    # Duplicate credentials are checked BEFORE any registration row or OTP is
+    # created. The database constraints (set_password) are the final guard;
+    # this check gives the user a clear message in the common case.
+    email_taken = _email_registered(db, email)
+    mobile_taken = _mobile_registered(db, mobile_normalized)
+    if email_taken or mobile_taken:
         write_audit_event(
             db, AuthEventType.community_registration_started, ip, ua,
-            username_attempted=email, detail="email already registered", status="blocked",
+            username_attempted=email, detail="duplicate credentials", status="blocked",
         )
-        return GenericMessageOut(detail=GENERIC_REGISTRATION_MESSAGE)
+        return _duplicate_response(email_taken, mobile_taken)
 
     reg = db.scalar(select(CommunityRegistration).where(CommunityRegistration.email == email))
+    now = datetime.now(timezone.utc)
+
+    # A registration whose code is still valid is not restarted or duplicated
+    # by a repeated submit. The user continues with the code they have, or
+    # explicitly asks to start again (restart=true), which goes through the
+    # normal rate-limited OTP path below.
+    if (
+        reg is not None
+        and reg.status == CommunityRegistrationStatus.pending
+        and not payload.restart
+        and _otp_still_valid(reg, now)
+    ):
+        return _in_progress_response()
+
     if reg is None:
-        reg = CommunityRegistration(full_name=payload.full_name, mobile_number=payload.mobile_number, email=email)
+        reg = CommunityRegistration(
+            full_name=payload.full_name,
+            mobile_number=payload.mobile_number,
+            mobile_normalized=mobile_normalized,
+            email=email,
+        )
         db.add(reg)
-        db.flush()
+        try:
+            db.flush()
+        except IntegrityError:
+            # Two requests for the same new email arrived together; the other
+            # one already created the row. Only one registration exists.
+            db.rollback()
+            return _in_progress_response()
     else:
         # Re-submitting details for an in-progress (not yet completed)
         # registration — safe to refresh and restart verification rather
         # than creating a second row for the same email.
         reg.full_name = payload.full_name
         reg.mobile_number = payload.mobile_number
+        reg.mobile_normalized = mobile_normalized
 
     write_audit_event(db, AuthEventType.community_registration_started, ip, ua, username_attempted=email)
     result = _issue_otp(db, reg, payload.full_name)
@@ -288,11 +406,13 @@ def set_password(request: Request, payload: SetCommunityPasswordRequest, db: Ses
         if strength_error:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=strength_error)
 
-    if _username_taken(db, reg.email):
-        # Extremely rare race (e.g. the email was somehow claimed by
-        # another flow between OTP verification and this call) — same
-        # generic wording, no detail about why.
-        raise token_error
+    reg_email = reg.email
+    reg_mobile_normalized = reg.mobile_normalized or normalize_mobile(reg.mobile_number)
+
+    email_taken = _email_registered(db, reg_email)
+    mobile_taken = _mobile_registered(db, reg_mobile_normalized)
+    if email_taken or mobile_taken:
+        return _duplicate_response(email_taken, mobile_taken)
 
     user = User(
         username=reg.email,
@@ -309,15 +429,23 @@ def set_password(request: Request, payload: SetCommunityPasswordRequest, db: Ses
         profile = CommunityProfile(
             user_id=user.id,
             mobile_number=reg.mobile_number,
-            email=reg.email,
+            mobile_normalized=reg_mobile_normalized,
+            email=reg_email,
             email_verified_at=reg.verified_at or now,
         )
         db.add(profile)
         db.delete(reg)
         db.commit()
     except IntegrityError:
+        # Lost a race with another request that created the same email or
+        # mobile. Report the real reason in plain words. The database error
+        # itself (which can echo values) is never logged or returned.
         db.rollback()
-        logger.exception("Failed to finalize community account creation")
+        logger.warning("Community account creation lost a uniqueness race")
+        email_taken = _email_registered(db, reg_email)
+        mobile_taken = _mobile_registered(db, reg_mobile_normalized)
+        if email_taken or mobile_taken:
+            return _duplicate_response(email_taken, mobile_taken)
         raise token_error
 
     write_audit_event(db, AuthEventType.community_account_created, ip, ua, user=user)

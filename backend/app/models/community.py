@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Index, Integer, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -32,6 +32,9 @@ class CommunityRegistration(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     full_name: Mapped[str] = mapped_column(String(200), nullable=False)
     mobile_number: Mapped[str] = mapped_column(String(30), nullable=False)
+    # Canonical digits (core/community_identity.normalize_mobile). Used for
+    # duplicate checks; the display value above is kept as the user typed it.
+    mobile_normalized: Mapped[str | None] = mapped_column(String(20), nullable=True)
     # Always stored lowercased — every lookup (duplicate check, OTP verify,
     # resend) normalizes to lowercase first, same convention as username
     # uniqueness elsewhere in this codebase.
@@ -84,6 +87,9 @@ class CommunityProfile(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, nullable=False)
 
     mobile_number: Mapped[str] = mapped_column(String(30), nullable=False)
+    # Canonical digits — UNIQUE at the database level (see __table_args__),
+    # so two accounts can never share a mobile number, even under a race.
+    mobile_normalized: Mapped[str] = mapped_column(String(20), nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     email_verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
@@ -93,3 +99,10 @@ class CommunityProfile(Base):
     )
 
     user: Mapped["User"] = relationship(back_populates="community_profile")
+
+    __table_args__ = (
+        # One account per normalized mobile number.
+        Index("uq_community_profiles_mobile_normalized", "mobile_normalized", unique=True),
+        # One account per email, compared case-insensitively.
+        Index("uq_community_profiles_email_lower", func.lower(text("email")), unique=True),
+    )

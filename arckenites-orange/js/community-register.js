@@ -25,6 +25,100 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentEmail = '';
   let verificationToken = '';
+  // The details most recently submitted, so "Start Again" can reuse them.
+  let lastDetails = null;
+
+  /* ---------- Duplicate-credential notices ----------
+     The backend answers with HTTP 409 and a machine-readable `code`, a
+     heading (`detail`) and supporting text (`hint`). The page only shows
+     that wording — it never shows raw server errors, IDs, or database text. */
+  const DUPLICATE_CODES = ['email_registered', 'mobile_registered', 'credentials_registered', 'registration_in_progress'];
+  const dupNotice = document.getElementById('dupNotice');
+  const dupHeading = document.getElementById('dupHeading');
+  const dupHint = document.getElementById('dupHint');
+  const dupActions = document.getElementById('dupActions');
+  const regEmail = document.getElementById('regEmail');
+  const regMobile = document.getElementById('regMobile');
+
+  const hideDuplicate = () => { dupNotice.style.display = 'none'; dupActions.innerHTML = ''; };
+
+  const addAction = (label, className, onClick) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = className;
+    btn.textContent = label;
+    btn.addEventListener('click', onClick);
+    dupActions.appendChild(btn);
+    return btn;
+  };
+
+  const addLoginLink = () => {
+    const a = document.createElement('a');
+    a.href = 'login.html';
+    a.className = 'btn btn-primary-outline';
+    a.textContent = 'Login';
+    dupActions.appendChild(a);
+  };
+
+  const showDuplicate = (err) => {
+    detailsError.style.display = 'none';
+    dupHeading.textContent = err.detail;
+    dupHint.textContent = err.hint || '';
+    dupActions.innerHTML = '';
+
+    if (err.code === 'registration_in_progress') {
+      addAction('Continue Registration', 'btn btn-accent', () => {
+        hideDuplicate();
+        currentEmail = lastDetails.email;
+        document.getElementById('otpSentToEmail').textContent = maskEmail(currentEmail);
+        document.getElementById('otpInput').value = '';
+        showStep('otp');
+      });
+      addAction('Start Again', 'btn btn-primary-outline', () => startAgain(err));
+      return;
+    }
+
+    addLoginLink();
+    if (err.code === 'email_registered') {
+      addAction('Use Another Email', 'btn btn-primary-outline', () => {
+        hideDuplicate();
+        regEmail.value = '';
+        regEmail.focus();
+      });
+    } else if (err.code === 'mobile_registered') {
+      addAction('Use Another Mobile', 'btn btn-primary-outline', () => {
+        hideDuplicate();
+        regMobile.value = '';
+        regMobile.focus();
+      });
+    }
+    // credentials_registered: Login only, as specified.
+    dupNotice.style.display = 'block';
+  };
+
+  // "Start Again" on an in-progress registration: asks the backend for a new
+  // code through the normal, rate-limited OTP path (restart=true).
+  const startAgain = async () => {
+    if (!lastDetails) return;
+    try {
+      await ArckAPI.request('/community/register/start', {
+        method: 'POST', auth: false,
+        body: { ...lastDetails, restart: true },
+      });
+      hideDuplicate();
+      currentEmail = lastDetails.email;
+      document.getElementById('otpSentToEmail').textContent = maskEmail(currentEmail);
+      document.getElementById('otpInput').value = '';
+      showStep('otp');
+    } catch (err) {
+      if (DUPLICATE_CODES.includes(err.code)) {
+        showDuplicate(err);
+      } else {
+        detailsError.textContent = err.detail || 'Could not start a new registration. Please try again shortly.';
+        detailsError.style.display = 'block';
+      }
+    }
+  };
 
   /* ---------- Step 1: details -> verify email ---------- */
   const detailsForm = document.getElementById('detailsForm');
@@ -36,17 +130,19 @@ document.addEventListener('DOMContentLoaded', () => {
   detailsForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     detailsError.style.display = 'none';
+    hideDuplicate();
     detailsSubmitBtn.disabled = true;
     detailsSubmitBtn.textContent = 'Sending verification code...';
 
     const fullName = document.getElementById('regFullName').value.trim();
-    const mobile = document.getElementById('regMobile').value.trim();
-    const email = document.getElementById('regEmail').value.trim().toLowerCase();
+    const mobile = regMobile.value.trim();
+    const email = regEmail.value.trim().toLowerCase();
+    lastDetails = { full_name: fullName, mobile_number: mobile, email };
 
     try {
       await ArckAPI.request('/community/register/start', {
         method: 'POST', auth: false,
-        body: { full_name: fullName, mobile_number: mobile, email },
+        body: lastDetails,
       });
       // Only ever reached when the backend has confirmed the email actually
       // left the server — a failed send raises here instead (503, caught
@@ -57,8 +153,12 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('otpInput').value = '';
       showStep('otp');
     } catch (err) {
-      detailsError.textContent = err.detail || 'Could not start registration. Please check your details and try again.';
-      detailsError.style.display = 'block';
+      if (DUPLICATE_CODES.includes(err.code)) {
+        showDuplicate(err);
+      } else {
+        detailsError.textContent = err.detail || 'Could not start registration. Please check your details and try again.';
+        detailsError.style.display = 'block';
+      }
     } finally {
       detailsSubmitBtn.disabled = false;
       detailsSubmitBtn.textContent = DETAILS_SUBMIT_LABEL;
@@ -145,7 +245,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       showStep('done');
     } catch (err) {
-      passwordError.textContent = err.detail || 'Could not set your password. Please verify your email again.';
+      // Someone else completed an account with this email or mobile while
+      // this registration was in progress. Say so plainly, with the hint.
+      const message = err.hint ? `${err.detail} ${err.hint}` : err.detail;
+      passwordError.textContent = message || 'Could not set your password. Please verify your email again.';
       passwordError.style.display = 'block';
     } finally {
       passwordSubmitBtn.disabled = false;
