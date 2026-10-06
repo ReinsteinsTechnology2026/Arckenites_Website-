@@ -25,9 +25,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.scrollY > 40) navbar.classList.add('scrolled');
     else navbar.classList.remove('scrolled');
 
+    // Not every page has a back-to-top button (community pages do not), so
+    // the scroll handler must do nothing when it is absent.
     const backToTop = document.getElementById('backToTop');
-    if (window.scrollY > 400) backToTop.classList.add('show');
-    else backToTop.classList.remove('show');
+    if (backToTop) {
+      if (window.scrollY > 400) backToTop.classList.add('show');
+      else backToTop.classList.remove('show');
+    }
   });
 
   /* ---------- Back to top ---------- */

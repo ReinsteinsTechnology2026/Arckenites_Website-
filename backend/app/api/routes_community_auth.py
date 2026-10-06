@@ -64,6 +64,11 @@ GENERIC_OTP_ERROR = "Invalid or expired verification code."
 GENERIC_TOKEN_ERROR = "Your verification session has expired. Please verify your email again."
 EMAIL_SEND_FAILED_ERROR = "We couldn't send the verification email right now. Please try again later."
 
+# Self-registered Community accounts always need at least this many characters,
+# even when the optional strong-password setting is off. Turning that setting on
+# adds the stricter rules on top; it never lowers this minimum.
+MIN_COMMUNITY_PASSWORD_LENGTH = 8
+
 
 def _client_meta(request: Request) -> tuple[str, str]:
     ip = request.client.host if request.client else "unknown"
@@ -400,6 +405,12 @@ def set_password(request: Request, payload: SetCommunityPasswordRequest, db: Ses
         or reg.verification_token_expires_at < now
     ):
         raise token_error
+
+    if len(payload.new_password) < MIN_COMMUNITY_PASSWORD_LENGTH:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Password must be at least {MIN_COMMUNITY_PASSWORD_LENGTH} characters.",
+        )
 
     if get_settings(db).require_strong_passwords:
         strength_error = validate_password_strength(payload.new_password)
