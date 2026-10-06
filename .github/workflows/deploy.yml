@@ -12,4 +12,7 @@ jobs:
 
     steps:
       - name: Deploy application
-        run: /opt/arckenites/deploy.sh
+        # Run a copy of the script, never the file in the repository. The
+        # script runs `git reset --hard`, which rewrites /opt/arckenites/deploy.sh
+        # while bash is still reading it. The copy is not part of that reset.
+        run: cp /opt/arckenites/deploy.sh /tmp/deploy.sh && bash /tmp/deploy.sh
