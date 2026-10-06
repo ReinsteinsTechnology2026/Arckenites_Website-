@@ -5,16 +5,18 @@ unique Community email and normalized mobile). It only SELECTs, runs inside
 a transaction the server marks READ ONLY, and always rolls back. It never
 creates, alters, or drops anything, and it does not run the migration.
 
-Normalization is NOT re-implemented here: the mobile normalizer is loaded
-from the migration file itself, so the audit and the migration cannot drift.
-Emails and mobile numbers are masked in the output; user ids are shown.
+The mobile normalizer below is a self-contained copy of the logic in the
+planned migration (_normalize_mobile in d5a7c3e1f9b4). This script does NOT
+import that migration file: it is not deployed yet, and the audit must run
+without it. Any change to the migration's normalization must be made here
+too. Emails and mobile numbers are masked in the output; user ids are shown.
 
 Usage (from the backend directory, with the server's own environment):
     python scratchpad/audit_community_identity.py
 The database connection comes from app.database, i.e. the same DATABASE_URL
 the application uses. It is never printed.
 """
-import importlib.util
+import re
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -26,17 +28,17 @@ from sqlalchemy import text  # noqa: E402
 
 from app.database import engine  # noqa: E402
 
-MIGRATION_PATH = BACKEND_DIR / "alembic" / "versions" / "d5a7c3e1f9b4_add_community_identity_uniqueness.py"
 
-
-def _load_migration_normalizer():
-    spec = importlib.util.spec_from_file_location("community_identity_migration", MIGRATION_PATH)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module._normalize_mobile
-
-
-normalize_mobile = _load_migration_normalizer()
+def normalize_mobile(value: str) -> str:
+    # Identical to _normalize_mobile in alembic/versions/d5a7c3e1f9b4_*.py.
+    digits = re.sub(r"\D", "", value or "")
+    if digits.startswith("00"):
+        digits = digits[2:]
+    if len(digits) == 12 and digits.startswith("91"):
+        digits = digits[2:]
+    elif len(digits) == 11 and digits.startswith("0"):
+        digits = digits[1:]
+    return digits
 
 
 def mask_email(value: str) -> str:
