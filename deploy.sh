@@ -142,7 +142,7 @@ log "Syncing permission catalog and default role grants..."
 PHASE="started"
 log "Starting $SERVICE on the new code..."
 sudo -n systemctl start "$SERVICE"
-sudo -n systemctl is-active --quiet "$SERVICE"
+systemctl is-active --quiet "$SERVICE"
 
 log "Checking backend health..."
 if ! wait_for_health; then
@@ -150,7 +150,7 @@ if ! wait_for_health; then
     log "ERROR: backend failed health check."
     log "The migrations had completed, so the previous code is NOT restored (it would run against the new schema)."
     log "$SERVICE is left running on the new code for inspection. Do not restart the old code."
-    sudo -n journalctl -u "$SERVICE" -n 50 --no-pager || true
+    journalctl -u "$SERVICE" -n 50 --no-pager || true
     exit 1
 fi
 log "Backend is healthy."
