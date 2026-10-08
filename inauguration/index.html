@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IT Academy Inauguration | Arckenites</title>
+<meta name="description" content="Arckenites IT Academy Inauguration New Era Technologies — 18 October 2026, Krishna Kutir, Nungambakkam, Chennai. Register now.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%80%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet" href="css/style.css?v=11">
+
+<script>
+  // Phase 1 only: where registrations are sent. Replace this with the Google
+  // Apps Script Web App URL from google-apps-script.md once it is deployed.
+  // A ?endpoint=... query parameter overrides this for local testing only —
+  // see js/app.js. Never used for anything auth-related; this page has none.
+  window.INAUGURATION_SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycbwFbsAktECbnCvXupVZbIPArFQZpQyNoCK-_1O1iGjTA3LNpTalSZfPMuPjNdFOUv8I/exec";
+</script>
+</head>
+<body data-theme="default">
+
+<!-- The switch is a single element, present once, that is repositioned and
+     rescaled by CSS alone depending on data-theme. It is never duplicated,
+     and it stays visible and controllable in both states. -->
+<button type="button" id="iaThemeToggle" class="ia-switch ia-switch-stage" role="switch" aria-checked="false" aria-label="Enable inauguration theme">
+  <span class="ia-switch-track"><span class="ia-switch-thumb"></span></span>
+  <span class="ia-switch-state" id="iaThemeState" aria-hidden="true">OFF</span>
+</button>
+
+<!-- Everything else lives in one wrapper, so the whole landing page fades
+     and appears/disappears as a single unit alongside the switch's move. -->
+<div id="iaPageContent">
+
+<div class="ia-bg" aria-hidden="true">
+  <span class="ia-blob ia-blob-1"></span>
+  <span class="ia-blob ia-blob-2"></span>
+  <span class="ia-blob ia-blob-3"></span>
+  <div class="ia-particles">
+    <span class="ia-particle"></span><span class="ia-particle"></span><span class="ia-particle"></span>
+    <span class="ia-particle"></span><span class="ia-particle"></span><span class="ia-particle"></span>
+    <span class="ia-particle"></span><span class="ia-particle"></span><span class="ia-particle"></span>
+    <span class="ia-particle"></span><span class="ia-particle"></span><span class="ia-particle"></span>
+  </div>
+</div>
+
+<!-- Shared gradient/filter defs for every lamp below, defined once so the
+     brass/glass/glow rendering stays consistent and lightweight (no repeated
+     <defs> per instance). Referenced across sibling <svg> roots via url(#id),
+     which resolves document-wide, not per-svg. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="iaBrass" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6b4a22"/>
+      <stop offset=".22" stop-color="#caa15a"/>
+      <stop offset=".5" stop-color="#f4dba3"/>
+      <stop offset=".78" stop-color="#b9893f"/>
+      <stop offset="1" stop-color="#5c3e1c"/>
+    </linearGradient>
+    <linearGradient id="iaBrassDark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#4a3217"/>
+      <stop offset=".5" stop-color="#8a6530"/>
+      <stop offset="1" stop-color="#3f2a13"/>
+    </linearGradient>
+    <linearGradient id="iaGlass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a2a1a" stop-opacity=".55"/>
+      <stop offset=".5" stop-color="#5c3f22" stop-opacity=".3"/>
+      <stop offset="1" stop-color="#2a1d12" stop-opacity=".6"/>
+    </linearGradient>
+    <radialGradient id="iaGlow" cx=".5" cy=".46" r=".55">
+      <stop offset="0" stop-color="#fff4da" stop-opacity=".95"/>
+      <stop offset=".45" stop-color="#ffb84d" stop-opacity=".4"/>
+      <stop offset="1" stop-color="#ffb84d" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="iaSoftBlur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="4.2"/>
+    </filter>
+    <filter id="iaShadow" x="-40%" y="-20%" width="180%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".4"/>
+    </filter>
+  </defs>
+</svg>
+
+<!-- Decorative hanging lamps, framing the hero — a small, curated set
+     (left: large + medium; right: medium + large), never a repeating row,
+     leaving the center clean for the logo and event details. Purely
+     decorative (hence aria-hidden on the wrapper); only the chain segment
+     of each lamp is a real interactive element (a labeled button), since
+     that is the part a user is meant to touch. One tap/click sets the
+     whole rig (chain + lantern, as one rotating piece) swinging — see
+     js/app.js. --><div class="ia-lamps" aria-hidden="true">
+  <div class="ia-lamp" data-pos="left-outer">
+    <svg class="ia-lamp-rig" viewBox="0 0 80 190" xmlns="http://www.w3.org/2000/svg">
+      <line x1="40" y1="0" x2="40" y2="46" stroke="url(#iaBrass)" stroke-width="2.4"/>
+      <g fill="url(#iaBrass)"><circle cx="40" cy="8" r="2.6"/><circle cx="40" cy="18" r="2.6"/><circle cx="40" cy="28" r="2.6"/><circle cx="40" cy="38" r="2.6"/></g>
+      <circle class="ia-lamp-glow" cx="40" cy="98" r="40" fill="url(#iaGlow)" filter="url(#iaSoftBlur)"/>
+      <g filter="url(#iaShadow)">
+        <path d="M24 46 h32 l5 12 h-42 z" fill="url(#iaBrassDark)"/>
+        <path d="M21 58 h38 v62 a19 19 0 0 1 -38 0 z" fill="url(#iaGlass)" stroke="url(#iaBrass)" stroke-width="1.6"/>
+        <line x1="30" y1="58" x2="30" y2="120" stroke="url(#iaBrassDark)" stroke-width="1.4"/>
+        <line x1="40" y1="58" x2="40" y2="124" stroke="url(#iaBrassDark)" stroke-width="1.4"/>
+        <line x1="50" y1="58" x2="50" y2="120" stroke="url(#iaBrassDark)" stroke-width="1.4"/>
+        <ellipse cx="40" cy="58" rx="19" ry="4" fill="url(#iaBrass)"/>
+        <ellipse cx="40" cy="120" rx="19" ry="4.5" fill="url(#iaBrassDark)"/>
+        <path d="M34 126 h12 l-6 14 z" fill="url(#iaBrass)"/>
+      </g>
+      <circle cx="40" cy="98" r="6" fill="#fff6e4"/>
+    </svg>
+    <button type="button" class="ia-lamp-chain-hit" aria-label="Touch this lamp's chain"></button>
+  </div>
+  <div class="ia-lamp" data-pos="left-inner">
+    <svg class="ia-lamp-rig" viewBox="0 0 80 150" xmlns="http://www.w3.org/2000/svg">
+      <line x1="40" y1="0" x2="40" y2="34" stroke="url(#iaBrass)" stroke-width="2"/>
+      <g fill="url(#iaBrass)"><circle cx="40" cy="7" r="2.1"/><circle cx="40" cy="15" r="2.1"/><circle cx="40" cy="23" r="2.1"/><circle cx="40" cy="31" r="2.1"/></g>
+      <circle class="ia-lamp-glow" cx="40" cy="76" r="30" fill="url(#iaGlow)" filter="url(#iaSoftBlur)"/>
+      <g filter="url(#iaShadow)">
+        <path d="M27 34 h26 l4 10 h-34 z" fill="url(#iaBrassDark)"/>
+        <path d="M25 44 h30 v48 a15 15 0 0 1 -30 0 z" fill="url(#iaGlass)" stroke="url(#iaBrass)" stroke-width="1.4"/>
+        <line x1="32" y1="44" x2="32" y2="92" stroke="url(#iaBrassDark)" stroke-width="1.2"/>
+        <line x1="40" y1="44" x2="40" y2="96" stroke="url(#iaBrassDark)" stroke-width="1.2"/>
+        <line x1="48" y1="44" x2="48" y2="92" stroke="url(#iaBrassDark)" stroke-width="1.2"/>
+        <ellipse cx="40" cy="44" rx="15" ry="3.2" fill="url(#iaBrass)"/>
+        <ellipse cx="40" cy="92" rx="15" ry="3.6" fill="url(#iaBrassDark)"/>
+        <path d="M35 97 h10 l-5 11 z" fill="url(#iaBrass)"/>
+      </g>
+      <circle cx="40" cy="76" r="4.6" fill="#fff6e4"/>
+    </svg>
+    <button type="button" class="ia-lamp-chain-hit" aria-label="Touch this lamp's chain"></button>
+  </div>
+  <div class="ia-lamp" data-pos="right-inner">
+    <svg class="ia-lamp-rig" viewBox="0 0 80 150" xmlns="http://www.w3.org/2000/svg">
+      <line x1="40" y1="0" x2="40" y2="34" stroke="url(#iaBrass)" stroke-width="2"/>
+      <g fill="url(#iaBrass)"><circle cx="40" cy="7" r="2.1"/><circle cx="40" cy="15" r="2.1"/><circle cx="40" cy="23" r="2.1"/><circle cx="40" cy="31" r="2.1"/></g>
+      <circle class="ia-lamp-glow" cx="40" cy="76" r="30" fill="url(#iaGlow)" filter="url(#iaSoftBlur)"/>
+      <g filter="url(#iaShadow)">
+        <path d="M27 34 h26 l4 10 h-34 z" fill="url(#iaBrassDark)"/>
+        <path d="M25 44 h30 v48 a15 15 0 0 1 -30 0 z" fill="url(#iaGlass)" stroke="url(#iaBrass)" stroke-width="1.4"/>
+        <line x1="32" y1="44" x2="32" y2="92" stroke="url(#iaBrassDark)" stroke-width="1.2"/>
+        <line x1="40" y1="44" x2="40" y2="96" stroke="url(#iaBrassDark)" stroke-width="1.2"/>
+        <line x1="48" y1="44" x2="48" y2="92" stroke="url(#iaBrassDark)" stroke-width="1.2"/>
+        <ellipse cx="40" cy="44" rx="15" ry="3.2" fill="url(#iaBrass)"/>
+        <ellipse cx="40" cy="92" rx="15" ry="3.6" fill="url(#iaBrassDark)"/>
+        <path d="M35 97 h10 l-5 11 z" fill="url(#iaBrass)"/>
+      </g>
+      <circle cx="40" cy="76" r="4.6" fill="#fff6e4"/>
+    </svg>
+    <button type="button" class="ia-lamp-chain-hit" aria-label="Touch this lamp's chain"></button>
+  </div>
+  <div class="ia-lamp" data-pos="right-outer">
+    <svg class="ia-lamp-rig" viewBox="0 0 80 190" xmlns="http://www.w3.org/2000/svg">
+      <line x1="40" y1="0" x2="40" y2="46" stroke="url(#iaBrass)" stroke-width="2.4"/>
+      <g fill="url(#iaBrass)"><circle cx="40" cy="8" r="2.6"/><circle cx="40" cy="18" r="2.6"/><circle cx="40" cy="28" r="2.6"/><circle cx="40" cy="38" r="2.6"/></g>
+      <circle class="ia-lamp-glow" cx="40" cy="98" r="40" fill="url(#iaGlow)" filter="url(#iaSoftBlur)"/>
+      <g filter="url(#iaShadow)">
+        <path d="M24 46 h32 l5 12 h-42 z" fill="url(#iaBrassDark)"/>
+        <path d="M21 58 h38 v62 a19 19 0 0 1 -38 0 z" fill="url(#iaGlass)" stroke="url(#iaBrass)" stroke-width="1.6"/>
+        <line x1="30" y1="58" x2="30" y2="120" stroke="url(#iaBrassDark)" stroke-width="1.4"/>
+        <line x1="40" y1="58" x2="40" y2="124" stroke="url(#iaBrassDark)" stroke-width="1.4"/>
+        <line x1="50" y1="58" x2="50" y2="120" stroke="url(#iaBrassDark)" stroke-width="1.4"/>
+        <ellipse cx="40" cy="58" rx="19" ry="4" fill="url(#iaBrass)"/>
+        <ellipse cx="40" cy="120" rx="19" ry="4.5" fill="url(#iaBrassDark)"/>
+        <path d="M34 126 h12 l-6 14 z" fill="url(#iaBrass)"/>
+      </g>
+      <circle cx="40" cy="98" r="6" fill="#fff6e4"/>
+    </svg>
+    <button type="button" class="ia-lamp-chain-hit" aria-label="Touch this lamp's chain"></button>
+  </div>
+</div>
+
+<header class="ia-topbar">
+  <div class="ia-wrap ia-topbar-row">
+    <img src="assets/logo-wordmark.png" alt="Arckenites" class="ia-logo">
+    <span class="ia-topbar-tag">IT Academy &middot; Inauguration</span>
+  </div>
+</header>
+
+<main>
+  <section class="ia-hero">
+    <div class="ia-wrap">
+      <p class="ia-eyebrow" data-cascade style="--stagger:.78s;">Arckenites IT Academy</p>
+      <p class="ia-eyebrow ia-eyebrow-sub" data-cascade style="--stagger:.86s;">You are cordially invited to</p>
+      <h1 class="ia-headline" data-cascade style="--stagger:.98s;">New Era Technologies<br>Inauguration</h1>
+      <p class="ia-sub" data-cascade style="--stagger:1.1s;">of our IT Academy a special place created for our students, built on practical
+        learning, expert mentorship, and real-world scenarios.</p>
+
+      <p class="ia-tagline-bar" data-cascade style="--stagger:1.18s;">
+        <span>Learn the Role</span><i class="ia-tagline-sep" aria-hidden="true">|</i><span>Solve the Scenario</span><i class="ia-tagline-sep" aria-hidden="true">|</i><span>Master the Skill</span>
+      </p>
+
+      <div class="ia-facts" data-cascade style="--stagger:1.25s;">
+        <div class="ia-fact">
+          <span class="ia-fact-icon"><i class="fa-solid fa-calendar-days"></i></span>
+          <div><span class="ia-fact-label">Date</span><strong>18 October 2026, Sunday</strong></div>
+        </div>
+        <div class="ia-fact">
+          <span class="ia-fact-icon"><i class="fa-solid fa-clock"></i></span>
+          <div><span class="ia-fact-label">Time</span><strong>10:30 AM &ndash; 12:30 PM</strong></div>
+        </div>
+        <div class="ia-fact">
+          <span class="ia-fact-icon"><i class="fa-solid fa-location-dot"></i></span>
+          <div><span class="ia-fact-label">Venue</span><strong>Krishna Kutir, Nungambakkam, Chennai</strong></div>
+        </div>
+      </div>
+
+      <button type="button" class="ia-cta" id="openRegister" data-cascade style="--stagger:1.32s;">
+        Register Now <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+  </section>
+
+  <section class="ia-details">
+    <div class="ia-wrap">
+      <div class="ia-detail-grid">
+        <div class="ia-detail-card" data-reveal>
+          <span class="ia-detail-icon"><i class="fa-solid fa-calendar-days"></i></span>
+          <h3>Event Date</h3>
+          <p>Sunday, 18 October 2026</p>
+        </div>
+        <div class="ia-detail-card" data-reveal>
+          <span class="ia-detail-icon"><i class="fa-solid fa-clock"></i></span>
+          <h3>Event Time</h3>
+          <p>10:30 AM &ndash; 12:30 PM</p>
+        </div>
+        <div class="ia-detail-card" data-reveal>
+          <span class="ia-detail-icon"><i class="fa-solid fa-location-dot"></i></span>
+          <h3>Venue</h3>
+          <p>Krishna Kutir, No 6/24, Ramanathan St,<br>Mahalingapuram, Nungambakkam,<br>Chennai, Tamil Nadu 600034</p>
+        </div>
+        <div class="ia-detail-card" data-reveal>
+          <span class="ia-detail-icon"><i class="fa-solid fa-user-tie"></i></span>
+          <h3>Mentor</h3>
+          <p>Richard Jessy<br>Mentor, Arckenites</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Academy highlights: typography-led, not icon cards — a quiet row of
+       labels with a thin accent rule, premium rather than playful. -->
+  <section class="ia-highlights">
+    <div class="ia-wrap">
+      <p class="ia-highlights-kicker" data-reveal>Why the Academy</p>
+      <div class="ia-highlights-row">
+        <div class="ia-highlight" data-reveal>
+          <span class="ia-highlight-num">01</span>
+          <h4>Practical Learning</h4>
+        </div>
+        <div class="ia-highlight" data-reveal>
+          <span class="ia-highlight-num">02</span>
+          <h4>Expert Mentorship</h4>
+        </div>
+        <div class="ia-highlight" data-reveal>
+          <span class="ia-highlight-num">03</span>
+          <h4>Real Scenarios</h4>
+        </div>
+        <div class="ia-highlight" data-reveal>
+          <span class="ia-highlight-num">04</span>
+          <h4>Better Careers</h4>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Invitation: the mentor's own message, signed — kept concise for a
+       website rather than reproducing the poster's full letter. -->
+  <section class="ia-invitation">
+    <div class="ia-wrap ia-invitation-inner">
+      <p class="ia-invitation-kicker" data-reveal>A Word From Our Mentor</p>
+      <p class="ia-invitation-body" data-reveal>Dear Students,<br><br>
+        It gives me great joy to invite you to the opening of our IT Academy a special
+        place created for our students. Your support and trust have made this possible.
+        Please join us for the inauguration and be part of this new beginning. We look
+        forward to welcoming you.</p>
+      <p class="ia-invitation-signature" data-reveal>Richard Jessy<span>Mentor, Arckenites</span></p>
+    </div>
+  </section>
+
+  <section class="ia-closing">
+    <div class="ia-wrap">
+      <p class="ia-closing-kicker" data-reveal>Let's Grow Together</p>
+      <h2 data-reveal>Be part of a new era.</h2>
+      <p data-reveal>Seats are limited. Reserve your place at the inauguration and join us as we mark the beginning
+        of our IT Academy's New Era Technologies initiative.</p>
+      <button type="button" class="ia-cta ia-cta-ghost" id="openRegisterBottom" data-reveal>
+        Register Now <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+  </section>
+</main>
+
+<footer class="ia-footer">
+  <div class="ia-wrap ia-footer-inner">
+    <span>&copy; <span id="iaYear"></span> Arckenites. All rights reserved.</span>
+    <a href="https://www.arckenites.com" class="ia-footer-site">www.arckenites.com</a>
+    <span class="ia-footer-tagline">Students Today &nbsp;|&nbsp; Leaders Tomorrow</span>
+  </div>
+</footer>
+
+</div><!-- #iaPageContent -->
+
+<!-- Registration modal -->
+<div class="ia-modal-backdrop" id="iaModalBackdrop">
+  <div class="ia-modal" role="dialog" aria-modal="true" aria-labelledby="iaModalTitle">
+    <button type="button" class="ia-modal-close" id="iaModalClose" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="ia-modal-view" id="iaFormView">
+      <h3 id="iaModalTitle">Register for the Inauguration</h3>
+      <p class="ia-modal-sub">Arckenites IT Academy Inauguration &middot; 18 October 2026</p>
+
+      <form id="iaForm" novalidate>
+        <div class="ia-field">
+          <label for="iaName">Name</label>
+          <input type="text" id="iaName" autocomplete="name" placeholder="Your full name">
+          <span class="ia-error" id="iaNameError"></span>
+        </div>
+        <div class="ia-field">
+          <label for="iaMobile">Mobile</label>
+          <input type="tel" id="iaMobile" autocomplete="tel" placeholder="Your mobile number">
+          <span class="ia-error" id="iaMobileError"></span>
+        </div>
+        <div class="ia-field">
+          <label for="iaEmail">Email</label>
+          <input type="email" id="iaEmail" autocomplete="email" placeholder="you@example.com">
+          <span class="ia-error" id="iaEmailError"></span>
+        </div>
+
+        <div class="ia-form-banner" id="iaFormBanner" style="display:none;"></div>
+
+        <button type="submit" class="ia-cta ia-cta-block" id="iaSubmitBtn">Register</button>
+      </form>
+    </div>
+
+    <div class="ia-modal-view" id="iaSuccessView" style="display:none;">
+      <div class="ia-success-icon"><i class="fa-solid fa-circle-check"></i></div>
+      <h3>Registration Successful</h3>
+      <p>Thank you for registering for the<br>Arckenites IT Academy Inauguration.</p>
+      <p class="ia-success-note">Your ticket will be sent to your registered email.</p>
+      <button type="button" class="ia-cta ia-cta-block" id="iaSuccessClose">Done</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js?v=4"></script>
+</body>
+</html>

@@ -1,0 +1,448 @@
+/* Arckenites Inauguration — Phase 1 landing page.
+   Fully self-contained: its own tokens, its own layout. Nothing here is
+   shared with arckenites-orange/css/style.css, so neither can affect the
+   other, and this page can later move to its own subdomain with no
+   cross-folder dependency. */
+
+:root{
+  --ia-bg:#0b0b10;
+  --ia-bg-alt:#111118;
+  --ia-surface:#15151e;
+  --ia-border:rgba(255,255,255,.08);
+  --ia-ink:#f5f5f7;
+  --ia-muted:#aeaeb8;
+  --ia-muted-2:#7c7c89;
+  --ia-accent:#ff6e30;
+  --ia-accent-2:#ffb347;
+  --ia-danger:#ff6b6b;
+  --ia-radius:18px;
+  --ia-shadow:0 20px 60px rgba(0,0,0,.45);
+}
+
+*{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+body{
+  margin:0;
+  background:var(--ia-bg);
+  color:var(--ia-ink);
+  font-family:"Poppins", Arial, sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1,h2,h3{ font-family:"Sora", "Poppins", Arial, sans-serif; margin:0; }
+p{ margin:0; }
+.ia-wrap{ max-width:1080px; margin:0 auto; padding:0 20px; }
+
+/* Ambient background blobs — pure CSS, no canvas/JS cost */
+.ia-bg{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+.ia-blob{ position:absolute; border-radius:50%; filter:blur(90px); opacity:.35; animation:ia-float 16s ease-in-out infinite; }
+.ia-blob-1{ width:520px; height:520px; top:-160px; left:-140px; background:radial-gradient(circle, var(--ia-accent), transparent 70%); }
+.ia-blob-2{ width:480px; height:480px; bottom:-180px; right:-120px; background:radial-gradient(circle, var(--ia-accent-2), transparent 70%); animation-delay:-8s; }
+/* Extra blob + rising particles: part of the special "inauguration" theme.
+   They exist in the page always, but stay invisible until the theme switch
+   turns them on — nothing here duplicates the page. */
+.ia-blob-3{ width:380px; height:380px; left:50%; top:32%; transform:translate(-50%,-50%); background:radial-gradient(circle, var(--ia-accent), transparent 70%); opacity:0; transition:opacity .5s ease; }
+@keyframes ia-float{
+  0%,100%{ transform:translate(0,0) scale(1); }
+  50%{ transform:translate(30px,-24px) scale(1.06); }
+}
+@keyframes ia-float-center{
+  0%,100%{ transform:translate(-50%,-50%) scale(1); }
+  50%{ transform:translate(calc(-50% + 20px),calc(-50% - 18px)) scale(1.08); }
+}
+@keyframes ia-hue{ from{ filter:hue-rotate(0deg); } to{ filter:hue-rotate(45deg); } }
+
+.ia-particles{ position:absolute; inset:0; overflow:hidden; opacity:0; transition:opacity .5s ease; }
+.ia-particle{ position:absolute; bottom:-16px; width:6px; height:6px; border-radius:50%; background:var(--ia-accent-2); box-shadow:0 0 10px 2px rgba(255,179,71,.75); opacity:0; }
+.ia-particle:nth-child(1){ left:4%; } .ia-particle:nth-child(2){ left:12%; } .ia-particle:nth-child(3){ left:21%; }
+.ia-particle:nth-child(4){ left:30%; } .ia-particle:nth-child(5){ left:39%; } .ia-particle:nth-child(6){ left:48%; }
+.ia-particle:nth-child(7){ left:57%; } .ia-particle:nth-child(8){ left:66%; } .ia-particle:nth-child(9){ left:75%; }
+.ia-particle:nth-child(10){ left:84%; } .ia-particle:nth-child(11){ left:91%; } .ia-particle:nth-child(12){ left:97%; }
+@keyframes ia-particle-rise{
+  0%{ transform:translateY(0) scale(.6); opacity:0; }
+  12%{ opacity:.9; }
+  88%{ opacity:.45; }
+  100%{ transform:translateY(-105vh) scale(1); opacity:0; }
+}
+
+/* ====================================================================
+   Decorative hanging lamps — premium venue lanterns, not party-string
+   bulbs. A small number of large, detailed lamps frame the hero instead
+   of filling the screen (left: large + medium; right: medium + large).
+   Each .ia-lamp is positioned by --side/--inset/--scale/--delay custom
+   properties set inline in the HTML. The rotating .ia-lamp-rig (chain +
+   lantern body, as one SVG) pivots from the fixed ceiling anchor at its
+   own top center — chain and lamp swing together as one physical piece,
+   never the bulb alone. The whole group is invisible while the theme is
+   OFF; each lamp's glow fades in with its own --delay when turned ON. ==================================================================== */
+.ia-lamps{ position:absolute; top:0; left:0; right:0; height:0; z-index:1; overflow:visible; }
+.ia-lamp{
+  position:absolute;
+  top:0;
+  left:var(--side, auto);
+  right:var(--side-right, auto);
+  width:80px;
+  transform:scale(var(--scale, 1));
+  transform-origin:top center;
+  pointer-events:none; /* only the chain hit-area below is interactive */
+}
+.ia-lamp-rig{
+  display:block;
+  width:100%;
+  height:auto;
+  transform-origin:40px 0px; /* the ceiling anchor, in the svg's own viewBox units */
+  transform:rotate(0deg);
+  opacity:0;
+  transition:opacity .6s ease;
+  transition-delay:var(--delay, 0s);
+}
+[data-theme="inauguration"] .ia-lamp-rig{ opacity:1; }
+/* The real interactive element: a transparent, labeled button laid over
+   just the chain portion of the rig (not the lantern body), so "touch the
+   chain" is literal, not the whole decorative graphic. Sized as a percent
+   of the lamp's own width/height so it tracks --scale automatically. */
+.ia-lamp-chain-hit{
+  position:absolute; top:0; left:50%; width:28px; height:58%;
+  transform:translateX(-50%);
+  background:none; border:none; padding:0; margin:0;
+  pointer-events:auto; cursor:pointer;
+}
+.ia-lamp[data-pos="left-inner"] .ia-lamp-chain-hit,
+.ia-lamp[data-pos="right-inner"] .ia-lamp-chain-hit{ height:48%; }
+/* Subtle desktop hover affordance only — never a swing, never continuous
+   motion; just a faint brightness lift on the glow while the cursor is
+   over the chain, so the chain reads as interactive. */
+[data-theme="inauguration"] .ia-lamp:has(.ia-lamp-chain-hit:hover) .ia-lamp-glow{ filter:brightness(1.12); }
+.ia-lamp-glow{ transition:opacity .6s ease; transition-delay:var(--delay, 0s); opacity:0; }
+[data-theme="inauguration"] .ia-lamp-glow{ opacity:1; }
+
+/* Damped pendulum swing: acceleration into the first large arc, then a
+   decaying series of ever-smaller arcs settling back to rest — the whole
+   rig (chain + lantern) rotates together from the ceiling anchor, so the
+   lamp is carried by the chain rather than spinning on its own. */
+@keyframes ia-lamp-swing{
+  0%{ transform:rotate(0deg); }
+  10%{ transform:rotate(9deg); }
+  24%{ transform:rotate(-6.5deg); }
+  38%{ transform:rotate(4.4deg); }
+  52%{ transform:rotate(-2.8deg); }
+  66%{ transform:rotate(1.7deg); }
+  80%{ transform:rotate(-.9deg); }
+  92%{ transform:rotate(.4deg); }
+  100%{ transform:rotate(0deg); }
+}
+@keyframes ia-lamp-glow-lift{
+  0%{ opacity:1; }
+  14%{ opacity:1; filter:brightness(1.35); }
+  100%{ opacity:1; filter:brightness(1); }
+}
+.ia-lamp-rig.is-swinging{ animation:ia-lamp-swing 1.9s cubic-bezier(.22,.61,.36,1); }
+.ia-lamp-rig.is-swinging .ia-lamp-glow{ animation:ia-lamp-glow-lift 1.9s ease-out; }
+
+/* A small, curated set: 4 lamps on desktop, 2 on tablet/mobile (one per
+   side) — never a repeating row, and the center stays clean for the logo
+   and event details. */
+.ia-lamp[data-pos="left-outer"]{ --side:1%; --scale:1.15; --delay:.6s; }
+.ia-lamp[data-pos="left-inner"]{ --side:15%; --scale:.85; --delay:.78s; }
+.ia-lamp[data-pos="right-inner"]{ --side-right:15%; --scale:.85; --delay:.9s; }
+.ia-lamp[data-pos="right-outer"]{ --side-right:2%; --scale:1.1; --delay:1.08s; }
+
+@media (max-width:860px){
+  .ia-lamp[data-pos="left-inner"], .ia-lamp[data-pos="right-inner"]{ display:none; }
+  .ia-lamp[data-pos="left-outer"]{ --scale:.8; }
+  .ia-lamp[data-pos="right-outer"]{ --scale:.78; }
+}
+@media (max-width:480px){
+  .ia-lamp[data-pos="left-outer"]{ --side:-2%; --scale:.62; }
+  .ia-lamp[data-pos="right-outer"]{ --side-right:-2%; --scale:.6; }
+}
+
+/* ---------- The special inauguration theme: OFF by default ----------
+   Toggled only by js/app.js, only on user click, never on page load. */
+[data-theme="inauguration"] .ia-blob-1,
+[data-theme="inauguration"] .ia-blob-2{ opacity:.5; animation:ia-float 9s ease-in-out infinite, ia-hue 16s linear infinite; }
+[data-theme="inauguration"] .ia-blob-3{ opacity:.32; animation:ia-float-center 11s ease-in-out infinite, ia-hue 14s linear infinite; }
+[data-theme="inauguration"] .ia-particles{ opacity:1; }
+[data-theme="inauguration"] .ia-particle{ animation-name:ia-particle-rise; animation-timing-function:linear; animation-iteration-count:infinite; }
+[data-theme="inauguration"] .ia-particle:nth-child(1){ animation-duration:9s; animation-delay:0s; }
+[data-theme="inauguration"] .ia-particle:nth-child(2){ animation-duration:11s; animation-delay:.8s; }
+[data-theme="inauguration"] .ia-particle:nth-child(3){ animation-duration:10s; animation-delay:1.6s; }
+[data-theme="inauguration"] .ia-particle:nth-child(4){ animation-duration:12s; animation-delay:.3s; }
+[data-theme="inauguration"] .ia-particle:nth-child(5){ animation-duration:9.5s; animation-delay:2.1s; }
+[data-theme="inauguration"] .ia-particle:nth-child(6){ animation-duration:13s; animation-delay:1.1s; }
+[data-theme="inauguration"] .ia-particle:nth-child(7){ animation-duration:10.5s; animation-delay:2.6s; }
+[data-theme="inauguration"] .ia-particle:nth-child(8){ animation-duration:11.5s; animation-delay:.6s; }
+[data-theme="inauguration"] .ia-particle:nth-child(9){ animation-duration:9.2s; animation-delay:1.9s; }
+[data-theme="inauguration"] .ia-particle:nth-child(10){ animation-duration:12.5s; animation-delay:2.3s; }
+[data-theme="inauguration"] .ia-particle:nth-child(11){ animation-duration:10.8s; animation-delay:.2s; }
+[data-theme="inauguration"] .ia-particle:nth-child(12){ animation-duration:13.5s; animation-delay:1.4s; }
+
+[data-theme="inauguration"] .ia-headline{ animation:ia-glow-pulse 3.6s ease-in-out infinite; }
+@keyframes ia-glow-pulse{
+  0%,100%{ text-shadow:0 0 18px rgba(255,140,60,.4); }
+  50%{ text-shadow:0 0 36px rgba(255,160,70,.75); }
+}
+[data-theme="inauguration"] .ia-cta{ animation:ia-cta-pulse 2.8s ease-in-out infinite; }
+@keyframes ia-cta-pulse{
+  0%,100%{ box-shadow:0 14px 34px rgba(255,110,48,.35), 0 0 0 0 rgba(255,179,71,.45); }
+  50%{ box-shadow:0 14px 34px rgba(255,110,48,.45), 0 0 28px 5px rgba(255,179,71,.5); }
+}
+[data-theme="inauguration"] .ia-fact,
+[data-theme="inauguration"] .ia-detail-card{
+  border-color:transparent;
+  background-image:linear-gradient(var(--ia-surface), var(--ia-surface)), linear-gradient(120deg, var(--ia-accent), var(--ia-accent-2), var(--ia-accent));
+  background-origin:border-box;
+  background-clip:padding-box, border-box;
+  background-size:100% 100%, 220% 220%;
+  animation:ia-border-shift 7s linear infinite;
+}
+@keyframes ia-border-shift{ to{ background-position:0 0, 100% 50%; } }
+
+@media (prefers-reduced-motion: reduce){
+  /* The theme stays available, but every decorative motion is removed —
+     only static color/glow accents remain. */
+  .ia-blob{ animation:none; }
+  html{ scroll-behavior:auto; }
+  [data-theme="inauguration"] .ia-blob-1,
+  [data-theme="inauguration"] .ia-blob-2,
+  [data-theme="inauguration"] .ia-blob-3{ animation:none; }
+  [data-theme="inauguration"] .ia-particle{ animation:none; opacity:.4; bottom:40%; }
+  [data-theme="inauguration"] .ia-headline{ animation:none; text-shadow:0 0 22px rgba(255,150,70,.5); }
+  [data-theme="inauguration"] .ia-cta{ animation:none; }
+  [data-theme="inauguration"] .ia-fact,
+  [data-theme="inauguration"] .ia-detail-card{ animation:none; }
+
+  /* The switch's move and the page reveal are functional UI, not pure
+     decoration, so they stay — just fast and without the cinematic easing. */
+  .ia-switch-stage{ transition:transform .2s ease; }
+  #iaPageContent{ transition:opacity .2s ease, visibility 0s linear .2s; }
+  [data-theme="inauguration"] #iaPageContent{ transition:opacity .2s ease, visibility 0s linear 0s; }
+
+  /* Lights stay visible and interaction stays functional, but the swing
+     (rotation) is removed. A brief glow blip still confirms the tap/click. */
+  @keyframes ia-lamp-swing-reduced{
+    0%{ transform:rotate(0deg); }
+    40%{ transform:rotate(2.5deg); }
+    100%{ transform:rotate(0deg); }
+  }
+  .ia-lamp-rig.is-swinging{ animation:ia-lamp-swing-reduced .5s ease-out; }
+  .ia-lamp-rig.is-swinging .ia-lamp-glow{ animation:ia-lamp-glow-lift .5s ease-out; }
+  .ia-lamp-rig, .ia-lamp-glow{ transition-delay:0s; } /* lamps light up immediately, no sequential delay */
+  [data-reveal], [data-cascade]{ transition-delay:0s; } /* the hero cascade collapses to one quick fade */
+}
+
+/* Topbar — the logo is centered on the viewport itself (not just within
+   ia-wrap's content column), so it sits exactly between the two outer
+   hanging lamps regardless of the tag pill's width next to it. */
+.ia-topbar{ position:relative; z-index:2; padding:22px 0; }
+.ia-topbar-row{ position:relative; display:flex; align-items:center; justify-content:flex-end; min-height:44px; }
+.ia-logo{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); height:44px; width:auto; display:block; }
+.ia-topbar-tag{ font-size:.75rem; letter-spacing:.12em; text-transform:uppercase; color:var(--ia-muted); border:1px solid var(--ia-border); padding:6px 14px; border-radius:999px; white-space:nowrap; }
+
+@media (max-width:860px){
+  /* At this width the tag pill sits close enough to the top-right switch
+     (which is a fixed-size 70px target, not part of this row's layout) to
+     visually collide with it — hiding the tag keeps the centered logo and
+     the switch both clear. */
+  .ia-topbar-tag{ display:none; }
+  .ia-topbar-row{ justify-content:center; }
+}
+@media (max-width:480px){
+  .ia-logo{ height:32px; }
+}
+
+/* ====================================================================
+   The ON/OFF switch — controls the entire visual experience.
+
+   OFF: the page content is invisible and the screen is black; only this
+        one large, centered switch is shown.
+   ON:  the page content is visible; the same switch — not a copy — has
+        moved to the top-right corner at its small size.
+
+   This is ONE element in the DOM at all times. Its position and size are
+   driven entirely by `transform`, computed from fixed pixel offsets and
+   viewport units, so the move-and-shrink (or grow-and-center) reads as one
+   continuous, physically continuous motion rather than two switches
+   swapping places. ==================================================== */
+:root{ --ia-switch-w:70px; --ia-switch-h:36px; --ia-switch-margin:24px; --ia-switch-off-scale:2.6; }
+
+.ia-switch-stage{
+  position:fixed;
+  top:var(--ia-switch-margin); right:var(--ia-switch-margin);
+  width:var(--ia-switch-w); height:var(--ia-switch-h);
+  display:flex; align-items:center; gap:10px;
+  background:transparent; border:none; cursor:pointer; padding:0; font:inherit; color:var(--ia-muted);
+  transform-origin:center center;
+  transform:translate(0,0) scale(1);
+  transition:transform 1.1s cubic-bezier(.65,0,.35,1);
+  z-index:200;
+}
+.ia-switch-track{ width:42px; height:24px; flex-shrink:0; border-radius:999px; background:var(--ia-surface); border:1px solid var(--ia-border); position:relative; transition:background .25s ease, border-color .25s ease; }
+.ia-switch-thumb{ position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--ia-muted); transition:transform .25s ease, background .25s ease; }
+.ia-switch.is-on .ia-switch-track{ background:rgba(255,110,48,.22); border-color:var(--ia-accent); }
+.ia-switch.is-on .ia-switch-thumb{ transform:translateX(18px); background:var(--ia-accent); }
+.ia-switch-state{ font-size:.78rem; font-weight:700; letter-spacing:.05em; min-width:26px; text-align:left; color:var(--ia-muted); }
+.ia-switch.is-on .ia-switch-state{ color:var(--ia-accent); }
+.ia-switch:focus-visible{ outline:2px solid var(--ia-accent); outline-offset:3px; border-radius:999px; }
+
+/* OFF: move from the top-right anchor to dead-center and scale up. The
+   translate distance is computed from the viewport and the switch's own
+   fixed base size, so it is correct at any width with no JS measuring. */
+[data-theme="default"] .ia-switch-stage{
+  transform:
+    translate(
+      calc(-50vw + var(--ia-switch-margin) + (var(--ia-switch-w) / 2)),
+      calc(50vh - var(--ia-switch-margin) - (var(--ia-switch-h) / 2))
+    )
+    scale(var(--ia-switch-off-scale));
+}
+
+/* The rest of the page: hidden (and non-interactive) while OFF, revealed
+   just after the switch starts its move while turning ON. */
+body[data-theme="default"]{ background:#000; } /* literally black while OFF */
+/* NOTE: data-theme lives on <body> itself, so this must be body[data-theme=...],
+   not "[data-theme=...] body" — that descendant-combinator form can never match
+   (body cannot be its own descendant), unlike every other [data-theme] rule in
+   this file, which correctly targets elements *inside* body. */
+
+#iaPageContent{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  /* Collapsed to zero height (only once fully faded out, via the delay) so
+     the tall landing page cannot create a vertical scrollbar while OFF —
+     a scrollbar would narrow the usable viewport and throw off the
+     vw-based centering math used to position the switch. */
+  max-height:0;
+  overflow:hidden;
+  transition:opacity .5s ease, visibility 0s linear .5s, max-height 0s linear .5s;
+}
+[data-theme="inauguration"] #iaPageContent{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+  max-height:none;
+  overflow:visible;
+  transition:opacity .7s ease .35s, visibility 0s linear 0s, max-height 0s linear 0s;
+}
+
+@media (max-width:480px){
+  :root{ --ia-switch-margin:16px; --ia-switch-off-scale:2.1; }
+}
+
+/* Reveal-on-scroll (progressive enhancement; content is visible without JS) */
+/* --stagger (set inline on specific hero elements) delays only THEIR
+   transition start; it defaults to 0s, so every other [data-reveal] element
+   (the lower detail/closing sections, revealed by scrolling) is unaffected. */
+[data-reveal]{ opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease; transition-delay:var(--stagger, 0s); }
+[data-reveal].is-visible{ opacity:1; transform:none; }
+
+/* Hero cascade: these elements sit in the hero, already inside the
+   viewport on load, so a scroll-visibility observer would fire for them
+   immediately — long before the switch is ever turned on, breaking the
+   stagger entirely. They are gated on data-theme instead, so the delay
+   counts from the moment the switch is actually clicked. */
+[data-cascade]{ opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease; }
+[data-theme="inauguration"] [data-cascade]{ opacity:1; transform:none; transition-delay:var(--stagger, 0s); }
+
+/* Hero */
+.ia-hero{ position:relative; z-index:2; padding:min(10vh,90px) 0 70px; text-align:center; }
+.ia-eyebrow{ font-size:.82rem; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--ia-accent); margin-bottom:14px; }
+.ia-eyebrow-sub{ font-size:.78rem; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--ia-muted); margin:-8px 0 16px; }
+.ia-headline{ font-size:clamp(2.4rem, 7vw, 4.6rem); font-weight:800; line-height:1.05; letter-spacing:-.01em; }
+.ia-sub{ max-width:620px; margin:22px auto 0; color:var(--ia-muted); font-size:clamp(1rem,2vw,1.15rem); line-height:1.7; }
+
+.ia-tagline-bar{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:10px; margin:26px 0 0; font-size:.78rem; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--ia-accent-2); }
+.ia-tagline-sep{ font-style:normal; color:var(--ia-border); }
+
+.ia-facts{ display:flex; flex-wrap:wrap; justify-content:center; gap:14px; margin:42px 0 38px; }
+.ia-fact{ display:flex; align-items:center; gap:12px; background:var(--ia-surface); border:1px solid var(--ia-border); border-radius:14px; padding:14px 20px; text-align:left; }
+.ia-fact-icon{ width:38px; height:38px; flex-shrink:0; border-radius:11px; display:flex; align-items:center; justify-content:center; background:rgba(255,110,48,.14); color:var(--ia-accent); }
+.ia-fact-label{ display:block; font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ia-muted-2); }
+.ia-fact strong{ font-size:.96rem; font-weight:600; }
+
+.ia-cta{ display:inline-flex; align-items:center; gap:10px; border:none; cursor:pointer; background:linear-gradient(135deg, var(--ia-accent), var(--ia-accent-2)); color:#15110b; font-weight:700; font-size:1.05rem; padding:17px 34px; border-radius:999px; box-shadow:0 14px 34px rgba(255,110,48,.35); transition:opacity .7s ease, transform .2s ease, box-shadow .2s ease; }
+.ia-cta:hover{ transform:translateY(-2px); box-shadow:0 18px 42px rgba(255,110,48,.45); }
+.ia-cta:active{ transform:translateY(0); }
+.ia-cta-ghost{ background:transparent; border:1.5px solid var(--ia-accent); color:var(--ia-accent); box-shadow:none; }
+.ia-cta-ghost:hover{ background:rgba(255,110,48,.1); box-shadow:none; }
+.ia-cta-block{ width:100%; justify-content:center; }
+
+/* Event detail cards */
+.ia-details{ position:relative; z-index:2; padding:30px 0 70px; }
+.ia-detail-grid{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; }
+.ia-detail-card{ background:var(--ia-surface); border:1px solid var(--ia-border); border-radius:var(--ia-radius); padding:30px 26px; text-align:center; }
+.ia-detail-icon{ width:52px; height:52px; margin:0 auto 18px; border-radius:16px; display:flex; align-items:center; justify-content:center; background:rgba(255,110,48,.14); color:var(--ia-accent); font-size:1.3rem; }
+.ia-detail-card h3{ font-size:1.05rem; font-weight:700; margin-bottom:10px; }
+.ia-detail-card p{ color:var(--ia-muted); line-height:1.6; font-size:.95rem; }
+
+/* Academy highlights — sophisticated typography, deliberately not another
+   row of icon cards: a thin kicker rule and four quiet numbered labels. */
+.ia-highlights{ position:relative; z-index:2; padding:10px 0 70px; }
+.ia-highlights-kicker{ text-align:center; font-size:.75rem; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--ia-muted-2); margin-bottom:28px; }
+.ia-highlights-row{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px 24px; }
+.ia-highlight{ padding:28px 18px; text-align:center; }
+.ia-highlight-num{ display:block; font-family:"Sora", sans-serif; font-size:.78rem; font-weight:600; color:var(--ia-accent); letter-spacing:.08em; margin-bottom:10px; }
+.ia-highlight h4{ font-size:1rem; font-weight:600; letter-spacing:.01em; color:var(--ia-ink); }
+
+/* Invitation — the mentor's message, set like a formal letter rather than
+   a marketing block. */
+.ia-invitation{ position:relative; z-index:2; padding:10px 0 80px; }
+.ia-invitation-inner{ max-width:620px; text-align:center; }
+.ia-invitation-kicker{ font-size:.75rem; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--ia-accent); margin-bottom:22px; }
+.ia-invitation-body{ font-family:"Sora", serif; font-size:clamp(1.05rem,2vw,1.3rem); line-height:1.85; color:var(--ia-ink); font-weight:500; }
+.ia-invitation-signature{ margin-top:26px; font-weight:700; font-size:1.02rem; }
+.ia-invitation-signature span{ display:block; margin-top:4px; font-weight:500; font-size:.82rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ia-muted-2); }
+
+/* Closing CTA */
+.ia-closing{ position:relative; z-index:2; padding:30px 0 110px; text-align:center; }
+.ia-closing-kicker{ font-size:.75rem; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--ia-accent-2); margin-bottom:14px; }
+.ia-closing h2{ font-size:clamp(1.7rem,4vw,2.4rem); margin-bottom:16px; }
+.ia-closing p{ max-width:540px; margin:0 auto 34px; color:var(--ia-muted); line-height:1.7; }
+
+.ia-footer{ position:relative; z-index:2; padding:26px 0 34px; text-align:center; color:var(--ia-muted-2); font-size:.85rem; border-top:1px solid var(--ia-border); }
+.ia-footer-inner{ display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px 18px; }
+.ia-footer-site{ color:var(--ia-accent-2); text-decoration:none; }
+.ia-footer-site:hover{ text-decoration:underline; }
+.ia-footer-tagline{ letter-spacing:.08em; text-transform:uppercase; font-size:.75rem; color:var(--ia-muted-2); }
+
+@media (max-width:860px){
+  .ia-detail-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .ia-highlights-row{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .ia-fact{ width:100%; }
+}
+@media (max-width:480px){
+  .ia-wrap{ padding:0 16px; }
+  .ia-hero{ padding-top:7vh; }
+  .ia-fact{ padding:12px 16px; }
+  .ia-detail-grid{ grid-template-columns:1fr; }
+  .ia-highlights-row{ grid-template-columns:1fr; }
+}
+
+/* ---------- Registration modal ---------- */
+.ia-modal-backdrop{ position:fixed; inset:0; z-index:50; background:rgba(5,5,8,.72); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; visibility:hidden; transition:opacity .25s ease; }
+.ia-modal-backdrop.is-open{ opacity:1; visibility:visible; }
+.ia-modal{ position:relative; width:100%; max-width:440px; max-height:calc(100vh - 40px); overflow-y:auto; background:var(--ia-bg-alt); border:1px solid var(--ia-border); border-radius:20px; padding:34px 30px; box-shadow:var(--ia-shadow); transform:translateY(16px) scale(.98); transition:transform .25s ease; }
+.ia-modal-backdrop.is-open .ia-modal{ transform:translateY(0) scale(1); }
+.ia-modal-close{ position:absolute; top:16px; right:16px; width:34px; height:34px; border-radius:50%; border:1px solid var(--ia-border); background:transparent; color:var(--ia-muted); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.ia-modal-close:hover{ color:var(--ia-ink); border-color:var(--ia-ink); }
+.ia-modal h3{ font-size:1.3rem; font-weight:700; margin-bottom:6px; }
+.ia-modal-sub{ color:var(--ia-muted); font-size:.88rem; margin-bottom:26px; }
+
+.ia-field{ margin-bottom:16px; }
+.ia-field label{ display:block; font-size:.82rem; color:var(--ia-muted); margin-bottom:7px; }
+.ia-field input{ width:100%; padding:13px 14px; border-radius:11px; border:1px solid var(--ia-border); background:var(--ia-surface); color:var(--ia-ink); font:inherit; font-size:.96rem; }
+.ia-field input::placeholder{ color:var(--ia-muted-2); }
+.ia-field input:focus{ outline:none; border-color:var(--ia-accent); box-shadow:0 0 0 3px rgba(255,110,48,.18); }
+.ia-field input.is-invalid{ border-color:var(--ia-danger); }
+.ia-error{ display:block; min-height:18px; color:var(--ia-danger); font-size:.8rem; margin-top:5px; }
+.ia-form-banner{ background:rgba(255,107,107,.12); border:1px solid rgba(255,107,107,.35); color:#ffb3b3; border-radius:10px; padding:11px 14px; font-size:.85rem; margin-bottom:16px; }
+
+.ia-success-icon{ font-size:3rem; color:#2dd4a7; text-align:center; margin-bottom:18px; }
+#iaSuccessView h3{ text-align:center; margin-bottom:14px; }
+#iaSuccessView p{ text-align:center; color:var(--ia-muted); line-height:1.7; margin-bottom:8px; }
+#iaSuccessView .ia-success-note{ color:var(--ia-ink); font-weight:600; margin-bottom:24px; }
+
+@media (max-width:480px){
+  .ia-modal{ padding:28px 22px; border-radius:16px; }
+}
