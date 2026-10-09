@@ -84,16 +84,55 @@ document.addEventListener('DOMContentLoaded', () => {
   const nameInput = document.getElementById('iaName');
   const mobileInput = document.getElementById('iaMobile');
   const emailInput = document.getElementById('iaEmail');
+  const addressInput = document.getElementById('iaAddress');
+  const domainSelect = document.getElementById('iaDomain');
+  const domainOtherWrap = document.getElementById('iaDomainOtherWrap');
+  const domainOtherInput = document.getElementById('iaDomainOther');
+  const whatsappOtherWrap = document.getElementById('iaWhatsappOtherWrap');
+  const whatsappOtherInput = document.getElementById('iaWhatsappOther');
+  const commentsInput = document.getElementById('iaComments');
+
   const nameError = document.getElementById('iaNameError');
   const mobileError = document.getElementById('iaMobileError');
+  const whatsappError = document.getElementById('iaWhatsappError');
   const emailError = document.getElementById('iaEmailError');
+  const addressError = document.getElementById('iaAddressError');
+  const domainError = document.getElementById('iaDomainError');
+  const travelError = document.getElementById('iaTravelError');
+  const foodError = document.getElementById('iaFoodError');
+  const tshirtError = document.getElementById('iaTshirtError');
+
+  const travelGroup = document.getElementById('iaTravel');
+  const foodGroup = document.getElementById('iaFood');
+  const tshirtGroup = document.getElementById('iaTshirt');
 
   let submitting = false;
 
+  /* ---------- Conditional fields ----------
+     WhatsApp "Other" reveals its own number input; Domain "Other" reveals
+     a free-text input. Both are hidden (and their value ignored) otherwise. */
+  document.querySelectorAll('input[name="iaWhatsappType"]').forEach((radio) => {
+    radio.addEventListener('change', () => {
+      const showOther = document.querySelector('input[name="iaWhatsappType"]:checked').value === 'other';
+      whatsappOtherWrap.hidden = !showOther;
+      if (!showOther) { whatsappOtherInput.value = ''; whatsappError.textContent = ''; whatsappOtherInput.classList.remove('is-invalid'); }
+    });
+  });
+  domainSelect.addEventListener('change', () => {
+    const showOther = domainSelect.value === 'other';
+    domainOtherWrap.hidden = !showOther;
+    if (!showOther) { domainOtherInput.value = ''; }
+  });
+
   const resetForm = () => {
     form.reset();
-    [nameInput, mobileInput, emailInput].forEach((el) => el.classList.remove('is-invalid'));
-    [nameError, mobileError, emailError].forEach((el) => { el.textContent = ''; });
+    whatsappOtherWrap.hidden = true;
+    domainOtherWrap.hidden = true;
+    [nameInput, mobileInput, whatsappOtherInput, emailInput, addressInput, domainSelect, domainOtherInput]
+      .forEach((el) => el.classList.remove('is-invalid'));
+    [travelGroup, foodGroup, tshirtGroup].forEach((el) => el.classList.remove('is-invalid'));
+    [nameError, mobileError, whatsappError, emailError, addressError, domainError, travelError, foodError, tshirtError]
+      .forEach((el) => { el.textContent = ''; });
     banner.style.display = 'none';
     banner.textContent = '';
     formView.style.display = 'block';
@@ -114,29 +153,35 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   document.getElementById('openRegister').addEventListener('click', openModal);
-  document.getElementById('openRegisterBottom').addEventListener('click', openModal);
   closeBtn.addEventListener('click', closeModal);
   document.getElementById('iaSuccessClose').addEventListener('click', closeModal);
   backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
   /* ---------- Validation ----------
-     Client-side only: this page has no backend of its own in Phase 1. */
+     Client-side only: this page has no backend of its own in Phase 1.
+     Mobile and WhatsApp are validated as EXACTLY 10 digits, per spec. */
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const MOBILE_ALLOWED_RE = /^\+?[0-9 ()\-.]+$/;
+  const TEN_DIGIT_RE = /^[0-9]{10}$/;
 
   const validateName = () => {
     const value = nameInput.value.trim();
-    if (!value) return 'Name is required.';
+    if (!value) return 'Full name is required.';
     if (value.length < 2) return 'Enter your full name.';
     return '';
   };
   const validateMobile = () => {
     const value = mobileInput.value.trim();
     if (!value) return 'Mobile number is required.';
-    if (!MOBILE_ALLOWED_RE.test(value)) return 'Enter a valid mobile number.';
-    const digits = value.replace(/\D/g, '');
-    if (digits.length < 7 || digits.length > 15) return 'Enter a valid mobile number.';
+    if (!TEN_DIGIT_RE.test(value)) return 'Enter exactly 10 digits.';
+    return '';
+  };
+  const validateWhatsapp = () => {
+    const type = document.querySelector('input[name="iaWhatsappType"]:checked').value;
+    if (type === 'same') return '';
+    const value = whatsappOtherInput.value.trim();
+    if (!value) return 'WhatsApp number is required.';
+    if (!TEN_DIGIT_RE.test(value)) return 'Enter exactly 10 digits.';
     return '';
   };
   const validateEmail = () => {
@@ -145,17 +190,39 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!EMAIL_RE.test(value)) return 'Enter a valid email address.';
     return '';
   };
+  const validateAddress = () => {
+    if (!addressInput.value.trim()) return 'Address is required.';
+    return '';
+  };
+  const validateDomain = () => {
+    if (!domainSelect.value) return 'Please select your domain.';
+    if (domainSelect.value === 'other' && !domainOtherInput.value.trim()) return 'Please specify your domain.';
+    return '';
+  };
+  const validateRadioGroup = (name) => {
+    if (!document.querySelector(`input[name="${name}"]:checked`)) return 'Please choose one option.';
+    return '';
+  };
 
   const showFieldError = (input, errorEl, message) => {
     errorEl.textContent = message;
     input.classList.toggle('is-invalid', !!message);
   };
+  const showGroupError = (groupEl, errorEl, message) => {
+    errorEl.textContent = message;
+    groupEl.classList.toggle('is-invalid', !!message);
+  };
 
-  [[nameInput, nameError, validateName], [mobileInput, mobileError, validateMobile], [emailInput, emailError, validateEmail]]
+  [[nameInput, nameError, validateName], [mobileInput, mobileError, validateMobile],
+   [emailInput, emailError, validateEmail], [addressInput, addressError, validateAddress]]
     .forEach(([input, errorEl, validator]) => {
       input.addEventListener('blur', () => showFieldError(input, errorEl, validator()));
       input.addEventListener('input', () => { if (input.classList.contains('is-invalid')) showFieldError(input, errorEl, validator()); });
     });
+  whatsappOtherInput.addEventListener('blur', () => showFieldError(whatsappOtherInput, whatsappError, validateWhatsapp()));
+  whatsappOtherInput.addEventListener('input', () => { if (whatsappOtherInput.classList.contains('is-invalid')) showFieldError(whatsappOtherInput, whatsappError, validateWhatsapp()); });
+  domainSelect.addEventListener('blur', () => showFieldError(domainSelect, domainError, validateDomain()));
+  domainOtherInput.addEventListener('input', () => { if (domainSelect.classList.contains('is-invalid')) showFieldError(domainSelect, domainError, validateDomain()); });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -163,14 +230,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const nameMsg = validateName();
     const mobileMsg = validateMobile();
+    const whatsappMsg = validateWhatsapp();
     const emailMsg = validateEmail();
+    const addressMsg = validateAddress();
+    const domainMsg = validateDomain();
+    const travelMsg = validateRadioGroup('iaTravel');
+    const foodMsg = validateRadioGroup('iaFood');
+    const tshirtMsg = validateRadioGroup('iaTshirt');
+
     showFieldError(nameInput, nameError, nameMsg);
     showFieldError(mobileInput, mobileError, mobileMsg);
+    showFieldError(whatsappOtherInput, whatsappError, whatsappMsg);
     showFieldError(emailInput, emailError, emailMsg);
-    if (nameMsg || mobileMsg || emailMsg) {
-      (nameMsg ? nameInput : mobileMsg ? mobileInput : emailInput).focus();
-      return;
-    }
+    showFieldError(addressInput, addressError, addressMsg);
+    showFieldError(domainSelect, domainError, domainMsg);
+    showGroupError(travelGroup, travelError, travelMsg);
+    showGroupError(foodGroup, foodError, foodMsg);
+    showGroupError(tshirtGroup, tshirtError, tshirtMsg);
+
+    const firstInvalid = nameMsg ? nameInput : mobileMsg ? mobileInput : whatsappMsg ? whatsappOtherInput
+      : emailMsg ? emailInput : addressMsg ? addressInput : domainMsg ? domainSelect : null;
+    if (firstInvalid) { firstInvalid.focus(); return; }
+    if (travelMsg || foodMsg || tshirtMsg) return; // pill groups aren't focusable as a single element
 
     if (!SHEET_ENDPOINT || SHEET_ENDPOINT === 'REPLACE_WITH_YOUR_APPS_SCRIPT_URL') {
       banner.textContent = 'Registration is not configured yet. Please try again shortly.';
@@ -183,6 +264,10 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.textContent = 'Submitting...';
     banner.style.display = 'none';
 
+    const whatsappType = document.querySelector('input[name="iaWhatsappType"]:checked').value;
+    const whatsappNumber = whatsappType === 'same' ? mobileInput.value.trim() : whatsappOtherInput.value.trim();
+    const domainValue = domainSelect.value === 'other' ? domainOtherInput.value.trim() : domainSelect.options[domainSelect.selectedIndex].text;
+
     try {
       // Sent as text/plain (not application/json) so the request is a "simple"
       // cross-origin request with no CORS preflight — the common, documented
@@ -193,7 +278,14 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({
           name: nameInput.value.trim(),
           mobile: mobileInput.value.trim(),
+          whatsapp: whatsappNumber,
           email: emailInput.value.trim(),
+          address: addressInput.value.trim(),
+          domain: domainValue,
+          travel: document.querySelector('input[name="iaTravel"]:checked').value,
+          food: document.querySelector('input[name="iaFood"]:checked').value,
+          tshirt: document.querySelector('input[name="iaTshirt"]:checked').value,
+          comments: commentsInput.value.trim(),
           source: 'inauguration-phase1',
         }),
       });

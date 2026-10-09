@@ -399,6 +399,9 @@ body[data-theme="default"]{ background:#000; } /* literally black while OFF */
 .ia-closing-kicker{ font-size:.75rem; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--ia-accent-2); margin-bottom:14px; }
 .ia-closing h2{ font-size:clamp(1.7rem,4vw,2.4rem); margin-bottom:16px; }
 .ia-closing p{ max-width:540px; margin:0 auto 34px; color:var(--ia-muted); line-height:1.7; }
+.ia-closing-links{ margin:-14px 0 0; }
+.ia-closing-link{ color:var(--ia-muted); font-size:.88rem; text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--ia-border); transition:color .15s ease; }
+.ia-closing-link:hover{ color:var(--ia-accent-2); text-decoration-color:var(--ia-accent-2); }
 
 .ia-footer{ position:relative; z-index:2; padding:26px 0 34px; text-align:center; color:var(--ia-muted-2); font-size:.85rem; border-top:1px solid var(--ia-border); }
 .ia-footer-inner{ display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px 18px; }
@@ -422,21 +425,46 @@ body[data-theme="default"]{ background:#000; } /* literally black while OFF */
 /* ---------- Registration modal ---------- */
 .ia-modal-backdrop{ position:fixed; inset:0; z-index:50; background:rgba(5,5,8,.72); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; visibility:hidden; transition:opacity .25s ease; }
 .ia-modal-backdrop.is-open{ opacity:1; visibility:visible; }
-.ia-modal{ position:relative; width:100%; max-width:440px; max-height:calc(100vh - 40px); overflow-y:auto; background:var(--ia-bg-alt); border:1px solid var(--ia-border); border-radius:20px; padding:34px 30px; box-shadow:var(--ia-shadow); transform:translateY(16px) scale(.98); transition:transform .25s ease; }
+.ia-modal{ position:relative; width:100%; max-width:640px; max-height:calc(100vh - 40px); overflow-y:auto; background:var(--ia-bg-alt); border:1px solid var(--ia-border); border-radius:20px; padding:40px 46px; box-shadow:var(--ia-shadow); transform:translateY(16px) scale(.98); transition:transform .25s ease; }
 .ia-modal-backdrop.is-open .ia-modal{ transform:translateY(0) scale(1); }
 .ia-modal-close{ position:absolute; top:16px; right:16px; width:34px; height:34px; border-radius:50%; border:1px solid var(--ia-border); background:transparent; color:var(--ia-muted); cursor:pointer; display:flex; align-items:center; justify-content:center; }
 .ia-modal-close:hover{ color:var(--ia-ink); border-color:var(--ia-ink); }
 .ia-modal h3{ font-size:1.3rem; font-weight:700; margin-bottom:6px; }
 .ia-modal-sub{ color:var(--ia-muted); font-size:.88rem; margin-bottom:26px; }
+.ia-modal-kicker{ font-size:.72rem; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--ia-accent); margin-bottom:8px; }
+.ia-modal-eyebrow{ font-size:1rem; font-weight:600; color:var(--ia-ink); margin-bottom:4px; }
+.ia-modal-datetime{ font-size:.82rem; color:var(--ia-muted); margin-bottom:18px; }
 
 .ia-field{ margin-bottom:16px; }
 .ia-field label{ display:block; font-size:.82rem; color:var(--ia-muted); margin-bottom:7px; }
-.ia-field input{ width:100%; padding:13px 14px; border-radius:11px; border:1px solid var(--ia-border); background:var(--ia-surface); color:var(--ia-ink); font:inherit; font-size:.96rem; }
-.ia-field input::placeholder{ color:var(--ia-muted-2); }
-.ia-field input:focus{ outline:none; border-color:var(--ia-accent); box-shadow:0 0 0 3px rgba(255,110,48,.18); }
-.ia-field input.is-invalid{ border-color:var(--ia-danger); }
+.ia-field-help{ display:block; font-size:.76rem; color:var(--ia-muted-2); margin:-4px 0 7px; }
+.ia-field-optional{ font-weight:400; text-transform:none; letter-spacing:0; color:var(--ia-muted-2); }
+.ia-field input,
+.ia-field textarea,
+.ia-field select{ width:100%; padding:13px 14px; border-radius:11px; border:1px solid var(--ia-border); background:var(--ia-surface); color:var(--ia-ink); font:inherit; font-size:.96rem; }
+.ia-field textarea{ resize:vertical; min-height:48px; font-family:inherit; }
+.ia-field select{ appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%237c7c89' stroke-width='1.6'%3E%3Cpath d='M5 7.5l5 5 5-5'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:38px; }
+.ia-field select option{ background:var(--ia-surface); color:var(--ia-ink); }
+.ia-field select:invalid{ color:var(--ia-muted-2); }
+.ia-field input::placeholder, .ia-field textarea::placeholder{ color:var(--ia-muted-2); }
+.ia-field input:focus, .ia-field textarea:focus, .ia-field select:focus{ outline:none; border-color:var(--ia-accent); box-shadow:0 0 0 3px rgba(255,110,48,.18); }
+.ia-field input.is-invalid, .ia-field textarea.is-invalid, .ia-field select.is-invalid{ border-color:var(--ia-danger); }
 .ia-error{ display:block; min-height:18px; color:var(--ia-danger); font-size:.8rem; margin-top:5px; }
 .ia-form-banner{ background:rgba(255,107,107,.12); border:1px solid rgba(255,107,107,.35); color:#ffb3b3; border-radius:10px; padding:11px 14px; font-size:.85rem; margin-bottom:16px; }
+
+/* Radio-pill groups (WhatsApp type / Travel / Food / T-shirt size) — custom
+   styled to match the input fields, never the browser's default radio
+   buttons, which would look out of place against this design. */
+.ia-radio-group{ display:flex; flex-wrap:wrap; gap:8px; }
+.ia-radio-pill{ position:relative; }
+.ia-radio-pill input{ position:absolute; opacity:0; width:1px; height:1px; }
+.ia-radio-pill span{ display:inline-flex; align-items:center; padding:9px 16px; border-radius:999px; border:1px solid var(--ia-border); background:var(--ia-surface); color:var(--ia-muted); font-size:.86rem; cursor:pointer; transition:border-color .15s ease, color .15s ease, background .15s ease; }
+.ia-radio-pill input:checked + span{ border-color:var(--ia-accent); color:var(--ia-accent); background:rgba(255,110,48,.12); }
+.ia-radio-pill input:focus-visible + span{ outline:2px solid var(--ia-accent); outline-offset:2px; }
+.ia-radio-group.is-invalid .ia-radio-pill span{ border-color:var(--ia-danger); }
+
+.ia-conditional{ margin-top:10px; }
+.ia-conditional[hidden]{ display:none; }
 
 .ia-success-icon{ font-size:3rem; color:#2dd4a7; text-align:center; margin-bottom:18px; }
 #iaSuccessView h3{ text-align:center; margin-bottom:14px; }

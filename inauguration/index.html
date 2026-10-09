@@ -12,14 +12,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=11">
+<link rel="stylesheet" href="css/style.css?v=14">
 
 <script>
   // Phase 1 only: where registrations are sent. Replace this with the Google
   // Apps Script Web App URL from google-apps-script.md once it is deployed.
   // A ?endpoint=... query parameter overrides this for local testing only —
   // see js/app.js. Never used for anything auth-related; this page has none.
-  window.INAUGURATION_SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycbwFbsAktECbnCvXupVZbIPArFQZpQyNoCK-_1O1iGjTA3LNpTalSZfPMuPjNdFOUv8I/exec";
+  window.INAUGURATION_SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycbxfP1wbw56HkTq0aF4zUFDSayfi-gX8st_RAD2ORKhx5cPtRdC1IqX54hUqwhs-NOE2/exec";
 </script>
 </head>
 <body data-theme="default">
@@ -198,7 +198,7 @@
         </div>
         <div class="ia-fact">
           <span class="ia-fact-icon"><i class="fa-solid fa-clock"></i></span>
-          <div><span class="ia-fact-label">Time</span><strong>10:30 AM &ndash; 12:30 PM</strong></div>
+          <div><span class="ia-fact-label">Time</span><strong>10:00 AM &ndash; 12:30 PM</strong></div>
         </div>
         <div class="ia-fact">
           <span class="ia-fact-icon"><i class="fa-solid fa-location-dot"></i></span>
@@ -223,7 +223,7 @@
         <div class="ia-detail-card" data-reveal>
           <span class="ia-detail-icon"><i class="fa-solid fa-clock"></i></span>
           <h3>Event Time</h3>
-          <p>10:30 AM &ndash; 12:30 PM</p>
+          <p>10:00 AM &ndash; 12:30 PM</p>
         </div>
         <div class="ia-detail-card" data-reveal>
           <span class="ia-detail-icon"><i class="fa-solid fa-location-dot"></i></span>
@@ -285,9 +285,9 @@
       <h2 data-reveal>Be part of a new era.</h2>
       <p data-reveal>Seats are limited. Reserve your place at the inauguration and join us as we mark the beginning
         of our IT Academy's New Era Technologies initiative.</p>
-      <button type="button" class="ia-cta ia-cta-ghost" id="openRegisterBottom" data-reveal>
-        Register Now <i class="fa-solid fa-arrow-right"></i>
-      </button>
+      <p class="ia-closing-links" data-reveal>
+        <a href="https://arckenites.com/login.html" class="ia-closing-link">Already an Arckenites Community member? Log in</a>
+      </p>
     </div>
   </section>
 </main>
@@ -310,24 +310,108 @@
     </button>
 
     <div class="ia-modal-view" id="iaFormView">
-      <h3 id="iaModalTitle">Register for the Inauguration</h3>
-      <p class="ia-modal-sub">Arckenites IT Academy Inauguration &middot; 18 October 2026</p>
+      <p class="ia-modal-kicker">Arckenites Inauguration Event</p>
+      <p class="ia-modal-eyebrow">On October 18th</p>
+      <p class="ia-modal-datetime">Date: October 18th &nbsp;&middot;&nbsp; Time: 10:00 AM &ndash; 12:30 PM</p>
+      <h3 id="iaModalTitle">Inauguration Function &mdash; Registration Form</h3>
+      <p class="ia-modal-sub">Please fill in your details to confirm your participation.</p>
 
       <form id="iaForm" novalidate>
         <div class="ia-field">
-          <label for="iaName">Name</label>
-          <input type="text" id="iaName" autocomplete="name" placeholder="Your full name">
+          <label for="iaName">Full Name (followed by your Initial)</label>
+          <input type="text" id="iaName" autocomplete="name" placeholder="e.g. Arun K.">
           <span class="ia-error" id="iaNameError"></span>
         </div>
+
         <div class="ia-field">
-          <label for="iaMobile">Mobile</label>
-          <input type="tel" id="iaMobile" autocomplete="tel" placeholder="Your mobile number">
+          <label for="iaMobile">Mobile Number</label>
+          <input type="tel" id="iaMobile" inputmode="numeric" maxlength="10" autocomplete="tel" placeholder="10-digit mobile number">
           <span class="ia-error" id="iaMobileError"></span>
         </div>
+
+        <div class="ia-field">
+          <label>WhatsApp Number</label>
+          <div class="ia-radio-group" id="iaWhatsappType" role="radiogroup" aria-label="WhatsApp number">
+            <label class="ia-radio-pill">
+              <input type="radio" name="iaWhatsappType" value="same" checked>
+              <span>Same as Mobile Number</span>
+            </label>
+            <label class="ia-radio-pill">
+              <input type="radio" name="iaWhatsappType" value="other">
+              <span>Other</span>
+            </label>
+          </div>
+          <div class="ia-conditional" id="iaWhatsappOtherWrap" hidden>
+            <input type="tel" id="iaWhatsappOther" inputmode="numeric" maxlength="10" autocomplete="tel" placeholder="10-digit WhatsApp number">
+          </div>
+          <span class="ia-error" id="iaWhatsappError"></span>
+        </div>
+
         <div class="ia-field">
           <label for="iaEmail">Email</label>
           <input type="email" id="iaEmail" autocomplete="email" placeholder="you@example.com">
           <span class="ia-error" id="iaEmailError"></span>
+        </div>
+
+        <div class="ia-field">
+          <label for="iaAddress">Address</label>
+          <span class="ia-field-help">Address, City, Pincode.</span>
+          <textarea id="iaAddress" rows="2" placeholder="Your address"></textarea>
+          <span class="ia-error" id="iaAddressError"></span>
+        </div>
+
+        <div class="ia-field">
+          <label for="iaDomain">Your Domain</label>
+          <select id="iaDomain">
+            <option value="" selected disabled>Select your domain</option>
+            <option value="compute">Compute (Linux, VM, Windows Server)</option>
+            <option value="cybersecurity">Cybersecurity</option>
+            <option value="network-security">Network &amp; Security</option>
+            <option value="datascience">Datascience</option>
+            <option value="devops">Devops</option>
+            <option value="cloud">Cloud</option>
+            <option value="other">Other</option>
+          </select>
+          <div class="ia-conditional" id="iaDomainOtherWrap" hidden>
+            <input type="text" id="iaDomainOther" placeholder="Please specify your domain">
+          </div>
+          <span class="ia-error" id="iaDomainError"></span>
+        </div>
+
+        <div class="ia-field">
+          <label>Reach the Venue by</label>
+          <div class="ia-radio-group" id="iaTravel" role="radiogroup" aria-label="Reach the venue by">
+            <label class="ia-radio-pill"><input type="radio" name="iaTravel" value="bike"><span>Bike</span></label>
+            <label class="ia-radio-pill"><input type="radio" name="iaTravel" value="car"><span>Car</span></label>
+            <label class="ia-radio-pill"><input type="radio" name="iaTravel" value="public-transport"><span>Public Transport</span></label>
+          </div>
+          <span class="ia-error" id="iaTravelError"></span>
+        </div>
+
+        <div class="ia-field">
+          <label>Preferred Food</label>
+          <div class="ia-radio-group" id="iaFood" role="radiogroup" aria-label="Preferred food">
+            <label class="ia-radio-pill"><input type="radio" name="iaFood" value="veg"><span>Veg</span></label>
+            <label class="ia-radio-pill"><input type="radio" name="iaFood" value="non-veg"><span>Non-Veg</span></label>
+          </div>
+          <span class="ia-error" id="iaFoodError"></span>
+        </div>
+
+        <div class="ia-field">
+          <label>T-shirt Size</label>
+          <div class="ia-radio-group" id="iaTshirt" role="radiogroup" aria-label="T-shirt size">
+            <label class="ia-radio-pill"><input type="radio" name="iaTshirt" value="S"><span>S</span></label>
+            <label class="ia-radio-pill"><input type="radio" name="iaTshirt" value="M"><span>M</span></label>
+            <label class="ia-radio-pill"><input type="radio" name="iaTshirt" value="L"><span>L</span></label>
+            <label class="ia-radio-pill"><input type="radio" name="iaTshirt" value="XL"><span>XL</span></label>
+            <label class="ia-radio-pill"><input type="radio" name="iaTshirt" value="XXL"><span>XXL</span></label>
+          </div>
+          <span class="ia-error" id="iaTshirtError"></span>
+        </div>
+
+        <div class="ia-field">
+          <label for="iaComments">Any Comments / Feedback <span class="ia-field-optional">(optional)</span></label>
+          <textarea id="iaComments" rows="3" placeholder="Anything you'd like us to know"></textarea>
         </div>
 
         <div class="ia-form-banner" id="iaFormBanner" style="display:none;"></div>
@@ -340,12 +424,12 @@
       <div class="ia-success-icon"><i class="fa-solid fa-circle-check"></i></div>
       <h3>Registration Successful</h3>
       <p>Thank you for registering for the<br>Arckenites IT Academy Inauguration.</p>
-      <p class="ia-success-note">Your ticket will be sent to your registered email.</p>
+      <p class="ia-success-note">Your ticket will be sent to your mail.</p>
       <button type="button" class="ia-cta ia-cta-block" id="iaSuccessClose">Done</button>
     </div>
   </div>
 </div>
 
-<script src="js/app.js?v=4"></script>
+<script src="js/app.js?v=6"></script>
 </body>
 </html>

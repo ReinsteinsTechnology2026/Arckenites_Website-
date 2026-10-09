@@ -11,9 +11,16 @@ function doPost(e) {
 
     var name = String(data.name || '').trim();
     var mobile = String(data.mobile || '').trim();
+    var whatsapp = String(data.whatsapp || '').trim();
     var email = String(data.email || '').trim();
+    var address = String(data.address || '').trim();
+    var domain = String(data.domain || '').trim();
+    var travel = String(data.travel || '').trim();
+    var food = String(data.food || '').trim();
+    var tshirt = String(data.tshirt || '').trim();
+    var comments = String(data.comments || '').trim();
 
-    if (!name || !mobile || !email) {
+    if (!name || !mobile || !whatsapp || !email || !address || !domain || !travel || !food || !tshirt) {
       return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Missing required field' }))
         .setMimeType(ContentService.MimeType.JSON);
     }
@@ -23,9 +30,10 @@ function doPost(e) {
       sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet('Registrations');
     }
     if (sheet.getLastRow() === 0) {
-      sheet.appendRow(['Timestamp', 'Name', 'Mobile', 'Email']);
+      sheet.appendRow(['Timestamp', 'Full Name', 'Mobile Number', 'WhatsApp Number', 'Email', 'Address',
+        'Domain', 'Travel Method', 'Preferred Food', 'T-Shirt Size', 'Comments / Feedback']);
     }
-    sheet.appendRow([new Date(), name, mobile, email]);
+    sheet.appendRow([new Date(), name, mobile, whatsapp, email, address, domain, travel, food, tshirt, comments]);
 
     return ContentService.createTextOutput(JSON.stringify({ status: 'ok' }))
       .setMimeType(ContentService.MimeType.JSON);
