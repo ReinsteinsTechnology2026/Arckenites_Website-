@@ -289,10 +289,24 @@ document.addEventListener('DOMContentLoaded', () => {
           source: 'inauguration-phase1',
         }),
       });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      // Apps Script always responds HTTP 200, even for a rejected
+      // registration — the real result is in the JSON body's "status",
+      // which must be inspected before ever showing success.
+      let result = null;
+      try { result = await response.json(); } catch (_) { /* leave result null, handled below */ }
 
-      formView.style.display = 'none';
-      successView.style.display = 'block';
+      if (!response.ok || !result) {
+        throw new Error('submission failed');
+      }
+      if (result.status === 'duplicate') {
+        banner.textContent = result.message || 'This email has already been registered for this event.';
+        banner.style.display = 'block';
+      } else if (result.status === 'ok') {
+        formView.style.display = 'none';
+        successView.style.display = 'block';
+      } else {
+        throw new Error(result.message || 'submission failed');
+      }
     } catch (err) {
       // Never show the success message unless the submission actually went
       // through — a network or server failure must look like a failure.

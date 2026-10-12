@@ -18,6 +18,17 @@ class Settings(BaseSettings):
     # "View on Arckenites Community" button). Never hardcode it in templates.
     public_site_url: str = "https://arckenites.com"
 
+    # Google sign-in for existing Arckenites Portal accounts (student, staff,
+    # admin) only. Never used for Community accounts. All three must be set in
+    # the server environment; the client secret is never sent to the browser.
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = ""
+
+    @property
+    def google_configured(self) -> bool:
+        return bool(self.google_client_id and self.google_client_secret and self.google_redirect_uri)
+
     # Self-hosted Jitsi deployment backing the Meetings module — never
     # hardcode this in frontend JS; every meeting join URL is built from it.
     meet_domain: str = "meet.arckenites.com"

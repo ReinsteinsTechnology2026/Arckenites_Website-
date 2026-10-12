@@ -31,6 +31,7 @@ from app.api.routes_auth import router as auth_router
 from app.api.routes_chat import router as chat_router
 from app.api.routes_community_auth import router as community_auth_router
 from app.api.routes_community_posts import router as community_posts_router
+from app.api.routes_google_auth import router as google_auth_router
 from app.api.routes_contact import router as contact_router
 from app.api.routes_dashboard import router as dashboard_router
 from app.api.routes_health import router as health_router
@@ -117,6 +118,7 @@ app.include_router(chat_router, prefix="/api")
 app.include_router(contact_router, prefix="/api")
 app.include_router(community_auth_router, prefix="/api")
 app.include_router(community_posts_router, prefix="/api")
+app.include_router(google_auth_router, prefix="/api")
 app.include_router(video_router, prefix="/api")
 
 
