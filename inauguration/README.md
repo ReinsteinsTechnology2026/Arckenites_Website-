@@ -1,7 +1,7 @@
 # Arckenites Inauguration
 
 A standalone landing page, registration form, and automatic ticketing
-system for the Arckenites Inauguration Event (Sunday, 18 October 2026,
+system for the Arckenites Inauguration Event (Sunday, 1 November 2026,
 10:00 AM – 12:30 PM, Krishna Kutir, Nungambakkam, Chennai). Registrations
 go to a Google Sheet; Google Apps Script generates a unique ticket ID,
 builds a personalised PDF invitation, and emails it to the registrant —

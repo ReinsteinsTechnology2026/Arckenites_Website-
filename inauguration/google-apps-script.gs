@@ -6,7 +6,7 @@
    servers once you deploy it there. */
 
 var EVENT_NAME = 'Arckenites Inauguration Event';
-var EVENT_DATE_LINE = 'Sunday, 18 October 2026';
+var EVENT_DATE_LINE = 'Sunday, 1 November 2026';
 var EVENT_TIME_LINE = '10:00 AM – 12:30 PM';
 var EVENT_VENUE_LINE = 'Krishna Kutir, No. 6/24, Ramanathan Street, Mahalingapuram, Nungambakkam, Chennai, Tamil Nadu 600034';
 
