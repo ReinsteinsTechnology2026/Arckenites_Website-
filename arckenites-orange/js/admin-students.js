@@ -292,15 +292,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (btn.dataset.action === 'delete') {
-      const confirmed = window.confirm(`Delete ${student.full_name} (${student.username})? This permanently removes their login and cannot be undone.`);
+      const confirmed = window.confirm(
+        `Delete ${student.full_name} (${student.username})? If this student has no enrollment, support, or activity history, their account is permanently removed. If they do have history, the account is deactivated instead (they can no longer log in) so that history is preserved.`
+      );
       if (!confirmed) return;
 
+      // Disabled for the whole round trip (re-enabled only on error) so a
+      // double-click or a slow response can't fire this request twice.
       btn.disabled = true;
       try {
-        await ArckAPI.request(`/admin/students/${id}`, { method: 'DELETE' });
-        students = students.filter((s) => s.id !== id);
-        renderStudents(students);
-        if (editIdInput.value === String(id)) closeEditPanel();
+        const result = await ArckAPI.request(`/admin/students/${id}`, { method: 'DELETE' });
+        if (result && result.action === 'deactivated' && result.student) {
+          students = students.map((s) => (s.id === id ? result.student : s));
+          if (editIdInput.value === String(id)) closeEditPanel();
+          renderStudents(students);
+          window.alert(result.detail || 'Student had related records, so the account was deactivated instead of deleted.');
+        } else {
+          students = students.filter((s) => s.id !== id);
+          if (editIdInput.value === String(id)) closeEditPanel();
+          renderStudents(students);
+        }
       } catch (err) {
         window.alert(err.detail || 'Could not delete student.');
         btn.disabled = false;

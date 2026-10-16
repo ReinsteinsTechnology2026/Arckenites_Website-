@@ -11,20 +11,60 @@ from sqlalchemy.orm import Session, selectinload
 from app.core.deps import require_permission
 from app.core.security import hash_password
 from app.crud.audit import write_audit_event
+from app.crud.session import revoke_all_sessions
 from app.crud.user import generate_student_code, generate_username
 from app.database import get_db
 from app.models.audit_log import AuthAuditLog, AuthEventType
 from app.models.batch import BatchEnrollment
+from app.models.batch_chat import BatchChatReadState, BatchMessage
 from app.models.chat import Conversation, DirectMessage
+from app.models.community import CommunityProfile
+from app.models.google_identity import UserGoogleIdentity
 from app.models.interview_schedule import InterviewSchedule
 from app.models.lab_access_audit import LabAccessAuditLog
 from app.models.lab_access_override import LabAccessOverride
 from app.models.lab_slot_booking import LabSlotBooking
+from app.models.lab_vm import LabVmAccess, LabVmAccessAuditLog
+from app.models.meeting import MeetingMessage, MeetingParticipant
 from app.models.program import ProgramEnrollment
 from app.models.session import AuthSession
 from app.models.student import PROGRAM_LABELS, ProgramEnum, StudentProfile
+from app.models.support import SupportMessage, SupportTicket
 from app.models.user import RoleEnum, User
-from app.schemas.admin_students import CreateStudentRequest, StudentAdminOut, UpdateStudentRequest
+from app.schemas.admin_students import (
+    CreateStudentRequest,
+    DeleteStudentResponse,
+    StudentAdminOut,
+    UpdateStudentRequest,
+)
+
+# Every table (besides auth_sessions/auth_audit_log, which are always safe to
+# clear/detach — see delete_student) that can hold a row pointing at a
+# student's users.id. If ANY of these has a row for the student, the account
+# has real history and must be deactivated, never hard-deleted or
+# cascade-deleted. Keep this in sync with ForeignKey("users.id") across
+# app/models/* — the "Student has related records" 409 that used to reach
+# admins came from this exact set of tables being incomplete, so a delete hit
+# an unhandled foreign-key constraint and the whole commit was rolled back.
+_STUDENT_RELATED_RECORD_CHECKS: list[tuple[type, str]] = [
+    (BatchEnrollment, "student_id"),
+    (ProgramEnrollment, "student_id"),
+    (InterviewSchedule, "student_id"),
+    (LabAccessOverride, "student_id"),
+    (LabAccessAuditLog, "student_id"),
+    (LabSlotBooking, "student_id"),
+    (LabVmAccess, "student_id"),
+    (LabVmAccessAuditLog, "student_id"),
+    (BatchMessage, "sender_id"),
+    (BatchChatReadState, "user_id"),
+    (DirectMessage, "sender_id"),
+    (SupportTicket, "requester_id"),
+    (SupportMessage, "sender_id"),
+    (MeetingParticipant, "user_id"),
+    (MeetingMessage, "user_id"),
+    (CommunityProfile, "user_id"),
+    (UserGoogleIdentity, "user_id"),
+]
 
 router = APIRouter(prefix="/admin", tags=["admin-students"])
 
@@ -40,6 +80,24 @@ def _get_student_or_404(db: Session, student_id: int) -> User:
     if user is None or user.role != RoleEnum.student:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
     return user
+
+
+def _student_has_related_records(db: Session, user_id: int) -> bool:
+    """True if this student has any business/history record anywhere in the
+    schema (enrollments, support tickets, lab access, batch/direct chat,
+    meetings, community profile, linked Google identity, ...). Checked with
+    cheap EXISTS-style `LIMIT 1` lookups, not a count, since we only need a
+    yes/no answer."""
+    for model, column_name in _STUDENT_RELATED_RECORD_CHECKS:
+        column = getattr(model, column_name)
+        if db.scalar(select(column).where(column == user_id).limit(1)) is not None:
+            return True
+    convo_exists = db.scalar(
+        select(Conversation.id)
+        .where(or_(Conversation.user_a_id == user_id, Conversation.user_b_id == user_id))
+        .limit(1)
+    )
+    return convo_exists is not None
 
 
 @router.post("/students", response_model=StudentAdminOut, status_code=201)
@@ -166,6 +224,12 @@ def update_student(
                 module="students", target=user.username, status="success",
             )
         user.is_active = payload.is_active
+        if payload.is_active is False:
+            # Same as disabling a trainer (routes_admin_staff.update_staff) —
+            # deactivating must also kill any session already in flight, or a
+            # student logged in before the toggle keeps working until that
+            # token naturally expires.
+            revoke_all_sessions(db, user.id)
     if payload.program is not None:
         user.student_profile.program = ProgramEnum(payload.program)
     if payload.reset_temp_password is not None:
@@ -192,63 +256,107 @@ def update_student(
     return StudentAdminOut.model_validate(user)
 
 
-@router.delete("/students/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/students/{student_id}", response_model=DeleteStudentResponse)
 def delete_student(
     student_id: int,
     request: Request,
     db: Session = Depends(get_db),
     actor: User = Depends(require_permission("students.delete")),
 ):
+    """Hard-deletes a student ONLY if they have zero related records anywhere
+    in the schema. Otherwise deactivates the account instead (reusing the
+    same `is_active` mechanism PATCH /admin/students/{id} already uses) —
+    never cascade-deletes a student's enrollments, support tickets, lab
+    access, chat history, or similar business/history records, and never
+    silently drops the foreign keys that protect them.
+
+    This used to always attempt a hard delete, detaching/clearing an
+    incomplete list of related tables before `db.delete(user)`. Any table
+    outside that list (support tickets, batch chat, lab VM access, meetings,
+    linked Google identity, ...) still pointed at the account, so the commit
+    hit an unhandled foreign-key violation and the whole transaction rolled
+    back, surfacing only the generic "Contact engineering" 409. This
+    endpoint is idempotent: calling it again on an already-deactivated
+    student just reconfirms deactivation rather than erroring."""
     user = _get_student_or_404(db, student_id)
     username = user.username
+    ip, ua = _client_meta(request)
 
-    # Detach (don't delete) audit history so security records survive account
-    # removal — auth_audit_log.user_id is nullable for exactly this reason.
+    if _student_has_related_records(db, user.id):
+        was_active = user.is_active
+        user.is_active = False
+        revoke_all_sessions(db, user.id)
+        db.add(user)
+        if was_active:
+            # commit=False: the audit entry is staged alongside is_active and
+            # the session-revocation update, NOT committed here. All three
+            # are committed together in the single db.commit() below, so a
+            # failure anywhere rolls back everything — including is_active
+            # and the session revocation, which a separate, earlier commit
+            # here would otherwise have already made durable and
+            # unrollbackable. (This exact gap — write_audit_event's own
+            # independent commit silently flushing this branch's pending
+            # is_active change before the "real" commit — was a confirmed
+            # bug, caught only by a real PostgreSQL integration test; a
+            # mocked Session's commit() never actually flushes, so unit
+            # tests alone couldn't see it.)
+            write_audit_event(
+                db, AuthEventType.student_disabled, ip, ua, user=actor,
+                detail=f"Deactivated student {username} instead of deleting (related records exist)",
+                module="students", target=username, status="success",
+                commit=False,
+            )
+        try:
+            db.commit()
+        except Exception:
+            # Single commit covers is_active, the session revocation, and
+            # the audit entry together — this rollback now genuinely
+            # reverts all three, not just whichever happened to not already
+            # be committed by something else.
+            db.rollback()
+            raise
+        db.refresh(user)
+        return DeleteStudentResponse(
+            action="deactivated",
+            detail=(
+                "This student has related records (enrollments, support tickets, lab access, "
+                "chat history, or similar) so the account was deactivated instead of permanently "
+                "deleted. The student can no longer log in, and all of their active sessions were "
+                "revoked."
+            ),
+            student=StudentAdminOut.model_validate(user),
+        )
+
+    # No related records anywhere we check — genuinely safe to hard-delete.
+    # Audit history is detached (not deleted) so security records survive;
+    # auth_audit_log.user_id is nullable for exactly this reason. Sessions
+    # are deleted outright since they have no standalone value once gone.
     db.execute(update(AuthAuditLog).where(AuthAuditLog.user_id == user.id).values(user_id=None))
     db.execute(delete(AuthSession).where(AuthSession.user_id == user.id))
-
-    # Chat rows have no ON DELETE CASCADE to users.id, so any conversation this
-    # account took part in (as either side) must be cleared first or the
-    # user delete below fails on a foreign key violation.
-    convo_ids = db.scalars(
-        select(Conversation.id).where(or_(Conversation.user_a_id == user.id, Conversation.user_b_id == user.id))
-    ).all()
-    if convo_ids:
-        db.execute(delete(DirectMessage).where(DirectMessage.conversation_id.in_(convo_ids)))
-        db.execute(delete(Conversation).where(Conversation.id.in_(convo_ids)))
-
-    # Same story for batch/program enrollments — no ON DELETE CASCADE to
-    # users.id, so a student who's allocated to any batch or enrolled in any
-    # program must be detached from both before the user row can go.
-    db.execute(delete(BatchEnrollment).where(BatchEnrollment.student_id == user.id))
-    db.execute(delete(ProgramEnrollment).where(ProgramEnrollment.student_id == user.id))
-    db.execute(delete(InterviewSchedule).where(InterviewSchedule.student_id == user.id))
-
-    # Lab access control rows have no ON DELETE CASCADE to users.id either —
-    # same story as chat/enrollments above. A student's override and audit
-    # trail are meaningless once the account is gone, so they're removed
-    # rather than detached (unlike auth_audit_log, student_id here is
-    # NOT NULL, so there's no "keep but unlink" option).
-    db.execute(delete(LabAccessOverride).where(LabAccessOverride.student_id == user.id))
-    db.execute(delete(LabAccessAuditLog).where(LabAccessAuditLog.student_id == user.id))
-    db.execute(delete(LabSlotBooking).where(LabSlotBooking.student_id == user.id))
 
     db.delete(user)  # cascades to student_profile via the User.student_profile relationship
     try:
         db.commit()
     except IntegrityError:
-        # Some other dependent record we don't know about yet is still
-        # pointing at this account — fail safely instead of a bare 500,
-        # without leaking the underlying SQL/constraint name to the client.
+        # Safety net only — _student_has_related_records should already have
+        # caught any blocking row above. If something we don't check for yet
+        # still points at this account, fail safely instead of a bare 500 or
+        # a partially-applied delete, without leaking the SQL/constraint name.
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Student has related records that prevent deletion. Contact engineering.",
+            detail=(
+                "Student has related records that prevent deletion. No changes were made — "
+                "please retry; the account will be deactivated instead of deleted."
+            ),
         )
 
-    ip, ua = _client_meta(request)
     write_audit_event(
         db, AuthEventType.student_deleted, ip, ua, user=actor, detail=f"Deleted student {username}",
         module="students", target=username, status="success",
     )
-    return None
+    return DeleteStudentResponse(
+        action="deleted",
+        detail=f"Student {username} had no related records and was permanently deleted.",
+        student=None,
+    )

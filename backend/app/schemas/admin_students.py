@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -36,6 +37,17 @@ class StudentAdminOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class DeleteStudentResponse(BaseModel):
+    """Result of DELETE /admin/students/{id}. A student with any related
+    records (enrollments, support tickets, lab access, batch chat, meetings,
+    etc.) is deactivated instead of hard-deleted — see routes_admin_students
+    .delete_student for why. `student` is populated only when the account
+    was deactivated (there is nothing left to return after a real delete)."""
+    action: Literal["deleted", "deactivated"]
+    detail: str
+    student: StudentAdminOut | None = None
 
 
 def _validate_program_value(value: str) -> str:
