@@ -370,7 +370,7 @@ body[data-theme="default"]{ background:#000; } /* literally black while OFF */
 
 /* Event detail cards */
 .ia-details{ position:relative; z-index:2; padding:30px 0 70px; }
-.ia-detail-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+.ia-detail-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
 .ia-detail-card{ background:var(--ia-surface); border:1px solid var(--ia-border); border-radius:var(--ia-radius); padding:30px 26px; text-align:center; }
 .ia-detail-icon{ width:52px; height:52px; margin:0 auto 18px; border-radius:16px; display:flex; align-items:center; justify-content:center; background:rgba(255,110,48,.14); color:var(--ia-accent); font-size:1.3rem; }
 .ia-detail-card h3{ font-size:1.05rem; font-weight:700; margin-bottom:10px; }
@@ -410,9 +410,6 @@ body[data-theme="default"]{ background:#000; } /* literally black while OFF */
 .ia-footer-tagline{ letter-spacing:.08em; text-transform:uppercase; font-size:.75rem; color:var(--ia-muted-2); }
 
 @media (max-width:860px){
-  /* 3 cards don't split evenly into 2 columns — a single column keeps them
-     evenly spaced at this width instead of an unbalanced 2+1 row. */
-  .ia-detail-grid{ grid-template-columns:1fr; }
   .ia-highlights-row{ grid-template-columns:repeat(2,minmax(0,1fr)); }
   .ia-fact{ width:100%; }
 }
