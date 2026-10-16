@@ -172,10 +172,18 @@ def update_admin_user(
                 )
 
         user.admin_role_id = new_role.id
+        # commit=False: staged alongside is_active/password-reset/profile
+        # changes below (if any of those branches also fire in this same
+        # request) and the eventual db.commit() at the end of this function
+        # — never committed here on its own. Same reasoning as the fix in
+        # delete_student: a write_audit_event call that commits independently
+        # would otherwise make this role change durable before this
+        # function's own rollback-on-failure logic ever runs.
         write_audit_event(
             db, AuthEventType.admin_user_role_changed, ip, ua, user=actor,
             detail=f"Changed {user.username}'s role from {old_role.name if old_role else 'none'} to {new_role.name}",
             module="admin_users", target=user.username, status="success", actor_role=actor_role_snapshot,
+            commit=False,
         )
 
     if payload.is_active is not None and payload.is_active != user.is_active:
@@ -190,10 +198,14 @@ def update_admin_user(
         user.is_active = payload.is_active
         if not payload.is_active:
             revoke_all_sessions(db, user.id)
+        # commit=False — see the role-change branch above for why: the
+        # is_active flip and the session revocation must not be committed
+        # independently of this function's own final commit/rollback.
         write_audit_event(
             db, AuthEventType.admin_user_enabled if payload.is_active else AuthEventType.admin_user_disabled,
             ip, ua, user=actor, detail=f"{'Enabled' if payload.is_active else 'Disabled'} admin {user.username}",
             module="admin_users", target=user.username, status="success", actor_role=actor_role_snapshot,
+            commit=False,
         )
 
     if payload.reset_temp_password is not None:
@@ -202,22 +214,40 @@ def update_admin_user(
         user.failed_login_count = 0
         user.locked_until = None
         revoke_all_sessions(db, user.id)
+        # commit=False — same reasoning: the new password hash and the
+        # session revocation must land atomically with everything else.
         write_audit_event(
             db, AuthEventType.admin_user_password_reset, ip, ua, user=actor,
             detail=f"Reset password for admin {user.username}", module="admin_users", target=user.username,
-            status="success", actor_role=actor_role_snapshot,
+            status="success", actor_role=actor_role_snapshot, commit=False,
         )
 
     if payload.full_name is not None or payload.email is not None:
+        # commit=False — same reasoning for the full_name/profile.email edit.
         write_audit_event(
             db, AuthEventType.admin_user_updated, ip, ua, user=actor, detail=f"Edited admin {user.username}",
             module="admin_users", target=user.username, status="success", actor_role=actor_role_snapshot,
+            commit=False,
         )
 
     db.add(user)
     if profile is not None:
         db.add(profile)
-    db.commit()
+    # Single commit for the whole request: user/profile field changes, any
+    # session revocation, and every audit entry staged above (zero, one, or
+    # several, depending on which payload fields were actually changed) all
+    # land together or not at all. Previously each write_audit_event call
+    # above committed independently and immediately — the exact bug fixed
+    # in delete_student (app/api/routes_admin_students.py), present here
+    # too: a failure at this point used to leave whichever branches had
+    # already fired durably persisted, with no rollback ever possible for
+    # them, while the request itself could still surface as a failure to
+    # the caller.
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     db.refresh(user)
 
     return _admin_out(user)
