@@ -17,7 +17,15 @@ var EVENT_VENUE_LINE = 'Krishna Kutir, No. 6/24, Ramanathan Street, Mahalingapur
 // remains defensively wrapped in buildTicketPdf_ so a network hiccup
 // degrades to a text-only fallback instead of failing ticket generation.
 var LOGO_IMAGE_URL = 'https://arckenites.com/assets/logo-wordmark.png';
-var QR_SERVICE_URL = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=';
+var QR_SERVICE_URL = 'https://api.qrserver.com/v1/create-qr-code/?size=260x260&ecc=M&data=';
+
+// The deployed Web App's own /exec URL — must match
+// window.INAUGURATION_SHEET_ENDPOINT in inauguration/index.html exactly.
+// The QR code encodes WEB_APP_URL + '?ticket=' + ticketId so scanning it
+// opens a real page (doGet's ticket-verification branch below), not plain
+// unopenable text. If this deployment is ever replaced with a new /exec
+// URL, update both this constant and index.html together.
+var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxfP1wbw56HkTq0aF4zUFDSayfi-gX8st_RAD2ORKhx5cPtRdC1IqX54hUqwhs-NOE2/exec';
 
 // Brand palette for the PDF ticket (buildTicketPdf_ only). Solid hex only
 // — no rgba()/alpha colors anywhere in the ticket HTML. Apps Script's PDF
@@ -185,6 +193,26 @@ function findRowByEmail_(sheet, email) {
   return -1;
 }
 
+/* Used by the QR-scan verification page (doGet) to resolve a ticket ID
+   back to its row. Ticket IDs are compared case-insensitively since a
+   phone's camera/QR app could plausibly normalize case, though
+   generateUniqueTicketId_ always produces uppercase. Returns the full row
+   (0-indexed array, same shape as HEADERS) or null if no match — never
+   throws, so an invalid/mistyped ticket ID is just "not found", not a
+   server error. */
+function findRowByTicketId_(sheet, ticketId) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return null;
+  var normalized = String(ticketId || '').trim().toUpperCase();
+  if (!normalized) return null;
+  var values = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
+  for (var i = 0; i < values.length; i++) {
+    var rowTicketId = String(values[i][COL_TICKET_ID - 1] || '').trim().toUpperCase();
+    if (rowTicketId === normalized) return values[i];
+  }
+  return null;
+}
+
 /* A short, URL/QR-friendly ticket ID. Verified unique against every ticket
    ID already in the sheet (not just assumed-unique from randomness alone),
    and generated while still holding doPost's script lock, so two
@@ -212,18 +240,36 @@ function generateUniqueTicketId_(sheet) {
    reference, never contact information. Both external image fetches
    (branding logo, QR code) are wrapped so a network hiccup degrades to a
    text-only fallback instead of failing ticket generation outright. */
-function buildTicketPdf_(name, ticketId) {
+function buildTicketPdf_(name, ticketId, food) {
   var tPdfStart = Date.now();
   var logoImgTag = '<img src="data:image/png;base64,' + LOGO_BASE64_PNG + '" style="height:52px;width:auto;display:block;margin:0 auto;" alt="Arckenites">';
 
+  // Food-preference-colored QR container. Only the rounded background
+  // behind the QR changes — the QR modules themselves stay black (drawn by
+  // the external QR service, never recolored here), so contrast against a
+  // light pastel background is still extremely high and the code remains
+  // reliably scannable. Unrecognized/missing food values fall back to the
+  // original neutral white rather than guessing a color.
+  var normalizedFood = String(food || '').trim().toLowerCase();
+  var qrBgColor = '#ffffff';
+  if (normalizedFood === 'veg') {
+    qrBgColor = '#CDEFD2'; // light, high-contrast green
+  } else if (normalizedFood === 'non-veg' || normalizedFood === 'nonveg' || normalizedFood === 'non veg') {
+    qrBgColor = '#F6CFCF'; // light, high-contrast red
+  }
+
   var qrImgTag = '';
   try {
-    // Ticket ID only — no email, mobile or name is ever sent to this
-    // external service or encoded into the QR image.
-    var qrBlob = UrlFetchApp.fetch(QR_SERVICE_URL + encodeURIComponent(ticketId), { muteHttpExceptions: true }).getBlob();
+    // The QR encodes a URL to this same Web App's own ticket-verification
+    // page (doGet, ?ticket=...) — never the name, email, mobile, address or
+    // any other personal detail. Scanning it opens a real page instead of
+    // unopenable plain text; the page itself looks up and shows only the
+    // ticket ID, name and food preference (see doGet below).
+    var qrTargetUrl = WEB_APP_URL + '?ticket=' + encodeURIComponent(ticketId);
+    var qrBlob = UrlFetchApp.fetch(QR_SERVICE_URL + encodeURIComponent(qrTargetUrl), { muteHttpExceptions: true }).getBlob();
     if (qrBlob && qrBlob.getBytes().length > 0) {
       var qrBase64 = Utilities.base64Encode(qrBlob.getBytes());
-      qrImgTag = '<img src="data:image/png;base64,' + qrBase64 + '" style="width:130px;height:130px;display:block;margin:0 auto;" alt="Ticket QR code">';
+      qrImgTag = '<img src="data:image/png;base64,' + qrBase64 + '" style="width:150px;height:150px;display:block;margin:0 auto;" alt="Ticket QR code">';
     }
   } catch (qrErr) {
     qrImgTag = '';
@@ -270,9 +316,7 @@ function buildTicketPdf_(name, ticketId) {
 
     + '<div style="margin:0 40px 24px;padding:24px 26px;background:' + BRAND_PURPLE_DARK + ';border-left:4px solid ' + BRAND_GOLD + ';border-radius:10px;' + colorAdjustCss + '">'
     + '<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:' + BRAND_MUTED + ';margin-bottom:6px;">INVITEE</div>'
-    + '<div style="font-size:20px;font-weight:800;color:#ffffff;word-wrap:break-word;line-height:1.3;margin-bottom:18px;">' + safeName + '</div>'
-    + '<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:' + BRAND_MUTED + ';margin-bottom:6px;">TICKET ID</div>'
-    + '<div style="display:inline-block;padding:7px 16px;background:' + BRAND_PURPLE + ';border:1.5px solid ' + BRAND_GOLD + ';border-radius:999px;font-size:16px;font-weight:800;letter-spacing:1px;color:' + BRAND_GOLD + ';' + colorAdjustCss + '">' + safeTicketId + '</div>'
+    + '<div style="font-size:20px;font-weight:800;color:#ffffff;word-wrap:break-word;line-height:1.3;">' + safeName + '</div>'
     + '</div>'
 
     + '<div style="margin:0 40px 24px;background:' + BRAND_PURPLE + ';' + colorAdjustCss + '">'
@@ -280,11 +324,11 @@ function buildTicketPdf_(name, ticketId) {
     + '<tr>'
     + '<td style="width:50%;padding:0 10px 0 0;vertical-align:top;">'
     + '<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:' + BRAND_MUTED + ';margin-bottom:6px;">DATE</div>'
-    + '<div style="font-size:14px;font-weight:700;color:#ffffff;">' + escapeHtml_(EVENT_DATE_LINE) + '</div>'
+    + '<div style="font-size:16px;font-weight:800;color:#ffffff;">' + escapeHtml_(EVENT_DATE_LINE) + '</div>'
     + '</td>'
     + '<td style="width:50%;padding:0 0 0 10px;vertical-align:top;border-left:1px solid ' + BRAND_GOLD + ';">'
     + '<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:' + BRAND_MUTED + ';margin-bottom:6px;">TIME</div>'
-    + '<div style="font-size:14px;font-weight:700;color:#ffffff;">' + escapeHtml_(EVENT_TIME_LINE) + '</div>'
+    + '<div style="font-size:16px;font-weight:800;color:#ffffff;">' + escapeHtml_(EVENT_TIME_LINE) + '</div>'
     + '</td>'
     + '</tr>'
     + '</table>'
@@ -296,9 +340,12 @@ function buildTicketPdf_(name, ticketId) {
 
     + '<div style="margin:0 40px 28px;padding:24px;background:' + BRAND_PURPLE_DARK + ';border-radius:10px;text-align:center;' + colorAdjustCss + '">'
     + (qrImgTag
-      ? '<div style="display:inline-block;padding:12px;background:#ffffff;border-radius:10px;' + colorAdjustCss + '">' + qrImgTag + '</div>'
+      ? '<div style="display:inline-block;padding:14px;background:' + qrBgColor + ';border-radius:10px;' + colorAdjustCss + '">' + qrImgTag + '</div>'
+        + '<div style="font-size:11px;font-weight:700;letter-spacing:2px;color:' + BRAND_MUTED + ';margin-top:14px;">TICKET ID</div>'
+        + '<div style="font-size:20px;font-weight:800;letter-spacing:1px;color:' + BRAND_GOLD + ';margin-top:4px;">' + safeTicketId + '</div>'
         + '<div style="font-size:11px;color:' + BRAND_MUTED + ';margin-top:10px;">Present this ticket at the registration desk.</div>'
-      : '<div style="font-size:18px;font-weight:800;color:' + BRAND_GOLD + ';letter-spacing:1px;">' + safeTicketId + '</div>'
+      : '<div style="font-size:11px;font-weight:700;letter-spacing:2px;color:' + BRAND_MUTED + ';margin-bottom:4px;">TICKET ID</div>'
+        + '<div style="font-size:18px;font-weight:800;color:' + BRAND_GOLD + ';letter-spacing:1px;">' + safeTicketId + '</div>'
         + '<div style="font-size:11px;color:' + BRAND_MUTED + ';margin-top:8px;">Please present this ticket ID at the registration desk.</div>')
     + '</div>'
 
@@ -488,6 +535,7 @@ function resendFailedTickets() {
       var email = row[4];
       var ticketId = row[COL_TICKET_ID - 1];
       var emailStatus = row[COL_EMAIL_STATUS - 1];
+      var food = row[8]; // 'Preferred Food' column — drives the QR panel's veg/non-veg color
       if (!ticketId || emailStatus === 'Sent') continue; // nothing to do for this row
 
       var rowIndex = i + 2;
@@ -498,7 +546,7 @@ function resendFailedTickets() {
       var emailSentAt = '';
       var emailError = '';
       try {
-        pdfBlob = buildTicketPdf_(name, ticketId);
+        pdfBlob = buildTicketPdf_(name, ticketId, food);
         ticketStatus = 'Generated';
       } catch (pdfErr) {
         newEmailStatus = 'Skipped';
@@ -545,8 +593,88 @@ function createPendingTicketsTrigger_setup() {
   console.log('Trigger registered: resendFailedTickets will now run automatically every minute.');
 }
 
-/* Optional: open the deployed Web App URL directly in a browser (a GET
-   request) to confirm it responds, without submitting a real registration. */
+/* Builds the mobile-friendly page shown when a ticket's QR code is
+   scanned. Deliberately shows only the ticket ID, name and food
+   preference — never email, mobile, address, WhatsApp, domain, t-shirt
+   size or comments, and never the underlying Sheet row number or any
+   other internal identifier. All user-provided values are HTML-escaped.
+   Authenticity note: this page has no login of its own (there is nothing
+   to log into — this is a public static site with no accounts). The
+   ticket ID itself is the credential: it is a 6-character, cryptographically
+   random, server-generated value (see generateUniqueTicketId_, ~16.7
+   million possible combinations) never derived from or guessable from the
+   attendee's name or email, the same model already used elsewhere in this
+   project for unguessable tokens (e.g. the VM Lab Agent's bearer token).
+   That is a reasonable bar for a lightweight registration-desk check-in
+   aid; it is not a replacement for a real authentication system, and this
+   function deliberately exposes nothing beyond what the desk already
+   needs to see on a scan. */
+function buildTicketVerificationHtml_(row) {
+  var colorAdjustCss = '-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;';
+  var pageShell = function (bodyHtml) {
+    return ''
+      + '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">'
+      + '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">'
+      + '<title>Arckenites Inauguration — Ticket</title>'
+      + '<style>'
+      + '*{box-sizing:border-box;}'
+      + 'html,body{margin:0;padding:0;width:100%;overflow-x:hidden;background:' + BRAND_PURPLE + ';font-family:Helvetica,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+      + '.wrap{max-width:420px;width:100%;margin:0 auto;padding:32px 20px 48px;}'
+      + '.card{background:' + BRAND_PURPLE_DARK + ';border:1px solid ' + BRAND_GOLD + ';border-radius:16px;padding:28px 22px;text-align:center;width:100%;max-width:360px;margin:0 auto;}'
+      + '.logo{height:44px;width:auto;display:block;margin:0 auto 18px;}'
+      + '.row{margin-top:18px;text-align:left;width:100%;}'
+      + '.label{font-size:11px;font-weight:700;letter-spacing:2px;color:' + BRAND_MUTED + ';}'
+      + '.value{font-size:18px;font-weight:800;color:#ffffff;word-wrap:break-word;overflow-wrap:break-word;word-break:break-word;max-width:300px;margin-top:4px;}'
+      + '</style></head>'
+      + '<body><div class="wrap"><div class="card">'
+      + '<img class="logo" src="data:image/png;base64,' + LOGO_BASE64_PNG + '" alt="Arckenites">'
+      + bodyHtml
+      + '</div></div></body></html>';
+  };
+
+  if (!row) {
+    return pageShell(
+      '<div style="font-size:20px;font-weight:800;color:' + BRAND_GOLD + ';">Invalid Ticket</div>'
+      + '<div style="font-size:13px;color:' + BRAND_MUTED + ';margin-top:10px;max-width:300px;word-wrap:break-word;overflow-wrap:break-word;">'
+      + 'This QR code does not match any Arckenites Inauguration ticket on record. '
+      + 'Please check with the registration desk.</div>'
+    );
+  }
+
+  var name = escapeHtml_(String(row[1] || ''));
+  var ticketId = escapeHtml_(String(row[COL_TICKET_ID - 1] || ''));
+  var rawFood = String(row[8] || '').trim().toLowerCase();
+  var foodLabel = rawFood === 'veg' ? 'Veg'
+    : (rawFood === 'non-veg' || rawFood === 'nonveg' || rawFood === 'non veg') ? 'Non-Veg'
+    : 'Not specified';
+
+  return pageShell(
+    '<div style="font-size:11px;font-weight:700;letter-spacing:2px;color:' + BRAND_GOLD + ';">VALID TICKET</div>'
+    + '<div class="row"><div class="label">TICKET ID</div><div class="value">' + ticketId + '</div></div>'
+    + '<div class="row"><div class="label">NAME</div><div class="value">' + name + '</div></div>'
+    + '<div class="row"><div class="label">FOOD PREFERENCE</div><div class="value">' + foodLabel + '</div></div>'
+    + '<div class="row"><div class="label">EVENT DATE</div><div class="value">' + escapeHtml_(EVENT_DATE_LINE) + '</div></div>'
+    + '<div class="row"><div class="label">EVENT TIME</div><div class="value">' + escapeHtml_(EVENT_TIME_LINE) + '</div></div>'
+    + '<div class="row"><div class="label">VENUE</div><div class="value" style="font-size:14px;font-weight:600;">' + escapeHtml_(EVENT_VENUE_LINE) + '</div></div>'
+  );
+}
+
+/* Two responsibilities, distinguished by the ?ticket= query parameter:
+     - ?ticket=ARCK-XXXXXX : the QR-scan verification page a phone opens
+       when it scans a ticket's QR code (see buildTicketPdf_). Returns a
+       real HTML page via HtmlService, not JSON, since this is what a
+       phone's browser renders after scanning.
+     - no parameters: the original plain health check, unchanged, so
+       opening the bare Web App URL in a browser still confirms it's live
+       without needing a real ticket ID. */
 function doGet(e) {
+  var ticketParam = e && e.parameter && e.parameter.ticket;
+  if (ticketParam) {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Registrations');
+    var row = sheet ? findRowByTicketId_(sheet, ticketParam) : null;
+    return HtmlService.createHtmlOutput(buildTicketVerificationHtml_(row))
+      .setTitle('Arckenites Inauguration — Ticket')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
+  }
   return jsonResponse_({ status: 'ok', message: 'Inauguration registration endpoint is live.' });
 }

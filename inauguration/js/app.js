@@ -6,11 +6,95 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('iaYear').textContent = new Date().getFullYear();
 
+  /* ---------- Voice: a short synthesized chime + browser speech synthesis ----------
+     No prerecorded professional voice-over asset exists in this project,
+     so this uses the browser's built-in SpeechSynthesis API rather than
+     faking a silent toggle. Voice quality/pitch varies by browser and OS —
+     this picks the best available match for "a clear, warm voice" via
+     name-based heuristics (there is no reliable cross-browser gender flag
+     on SpeechSynthesisVoice) and falls back to the first available voice
+     rather than assuming a specific one exists on every device. The
+     "sparkle" effect is a few bright, quickly-decaying sine tones via the
+     Web Audio API — not an external sound file — kept short and quiet
+     enough to never obscure the spoken words. Everything here only ever
+     runs in response to a real click (the switch, or the registration
+     submit), so it respects autoplay restrictions: nothing plays on page
+     load. */
+  let audioCtx = null;
+  const getAudioCtx = () => {
+    if (!audioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      audioCtx = new Ctx();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  };
+  const playSparkle = () => {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      [1760, 2217, 2637, 3136].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const start = now + i * 0.06;
+        gain.gain.setValueAtTime(0, start);
+        gain.gain.linearRampToValueAtTime(0.12, start + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.35);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.4);
+      });
+    } catch (_) { /* a synthesized chime failing is never worth surfacing to the user */ }
+  };
+
+  let pickedVoice = null;
+  const pickFemaleVoice = () => {
+    if (!('speechSynthesis' in window)) return null;
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices.length) return null;
+    const femaleHints = /female|zira|samantha|susan|victoria|karen|tessa|moira|fiona|serena|aria|jenny|amy|emma|salli|joanna/i;
+    return voices.find((v) => femaleHints.test(v.name) && /^en/i.test(v.lang))
+      || voices.find((v) => femaleHints.test(v.name))
+      || voices.find((v) => /^en/i.test(v.lang))
+      || voices[0];
+  };
+  if ('speechSynthesis' in window) {
+    pickedVoice = pickFemaleVoice(); // some browsers already have voices ready
+    window.speechSynthesis.onvoiceschanged = () => { pickedVoice = pickFemaleVoice(); };
+  }
+
+  /* Always cancels any in-flight utterance first, so rapid repeated clicks
+     (the switch, or a replay button) can never overlap two messages. */
+  const speak = (text) => {
+    if (!('speechSynthesis' in window)) return false;
+    try {
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = 0.95;
+      utter.pitch = 1.1;
+      utter.volume = 1;
+      if (pickedVoice) utter.voice = pickedVoice;
+      window.speechSynthesis.speak(utter);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+  const stopSpeaking = () => {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  };
+
   /* ---------- Theme switch ----------
-     Starts OFF on every fresh load (the body's data-theme="default" markup
-     attribute is the source of truth, not JS and not localStorage). Clicking
-     the switch is the only thing that changes it, and it never persists
-     across a reload. */
+     Starts OFF ("Click to turn on") on every fresh load (the body's
+     data-theme="default" markup attribute is the source of truth, not JS
+     and not localStorage). Clicking the switch is the only thing that
+     changes it, and it never persists across a reload. Turning it ON also
+     plays the welcome voice message; turning it OFF stops/resets any
+     playback cleanly rather than letting it run on into a hidden page. */
   const themeToggle = document.getElementById('iaThemeToggle');
   const themeState = document.getElementById('iaThemeState');
   if (themeToggle) {
@@ -19,7 +103,14 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.setAttribute('data-theme', turningOn ? 'inauguration' : 'default');
       themeToggle.setAttribute('aria-checked', String(turningOn));
       themeToggle.classList.toggle('is-on', turningOn);
-      if (themeState) themeState.textContent = turningOn ? 'ON' : 'OFF';
+      if (themeState) themeState.textContent = turningOn ? 'ON' : 'Click to turn on';
+
+      if (turningOn) {
+        playSparkle();
+        speak('Welcome to Arckenites Inauguration!');
+      } else {
+        stopSpeaking();
+      }
     });
   }
 
@@ -108,6 +199,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let submitting = false;
 
+  /* ---------- Registration thank-you voice ----------
+     Plays once per actual successful submission, never on validation/API
+     failure, and never twice for the same success (guarded by
+     thankYouPlayed, reset only when a fresh registration flow starts —
+     resetForm() runs every time the modal opens, so a later, separate
+     registration in the same page load can still play it again, but
+     re-showing the already-displayed success view never re-triggers it).
+     A manual replay button (#iaReplayThankYou) always works regardless of
+     this guard, as the accessible fallback for blocked/failed autoplay. */
+  let thankYouPlayed = false;
+  const playThankYouMessage = () => {
+    if (thankYouPlayed) return;
+    thankYouPlayed = true;
+    playSparkle();
+    speak("Thanks for your time, we'll wait for your presence.");
+  };
+  const replayThankYouBtn = document.getElementById('iaReplayThankYou');
+  if (replayThankYouBtn) {
+    replayThankYouBtn.addEventListener('click', () => {
+      playSparkle();
+      speak("Thanks for your time, we'll wait for your presence.");
+    });
+  }
+
   /* ---------- Conditional fields ----------
      WhatsApp "Other" reveals its own number input; Domain "Other" reveals
      a free-text input. Both are hidden (and their value ignored) otherwise. */
@@ -137,6 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
     banner.textContent = '';
     formView.style.display = 'block';
     successView.style.display = 'none';
+    thankYouPlayed = false; // a fresh registration attempt may play the thank-you message again
   };
 
   const openModal = () => {
@@ -148,6 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const closeModal = () => {
     if (submitting) return; // don't let a mid-flight submission be abandoned silently
+    stopSpeaking(); // don't let the thank-you/welcome voice keep playing after the modal is dismissed
     backdrop.classList.remove('is-open');
     document.body.style.overflow = '';
   };
@@ -304,6 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (result.status === 'ok') {
         formView.style.display = 'none';
         successView.style.display = 'block';
+        playThankYouMessage(); // only after a real confirmed success — never on a validation/API error
       } else {
         throw new Error(result.message || 'submission failed');
       }

@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=14">
+<link rel="stylesheet" href="css/style.css?v=15">
 
 <script>
   // Phase 1 only: where registrations are sent. Replace this with the Google
@@ -27,9 +27,9 @@
 <!-- The switch is a single element, present once, that is repositioned and
      rescaled by CSS alone depending on data-theme. It is never duplicated,
      and it stays visible and controllable in both states. -->
-<button type="button" id="iaThemeToggle" class="ia-switch ia-switch-stage" role="switch" aria-checked="false" aria-label="Enable inauguration theme">
+<button type="button" id="iaThemeToggle" class="ia-switch ia-switch-stage" role="switch" aria-checked="false" aria-label="Turn on the inauguration experience and welcome message">
   <span class="ia-switch-track"><span class="ia-switch-thumb"></span></span>
-  <span class="ia-switch-state" id="iaThemeState" aria-hidden="true">OFF</span>
+  <span class="ia-switch-state" id="iaThemeState" aria-hidden="true">Click to turn on</span>
 </button>
 
 <!-- Everything else lives in one wrapper, so the whole landing page fades
@@ -230,11 +230,6 @@
           <h3>Venue</h3>
           <p>Krishna Kutir, No 6/24, Ramanathan St,<br>Mahalingapuram, Nungambakkam,<br>Chennai, Tamil Nadu 600034</p>
         </div>
-        <div class="ia-detail-card" data-reveal>
-          <span class="ia-detail-icon"><i class="fa-solid fa-user-tie"></i></span>
-          <h3>Mentor</h3>
-          <p>Richard Jessy<br>Mentor, Arckenites</p>
-        </div>
       </div>
     </div>
   </section>
@@ -426,10 +421,13 @@
       <p>Thank you for registering for the<br>Arckenites IT Academy Inauguration.</p>
       <p class="ia-success-note">Your ticket will be sent to your mail.</p>
       <button type="button" class="ia-cta ia-cta-block" id="iaSuccessClose">Done</button>
+      <button type="button" class="ia-replay-audio" id="iaReplayThankYou" aria-label="Play thank-you message">
+        <i class="fa-solid fa-volume-high" aria-hidden="true"></i> Play thank-you message
+      </button>
     </div>
   </div>
 </div>
 
-<script src="js/app.js?v=7"></script>
+<script src="js/app.js?v=8"></script>
 </body>
 </html>

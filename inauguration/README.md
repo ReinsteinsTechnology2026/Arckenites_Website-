@@ -115,9 +115,14 @@ migrating an existing sheet that only had A–K:
    first**, with placeholder `Pending` statuses — before any PDF or email
    work is attempted. If everything after this point fails, the
    registration itself is never lost.
-4. The PDF ticket is built (name, ticket ID, event date/time/venue, a QR
-   code containing only the ticket ID — never the name, email or mobile
-   number — plus the Arckenites logo when it can be fetched; see below).
+4. The PDF ticket is built (name, ticket ID directly below the QR code,
+   event date/time/venue, a QR code encoding a link to this same Web App's
+   own ticket-verification page — `WEB_APP_URL + '?ticket=' + ticketId` —
+   never the name, email or mobile number, plus the Arckenites logo when it
+   can be fetched; see below). The QR panel's background is colored by the
+   registrant's food preference (light green for Veg, light red for
+   Non-Veg) — only the background, never the QR's own black modules, so it
+   stays reliably scannable.
 5. The email is sent with the PDF attached, to the registrant's email
    address, from the Google account that authorized the deployment.
 6. The row is updated in place with the final Ticket Status, Email Status,
@@ -156,10 +161,12 @@ until everything shows `Sent`).
   a styled text "ARCKENITES" wordmark instead of failing — tickets and
   emails still generate and send normally either way.
 - **QR code image**: generated via the free public service
-  `api.qrserver.com`, called with only the ticket ID as its `data`
-  parameter. If that service is unreachable, the PDF falls back to showing
-  the ticket ID as plain text with an instruction to bring ID proof,
-  instead of failing ticket generation.
+  `api.qrserver.com`, called with the ticket's verification URL (see
+  above) as its `data` parameter — not the bare ticket ID — so a phone's
+  camera/QR app opens a real page instead of unopenable plain text. If
+  that service is unreachable, the PDF falls back to showing the ticket ID
+  as plain text with an instruction to bring ID proof, instead of failing
+  ticket generation.
 
 Both fetches are wrapped so that a failure degrades gracefully rather than
 blocking the ticket or the email.
@@ -221,9 +228,16 @@ actually sent the email.
 
 ## What remains for later phases
 
-- QR check-in / ticket verification at the venue (the QR code only
-  contains the ticket ID — no scanner or verification endpoint exists yet;
-  do not describe check-in as implemented).
+- **QR scan → ticket details page**: implemented. Scanning a ticket's QR
+  code opens `WEB_APP_URL?ticket=<id>` (doGet), which shows the ticket ID,
+  attendee name, food preference and event details — never email, mobile,
+  address or any other personal data, and never the underlying Sheet row
+  number. An unrecognized ticket ID shows a plain "Invalid Ticket" page
+  instead of crashing. **Not yet implemented**: any real registration-desk
+  check-in workflow (e.g., marking a ticket as "checked in," staff-only
+  access to that action, or rate-limiting repeated scans) — this page is
+  read-only and anyone with the link/QR can view it, same as a physical
+  printed ticket would be. Do not describe staffed check-in as implemented.
 - WhatsApp delivery.
 - An admin view of registrations, tickets, and delivery status (today this
   is just the Sheet itself, plus the manual `resendFailedTickets` retry).
