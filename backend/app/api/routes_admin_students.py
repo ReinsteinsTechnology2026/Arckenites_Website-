@@ -1,18 +1,22 @@
 import io
+import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
-from sqlalchemy import delete, or_, select, update
+from sqlalchemy import delete, func, or_, select, text, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.deps import require_permission
-from app.core.security import hash_password
+from app.core.deps import require_permission, require_role
+from app.core.security import hash_password, validate_password_strength, verify_password
+from app.core.student_credentials import send_student_credentials
 from app.crud.audit import write_audit_event
+from app.crud.permissions import user_has_permission
 from app.crud.session import revoke_all_sessions
-from app.crud.user import generate_student_code, generate_username
+from app.crud.system_settings import get_settings
+from app.crud.user import generate_student_code
 from app.database import get_db
 from app.models.audit_log import AuthAuditLog, AuthEventType
 from app.models.batch import BatchEnrollment
@@ -26,15 +30,19 @@ from app.models.lab_access_override import LabAccessOverride
 from app.models.lab_slot_booking import LabSlotBooking
 from app.models.lab_vm import LabVmAccess, LabVmAccessAuditLog
 from app.models.meeting import MeetingMessage, MeetingParticipant
-from app.models.program import ProgramEnrollment
+from app.models.program import EnrollmentStatusEnum, Program, ProgramEnrollment, ProgramStatusEnum
 from app.models.session import AuthSession
 from app.models.student import PROGRAM_LABELS, ProgramEnum, StudentProfile
 from app.models.support import SupportMessage, SupportTicket
 from app.models.user import RoleEnum, User
 from app.schemas.admin_students import (
     CreateStudentRequest,
+    CredentialEmailOut,
     DeleteStudentResponse,
+    ResendStudentCredentialsRequest,
     StudentAdminOut,
+    StudentCreatedOut,
+    StudentProgramOption,
     UpdateStudentRequest,
 )
 
@@ -67,6 +75,30 @@ _STUDENT_RELATED_RECORD_CHECKS: list[tuple[type, str]] = [
 ]
 
 router = APIRouter(prefix="/admin", tags=["admin-students"])
+logger = logging.getLogger("students")
+
+
+def _email_in_use(db: Session, email: str) -> bool:
+    # Include old students whose generated login is different from their
+    # known contact email. Never guess or rename existing accounts.
+    return (
+        db.scalar(select(User.id).where(func.lower(func.trim(User.username)) == email).limit(1)) is not None
+        or db.scalar(select(StudentProfile.id).where(func.lower(func.trim(StudentProfile.email)) == email).limit(1)) is not None
+    )
+
+
+_DUPLICATE_EMAIL = "A student account with this email already exists, or the email is already used as another portal login."
+
+
+@router.get("/students/program-options", response_model=list[StudentProgramOption])
+def student_program_options(
+    db: Session = Depends(get_db),
+    _actor: User = Depends(require_role("admin")),
+):
+    # Provisioning does not require unrelated programs.view permission.
+    if not any(user_has_permission(db, _actor, key) for key in ("students.create", "students.edit")):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    return db.scalars(select(Program).where(Program.status == ProgramStatusEnum.active).order_by(Program.name)).all()
 
 
 def _client_meta(request: Request) -> tuple[str, str]:
@@ -100,37 +132,96 @@ def _student_has_related_records(db: Session, user_id: int) -> bool:
     return convo_exists is not None
 
 
-@router.post("/students", response_model=StudentAdminOut, status_code=201)
+@router.post("/students", response_model=StudentCreatedOut, status_code=201)
 def create_student(
     payload: CreateStudentRequest,
     request: Request,
     db: Session = Depends(get_db),
     actor: User = Depends(require_permission("students.create")),
 ):
-    username = generate_username(db, payload.full_name, RoleEnum.student)
+    if get_settings(db).require_strong_passwords:
+        error = validate_password_strength(payload.temp_password)
+        if error:
+            raise HTTPException(status_code=400, detail=error)
+    try:
+        # The existing code allocator scans codes. Serialize this short
+        # transaction across workers to avoid assigning the same code.
+        if db.get_bind().dialect.name == "postgresql":
+            db.execute(text("SELECT pg_advisory_xact_lock(19041701)"))
+        if _email_in_use(db, payload.email):
+            raise HTTPException(status_code=409, detail=_DUPLICATE_EMAIL)
+        program = db.get(Program, payload.program_id)
+        if program is None or program.status != ProgramStatusEnum.active:
+            raise HTTPException(status_code=400, detail="Please select an active program.")
+        user = User(
+            username=payload.email, password_hash=hash_password(payload.temp_password),
+            full_name=payload.full_name, role=RoleEnum.student,
+            is_active=True, must_change_password=True,
+        )
+        db.add(user)
+        db.flush()
+        # Retain the enum used by existing program-specific dashboards
+        # when this catalogue slug has a legacy counterpart.
+        legacy_program = ProgramEnum._value2member_map_.get(program.slug)
+        db.add(StudentProfile(user_id=user.id, email=payload.email, program=legacy_program, program_id=program.id,
+                              student_code=generate_student_code(db)))
+        db.add(ProgramEnrollment(program_id=program.id, student_id=user.id, status=EnrollmentStatusEnum.active))
+        ip, ua = _client_meta(request)
+        write_audit_event(
+            db, AuthEventType.student_created, ip, ua, user=actor,
+            detail=f"Created student {payload.email}", module="students", target=payload.email,
+            status="success", commit=False,
+        )
+        program_name = program.name
+        db.commit()
+    except HTTPException:
+        db.rollback()
+        raise
+    except IntegrityError as exc:
+        db.rollback()
+        if _email_in_use(db, payload.email):
+            raise HTTPException(status_code=409, detail=_DUPLICATE_EMAIL)
+        logger.error("Student creation constraint failure error_type=%s", type(exc).__name__)
+        raise HTTPException(status_code=409, detail="Unable to create student. Please refresh and try again.")
+    except Exception as exc:
+        db.rollback()
+        # Do not log SQL parameters or return database internals.
+        logger.error("Student creation failed error_type=%s", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="Unable to create student. Please try again.")
 
-    user = User(
-        username=username,
-        password_hash=hash_password(payload.temp_password),
-        full_name=payload.full_name,
-        role=RoleEnum.student,
-        must_change_password=True,
-    )
-    db.add(user)
-    db.flush()
-
-    program = ProgramEnum(payload.program) if payload.program else None
-    db.add(StudentProfile(user_id=user.id, program=program, student_code=generate_student_code(db)))
-    db.commit()
     db.refresh(user)
-
-    ip, ua = _client_meta(request)
-    write_audit_event(
-        db, AuthEventType.student_created, ip, ua, user=actor, detail=f"Created student {username}",
-        module="students", target=username, status="success",
+    student = StudentAdminOut.model_validate(user)
+    # Email only after the user, profile, enrollment and audit are durable.
+    delivery = send_student_credentials(
+        student_id=user.id, full_name=user.full_name, email=payload.email,
+        temp_password=payload.temp_password, program_name=program_name,
     )
+    return StudentCreatedOut(**student.model_dump(), **delivery.model_dump())
 
-    return StudentAdminOut.model_validate(user)
+
+@router.post("/students/{student_id}/credentials-email", response_model=CredentialEmailOut)
+def resend_student_credentials(
+    student_id: int, payload: ResendStudentCredentialsRequest,
+    db: Session = Depends(get_db),
+    _actor: User = Depends(require_permission("students.create")),
+):
+    user = _get_student_or_404(db, student_id)
+    if not user.is_active or not user.must_change_password:
+        raise HTTPException(status_code=400, detail="Credentials can only be resent for an active student awaiting a password change.")
+    if not user.email or user.username != user.email.strip().lower():
+        raise HTTPException(status_code=400, detail="This account uses a legacy login. Share its existing login ID securely instead.")
+    if not verify_password(payload.temp_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="The temporary password does not match. Enter the original temporary password.")
+    result = send_student_credentials(
+        student_id=user.id, full_name=user.full_name, email=user.username,
+        temp_password=payload.temp_password,
+        program_name=user.program_name or PROGRAM_LABELS.get(user.student_profile.program, "Not assigned"),
+    )
+    return CredentialEmailOut(
+        credential_email_sent=result.credential_email_sent,
+        detail=(f"Credentials were emailed to {user.username}." if result.credential_email_sent else
+                "The credential email could not be sent. The student account and password are unchanged; please retry later."),
+    )
 
 
 @router.get("/students", response_model=list[StudentAdminOut])
@@ -141,7 +232,7 @@ def list_students(
     users = db.scalars(
         select(User)
         .where(User.role == RoleEnum.student)
-        .options(selectinload(User.student_profile))
+        .options(selectinload(User.student_profile), selectinload(User.program_enrollments).selectinload(ProgramEnrollment.program))
         .order_by(User.created_at.desc())
     ).all()
     return [StudentAdminOut.model_validate(u) for u in users]
@@ -158,7 +249,7 @@ def export_students(
     users = db.scalars(
         select(User)
         .where(User.role == RoleEnum.student)
-        .options(selectinload(User.student_profile))
+        .options(selectinload(User.student_profile), selectinload(User.program_enrollments).selectinload(ProgramEnrollment.program))
         .order_by(User.created_at.desc())
     ).all()
 
@@ -173,19 +264,24 @@ def export_students(
 
     for u in users:
         profile = u.student_profile
-        program_label = PROGRAM_LABELS.get(profile.program, "") if profile and profile.program else ""
+        program_label = u.program_name or (PROGRAM_LABELS.get(profile.program, "") if profile and profile.program else "")
         current_role = profile.current_role.value if profile and profile.current_role else ""
         ws.append([
             u.username,
             u.full_name,
             profile.phone if profile else "",
-            profile.email if profile else "",
+            (profile.email if profile else None) or (u.username if "@" in u.username else ""),
             current_role,
             program_label,
             "Active" if u.is_active else "Inactive",
             "Yes" if u.must_change_password else "No",
             u.created_at.strftime("%Y-%m-%d %H:%M") if u.created_at else "",
         ])
+        # User-supplied names/contact data must remain literal Excel text,
+        # even when a value begins with '='.
+        for cell in ws[ws.max_row]:
+            if cell.data_type == "f":
+                cell.data_type = "s"
 
     for col in ws.columns:
         width = max(len(str(cell.value)) for cell in col if cell.value is not None) if col else 10
@@ -216,12 +312,28 @@ def update_student(
 
     if payload.full_name is not None:
         user.full_name = payload.full_name
+    if payload.program_id is not None or payload.program is not None:
+        program_query = (Program.id == payload.program_id if payload.program_id is not None
+                         else Program.slug == payload.program)
+        assigned = db.scalar(select(Program).where(program_query))
+        if assigned is None or assigned.status != ProgramStatusEnum.active:
+            raise HTTPException(status_code=400, detail="Please select an active program.")
+        profile = user.student_profile
+        profile.program_id = assigned.id
+        profile.program = ProgramEnum._value2member_map_.get(assigned.slug)
+        enrollment = db.scalar(select(ProgramEnrollment).where(
+            ProgramEnrollment.student_id == user.id, ProgramEnrollment.program_id == assigned.id,
+        ))
+        if enrollment is None:
+            db.add(ProgramEnrollment(student_id=user.id, program_id=assigned.id, status=EnrollmentStatusEnum.active))
+        elif enrollment.status in (EnrollmentStatusEnum.withdrawn, EnrollmentStatusEnum.rejected, EnrollmentStatusEnum.pending):
+            enrollment.status = EnrollmentStatusEnum.active
     if payload.is_active is not None:
         if payload.is_active != user.is_active:
             write_audit_event(
                 db, AuthEventType.student_enabled if payload.is_active else AuthEventType.student_disabled,
                 ip, ua, user=actor, detail=f"{'Enabled' if payload.is_active else 'Disabled'} student {user.username}",
-                module="students", target=user.username, status="success",
+                module="students", target=user.username, status="success", commit=False,
             )
         user.is_active = payload.is_active
         if payload.is_active is False:
@@ -230,8 +342,6 @@ def update_student(
             # student logged in before the toggle keeps working until that
             # token naturally expires.
             revoke_all_sessions(db, user.id)
-    if payload.program is not None:
-        user.student_profile.program = ProgramEnum(payload.program)
     if payload.reset_temp_password is not None:
         user.password_hash = hash_password(payload.reset_temp_password)
         user.must_change_password = True
@@ -240,17 +350,22 @@ def update_student(
         write_audit_event(
             db, AuthEventType.student_password_reset, ip, ua, user=actor,
             detail=f"Reset password for student {user.username}", module="students", target=user.username,
-            status="success",
+            status="success", commit=False,
         )
 
-    if payload.full_name is not None or payload.program is not None:
+    if payload.full_name is not None or payload.program is not None or payload.program_id is not None:
         write_audit_event(
             db, AuthEventType.student_updated, ip, ua, user=actor, detail=f"Edited student {user.username}",
-            module="students", target=user.username, status="success",
+            module="students", target=user.username, status="success", commit=False,
         )
 
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except Exception as exc:
+        db.rollback()
+        logger.error("Student update failed error_type=%s", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="Unable to update student. Please try again.")
     db.refresh(user)
 
     return StudentAdminOut.model_validate(user)

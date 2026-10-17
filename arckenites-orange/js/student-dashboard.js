@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Plain layout: no sidebar yet for this student's program.
     document.getElementById('simpleLayout').style.display = 'block';
     document.getElementById('simpleWelcome').textContent = `Welcome, ${user.full_name}`;
+    document.getElementById('simpleProgram').textContent = `Program: ${user.program_name || PROGRAM_LABELS[user.program] || 'Not assigned yet'}`;
     document.getElementById('simpleLogoutBtn').addEventListener('click', () => ArckAuth.logout());
     return;
   }
@@ -196,7 +197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('profileAccountDetailsBody').innerHTML = `
       <div class="detail-row"><span class="form-label">Username</span><span>${escapeHtml(user.username)}</span></div>
       <div class="detail-row"><span class="form-label">Student ID</span><span>${escapeHtml(user.student_id || 'Not assigned yet')}</span></div>
-      <div class="detail-row"><span class="form-label">Program</span><span>${escapeHtml(PROGRAM_LABELS[user.program] || 'Not selected yet')}</span></div>
+      <div class="detail-row"><span class="form-label">Program</span><span>${escapeHtml(user.program_name || PROGRAM_LABELS[user.program] || 'Not selected yet')}</span></div>
       <div class="detail-row"><span class="form-label">Batch</span><span>${myBatches.length ? escapeHtml(myBatches.map((b) => b.name).join(', ')) : 'Not assigned yet'}</span></div>
       ${primaryBatch ? `<div class="detail-row"><span class="form-label">Status</span><span class="admin-activity-badge ${BATCH_STATUS_BADGE[primaryBatch.status] || 'is-muted'}">${BATCH_STATUS_LABEL[primaryBatch.status] || primaryBatch.status}</span></div>` : ''}
       <div class="detail-row"><span class="form-label">Account</span><span class="admin-activity-badge ${user.is_active ? 'is-success' : 'is-danger'}">${user.is_active ? 'Active' : 'Inactive'}</span></div>

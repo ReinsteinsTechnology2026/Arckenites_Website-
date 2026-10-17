@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -23,7 +23,13 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    username: Mapped[str] = mapped_column(String(120), unique=True, nullable=False, index=True)
+    username: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    __table_args__ = (
+        Index(
+            "uq_users_email_login_normalized", func.lower(func.trim(username)), unique=True,
+            postgresql_where=username.contains("@"), sqlite_where=username.contains("@"),
+        ),
+    )
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str] = mapped_column(String(200), nullable=False)
     role: Mapped[RoleEnum] = mapped_column(Enum(RoleEnum, name="role_enum"), nullable=False)
@@ -63,6 +69,33 @@ class User(Base):
     community_profile: Mapped["CommunityProfile"] = relationship(
         back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
+    program_enrollments: Mapped[list["ProgramEnrollment"]] = relationship(
+        back_populates="student", foreign_keys="ProgramEnrollment.student_id",
+        order_by="ProgramEnrollment.id", passive_deletes="all",
+    )
+
+    @property
+    def assigned_program(self):
+        """Current catalogue assignment; keep the legacy program preference
+        when it exists, without migrating or guessing old student data."""
+        if self.role != RoleEnum.student:
+            return None
+        if self.student_profile and self.student_profile.assigned_program:
+            return self.student_profile.assigned_program
+        current = [e for e in self.program_enrollments if e.status.value in ("approved", "allocated", "active")]
+        legacy = self.student_profile.program.value if self.student_profile and self.student_profile.program else None
+        matching = next((e for e in current if e.program.slug == legacy), None)
+        return matching.program if matching else None
+
+    @property
+    def program_id(self) -> int | None:
+        program = self.assigned_program
+        return program.id if program else None
+
+    @property
+    def program_name(self) -> str | None:
+        program = self.assigned_program
+        return program.name if program else None
 
     @property
     def program(self) -> str | None:
@@ -70,6 +103,9 @@ class User(Base):
         chosen program without every caller having to reach into student_profile."""
         if self.role == RoleEnum.student and self.student_profile and self.student_profile.program:
             return self.student_profile.program.value
+        program = self.assigned_program
+        if program:
+            return program.slug
         return None
 
     @property

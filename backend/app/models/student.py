@@ -53,6 +53,10 @@ class StudentProfile(Base):
 
     # Null until the student completes the post-first-login onboarding step.
     program: Mapped[ProgramEnum | None] = mapped_column(Enum(ProgramEnum, name="program_enum"), nullable=True)
+    # Explicit primary assignment for catalogue programs, including custom
+    # slugs that cannot fit the legacy enum. Old profiles remain NULL.
+    program_id: Mapped[int | None] = mapped_column(ForeignKey("programs.id"), nullable=True)
+    assigned_program: Mapped["Program | None"] = relationship(foreign_keys=[program_id])
 
     # Master on/off switch for email notifications (chat, support, batch/class
     # updates, lab access changes) — see app/core/notify.py. Defaults on.

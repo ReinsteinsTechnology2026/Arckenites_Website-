@@ -179,17 +179,21 @@
         <form id="addStudentForm" novalidate>
           <div class="admin-form-grid">
             <div>
-              <label class="form-label">Full Name</label>
-              <input type="text" class="form-control" id="newStudentName" required>
+              <label class="form-label" for="newStudentName">Full Name</label>
+              <input type="text" class="form-control" id="newStudentName" maxlength="200" required>
             </div>
             <div>
-              <label class="form-label">Temporary Password</label>
-              <input type="text" class="form-control" id="newStudentPassword" minlength="8" required>
+              <label class="form-label" for="newStudentEmail">Candidate Email ID</label>
+              <input type="email" class="form-control" id="newStudentEmail" maxlength="255" autocomplete="email" required>
             </div>
             <div>
-              <label class="form-label">Program</label>
-              <select class="form-select" id="newStudentProgram">
-                <option value="">Not selected yet</option>
+              <label class="form-label" for="newStudentPassword">Temporary Password</label>
+              <input type="password" class="form-control" id="newStudentPassword" minlength="8" maxlength="72" autocomplete="new-password" required>
+            </div>
+            <div>
+              <label class="form-label" for="newStudentProgram">Program</label>
+              <select class="form-select" id="newStudentProgram" required>
+                <option value="">Select a program</option>
               </select>
             </div>
           </div>
@@ -211,6 +215,10 @@
               <input type="text" class="form-control" id="editStudentName" required>
             </div>
             <div>
+              <label class="form-label" for="editStudentLogin">Email / Login ID</label>
+              <input type="text" class="form-control" id="editStudentLogin" readonly>
+            </div>
+            <div>
               <label class="form-label">Program</label>
               <select class="form-select" id="editStudentProgram">
                 <option value="">Not selected yet</option>
@@ -225,7 +233,7 @@
             </div>
             <div>
               <label class="form-label">Reset Temporary Password</label>
-              <input type="text" class="form-control" id="editStudentResetPassword" minlength="8" placeholder="Leave blank to keep current password">
+              <input type="password" class="form-control" id="editStudentResetPassword" minlength="8" autocomplete="new-password" placeholder="Leave blank to keep current password">
             </div>
           </div>
           <div class="login-error" id="editStudentError" style="display:none;"></div>
@@ -236,15 +244,34 @@
         </form>
       </div>
 
-      <div class="dashboard-notice" id="newStudentNotice" style="display:none;"></div>
+      <div class="form-card admin-inline-form" id="resendStudentPanel" style="display:none;">
+        <h5>Resend Credentials</h5>
+        <p id="resendStudentRecipient"></p>
+        <form id="resendStudentForm" novalidate>
+          <div class="admin-form-grid">
+            <div>
+              <label class="form-label" for="resendStudentPassword">Original Temporary Password</label>
+              <input type="password" class="form-control" id="resendStudentPassword" minlength="8" maxlength="72" autocomplete="off" required>
+              <p>Enter the existing temporary password. Resending does not change it.</p>
+            </div>
+          </div>
+          <div class="login-error" id="resendStudentError" style="display:none;"></div>
+          <div class="admin-form-actions">
+            <button type="submit" class="btn btn-accent" id="resendStudentSubmitBtn">Send Credentials</button>
+            <button type="button" class="btn btn-primary-outline" id="cancelResendStudentBtn">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="dashboard-notice" id="newStudentNotice" role="status" aria-live="polite" style="display:none;"></div>
 
       <div class="admin-panel">
         <div class="admin-panel-header"><h2 id="studentsPanelTitle">All Students</h2></div>
         <table class="admin-activity-table">
           <thead>
             <tr>
-              <th>Username</th><th>Name</th>
-              <th class="col-database">Mobile</th><th class="col-database">Email</th>
+              <th>Name</th><th>Email</th>
+              <th class="col-database">Mobile</th><th class="col-database">Login ID</th>
               <th>Program</th><th>Status</th><th>Created</th><th>Actions</th>
             </tr>
           </thead>

@@ -42,7 +42,7 @@ const ArckAPI = {
     sessionStorage.removeItem(USER_KEY);
   },
 
-  async request(path, { method = 'GET', body, auth = true } = {}) {
+  async request(path, { method = 'GET', body, auth = true, timeoutMs = 15000 } = {}) {
     const headers = { 'Content-Type': 'application/json' };
     if (auth) {
       const token = this.getToken();
@@ -54,7 +54,7 @@ const ArckAPI = {
     // whatever UI was waiting on it stuck on "Loading…" with no error ever
     // shown. This bounds every request so it always settles one way or another.
     const timeoutController = new AbortController();
-    const timeoutId = setTimeout(() => timeoutController.abort(), 15000);
+    const timeoutId = setTimeout(() => timeoutController.abort(), timeoutMs);
 
     let res;
     try {

@@ -102,4 +102,4 @@ class ProgramEnrollment(Base):
     )
 
     program: Mapped["Program"] = relationship(back_populates="enrollments")
-    student: Mapped["User"] = relationship(foreign_keys=[student_id])
+    student: Mapped["User"] = relationship(foreign_keys=[student_id], back_populates="program_enrollments")

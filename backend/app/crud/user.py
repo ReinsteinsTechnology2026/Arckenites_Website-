@@ -1,13 +1,25 @@
 import re
 
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from app.models.user import RoleEnum, User
 
 
 def get_by_username(db: Session, username: str) -> User | None:
-    return db.scalar(select(User).where(User.username == username))
+    exact = db.scalar(select(User).where(User.username == username))
+    # Keep exact username matching for all existing account roles. Only
+    # student email logins gain whitespace/case normalization.
+    if exact is not None:
+        return exact
+    if "@" not in username:
+        return None
+    matches = db.scalars(select(User).where(
+        User.role == RoleEnum.student,
+        func.lower(func.trim(User.username)) == username.strip().lower(),
+    )).all()
+    # Fail closed for ambiguous historical data before the migration runs.
+    return matches[0] if len(matches) == 1 else None
 
 
 def _generate_email_username(db: Session, full_name: str, fallback: str) -> str:

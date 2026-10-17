@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const submitBtn = form.querySelector('button[type="submit"]');
 
   nameInput.value = user.full_name || '';
+  emailInput.value = user.email || '';
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();

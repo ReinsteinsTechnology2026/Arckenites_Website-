@@ -6,7 +6,7 @@ _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 class LoginRequest(BaseModel):
-    username: str = Field(min_length=1, max_length=120)
+    username: str = Field(min_length=1, max_length=255)
     password: str = Field(min_length=1, max_length=128)
 
 
@@ -39,6 +39,7 @@ class UserOut(BaseModel):
     designation: str | None = None
     department: str | None = None
     program: str | None = None
+    program_name: str | None = None
     profile_completed: bool = True
     email_notifications_enabled: bool = True
     # Populated explicitly by the route (not bare from_attributes) since it

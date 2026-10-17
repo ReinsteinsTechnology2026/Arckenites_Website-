@@ -1,8 +1,11 @@
 import asyncio
 import logging
+import re
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import request_validation_exception_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.responses import JSONResponse
@@ -52,6 +55,22 @@ app = FastAPI(title="Arckenites Portal API")
 
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
+
+
+@app.exception_handler(RequestValidationError)
+async def student_provisioning_validation_error(request: Request, exc: RequestValidationError):
+    # FastAPI's default validation response includes the rejected input,
+    # including passwords. Keep this change scoped to provisioning calls.
+    if request.method != "POST" or not re.fullmatch(r"/api/admin/students(?:/\d+/credentials-email)?", request.url.path):
+        return await request_validation_exception_handler(request, exc)
+    messages = {
+        "full_name": "Full name is required (maximum 200 characters).",
+        "email": "Please enter a valid email address.",
+        "temp_password": "Temporary password is required (at least 8 characters, at most 72 UTF-8 bytes).",
+        "program_id": "Please select a program.",
+    }
+    field = str(exc.errors()[0]["loc"][-1]) if exc.errors() else ""
+    return JSONResponse(status_code=422, content={"detail": messages.get(field, "Please check the student details and try again.")})
 
 
 @app.exception_handler(RateLimitExceeded)

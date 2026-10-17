@@ -95,36 +95,43 @@ document.addEventListener('DOMContentLoaded', async () => {
   /* ---------- Add-student panel toggle ---------- */
   const addPanel = document.getElementById('addStudentPanel');
   const toggleBtn = document.getElementById('toggleAddStudentBtn');
+  toggleBtn.disabled = true;
   if (!ArckAuth.hasPermission('students.create')) toggleBtn.style.display = 'none';
   const cancelBtn = document.getElementById('cancelAddStudentBtn');
   const form = document.getElementById('addStudentForm');
   const nameInput = document.getElementById('newStudentName');
+  const emailInput = document.getElementById('newStudentEmail');
   const passwordInput = document.getElementById('newStudentPassword');
   const newProgramSelect = document.getElementById('newStudentProgram');
   const errorBox = document.getElementById('addStudentError');
 
+  let programOptions = [];
   const populateProgramSelect = (select) => {
-    Object.entries(PROGRAM_LABELS).forEach(([value, label]) => {
+    programOptions.forEach((program) => {
       const opt = document.createElement('option');
-      opt.value = value;
-      opt.textContent = label;
+      opt.value = program.id;
+      opt.textContent = program.name;
       select.appendChild(opt);
     });
   };
-  populateProgramSelect(newProgramSelect);
+  if (ArckAuth.hasPermission('students.create') || ArckAuth.hasPermission('students.edit')) {
+    try {
+      programOptions = await ArckAPI.request('/admin/students/program-options');
+      populateProgramSelect(newProgramSelect);
+    } catch (_) {
+      errorBox.textContent = 'Could not load programs. Refresh the page before creating a student.';
+      errorBox.style.display = 'block';
+    }
+  }
   const submitBtn = document.getElementById('addStudentSubmitBtn');
   const notice = document.getElementById('newStudentNotice');
 
-  const openAddPanel = () => { closeEditPanel(); addPanel.style.display = 'block'; nameInput.focus(); };
+  const openAddPanel = () => { closeEditPanel(); closeResendPanel(); addPanel.style.display = 'block'; nameInput.focus(); };
   const closeAddPanel = () => {
     addPanel.style.display = 'none';
     form.reset();
     errorBox.style.display = 'none';
   };
-  toggleBtn.addEventListener('click', () => {
-    if (addPanel.style.display === 'none') openAddPanel(); else closeAddPanel();
-  });
-  cancelBtn.addEventListener('click', closeAddPanel);
 
   /* ---------- Table rendering ---------- */
   const tbody = document.getElementById('studentsTableBody');
@@ -133,7 +140,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Same page, two sidebar entries: "Students" (Management) shows the plain
   // list; "Student Database" (Database) links here with ?view=database and
-  // additionally shows Mobile/Email — see the .col-database CSS rule.
+  // additionally shows Mobile/Login ID — see the .col-database CSS rule.
   const isDatabaseView = new URLSearchParams(location.search).get('view') === 'database';
   document.body.classList.toggle('is-database-view', isDatabaseView);
   const tableColspan = isDatabaseView ? 8 : 6;
@@ -146,24 +153,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     return '<span class="admin-activity-badge is-success">Active</span>';
   };
 
-  const programBadge = (program) => program
-    ? `<span class="admin-activity-badge is-muted">${PROGRAM_LABELS[program] || program}</span>`
+  const programBadge = (student) => (student.program_name || student.program)
+    ? `<span class="admin-activity-badge is-muted">${escapeHtml(student.program_name || PROGRAM_LABELS[student.program] || student.program)}</span>`
     : '<span class="admin-activity-badge is-pending">Not selected yet</span>';
 
   const canDeleteStudents = ArckAuth.hasPermission('students.delete');
+  const canCreateStudents = ArckAuth.hasPermission('students.create');
+  const canEditStudents = ArckAuth.hasPermission('students.edit');
+  const canResend = (student) => canCreateStudents && student.is_active && student.must_change_password
+    && student.email && student.username === student.email.trim().toLowerCase();
 
   const rowHtml = (student) => `
     <tr>
-      <td>${escapeHtml(student.username)}</td>
       <td>${escapeHtml(student.full_name)}</td>
+      <td>${escapeHtml(student.email || student.username)}</td>
       <td class="col-database">${student.phone ? escapeHtml(student.phone) : '—'}</td>
-      <td class="col-database">${student.email ? escapeHtml(student.email) : '—'}</td>
-      <td>${programBadge(student.program)}</td>
+      <td class="col-database">${escapeHtml(student.username)}</td>
+      <td>${programBadge(student)}</td>
       <td>${statusBadge(student)}</td>
       <td title="${new Date(student.created_at).toLocaleString()}">${new Date(student.created_at).toLocaleDateString()}</td>
       <td>
         <div class="admin-row-actions">
-          <button type="button" class="table-action-btn" data-action="edit" data-id="${student.id}" title="Edit ${escapeHtml(student.full_name)}"><i class="fa-solid fa-pen"></i></button>
+          ${canEditStudents ? `<button type="button" class="table-action-btn" data-action="edit" data-id="${student.id}" title="Edit ${escapeHtml(student.full_name)}"><i class="fa-solid fa-pen"></i></button>` : ''}
+          ${canResend(student) ? `<button type="button" class="table-action-btn" data-action="resend" data-id="${student.id}" title="Resend Credentials" aria-label="Resend Credentials"><i class="fa-solid fa-envelope"></i></button>` : ''}
           ${canDeleteStudents ? `<button type="button" class="table-action-btn is-danger" data-action="delete" data-id="${student.id}" title="Delete ${escapeHtml(student.full_name)}"><i class="fa-solid fa-trash"></i></button>` : ''}
         </div>
       </td>
@@ -195,21 +207,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.preventDefault();
     errorBox.style.display = 'none';
     notice.style.display = 'none';
+    emailInput.value = emailInput.value.trim().toLowerCase();
+    const validationError = !nameInput.value.trim() ? 'Full name is required.'
+      : !emailInput.value || !emailInput.validity.valid ? 'Please enter a valid email address.'
+      : !passwordInput.value ? 'Temporary password is required.'
+      : passwordInput.value.length < 8 ? 'Temporary password must contain at least 8 characters.'
+      : new TextEncoder().encode(passwordInput.value).length > 72 ? 'Temporary password must be at most 72 UTF-8 bytes.'
+      : !newProgramSelect.value ? 'Please select a program.' : '';
+    if (validationError) {
+      errorBox.textContent = validationError;
+      errorBox.style.display = 'block';
+      return;
+    }
     submitBtn.disabled = true;
 
     try {
       const created = await ArckAPI.request('/admin/students', {
         method: 'POST',
-        body: { full_name: nameInput.value.trim(), temp_password: passwordInput.value, program: newProgramSelect.value || null },
+        timeoutMs: 60000,
+        body: { full_name: nameInput.value.trim(), email: emailInput.value, temp_password: passwordInput.value, program_id: Number(newProgramSelect.value) },
       });
       students = [created, ...students];
       renderStudents(students);
       closeAddPanel();
 
-      notice.innerHTML = `Created <code>${created.username}</code> for ${created.full_name}. Share the username and temporary password with the student — they'll be asked to set their own password on first login.`;
+      notice.textContent = created.detail;
       notice.style.display = 'flex';
     } catch (err) {
-      errorBox.textContent = err.detail || 'Could not create student.';
+      errorBox.textContent = typeof err.detail === 'string' ? err.detail : 'Unable to create student. Please try again.';
       errorBox.style.display = 'block';
     } finally {
       submitBtn.disabled = false;
@@ -221,6 +246,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const editForm = document.getElementById('editStudentForm');
   const editIdInput = document.getElementById('editStudentId');
   const editNameInput = document.getElementById('editStudentName');
+  const editLoginInput = document.getElementById('editStudentLogin');
   const editProgramSelect = document.getElementById('editStudentProgram');
   const editActiveSelect = document.getElementById('editStudentActive');
   const editResetPasswordInput = document.getElementById('editStudentResetPassword');
@@ -228,12 +254,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const editSubmitBtn = document.getElementById('editStudentSubmitBtn');
   const cancelEditBtn = document.getElementById('cancelEditStudentBtn');
 
-  Object.entries(PROGRAM_LABELS).forEach(([value, label]) => {
-    const opt = document.createElement('option');
-    opt.value = value;
-    opt.textContent = label;
-    editProgramSelect.appendChild(opt);
-  });
+  let editOriginalProgramId = '';
 
   const closeEditPanel = () => {
     editPanel.style.display = 'none';
@@ -242,9 +263,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
   const openEditPanel = (student) => {
     closeAddPanel();
+    closeResendPanel();
     editIdInput.value = student.id;
     editNameInput.value = student.full_name;
-    editProgramSelect.value = student.program || '';
+    editLoginInput.value = student.username;
+    editProgramSelect.replaceChildren(new Option('Keep current program', ''));
+    populateProgramSelect(editProgramSelect);
+    const existing = programOptions.find((p) => p.id === student.program_id || (!student.program_id && p.slug === student.program));
+    if (existing) editProgramSelect.value = existing.id;
+    else if (student.program_id) {
+      editProgramSelect.add(new Option(student.program_name || 'Current program (inactive)', student.program_id));
+      editProgramSelect.value = student.program_id;
+    }
+    editOriginalProgramId = editProgramSelect.value;
     editActiveSelect.value = String(student.is_active);
     editResetPasswordInput.value = '';
     editErrorBox.style.display = 'none';
@@ -261,8 +292,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const body = {
       full_name: editNameInput.value.trim(),
       is_active: editActiveSelect.value === 'true',
-      program: editProgramSelect.value || null,
     };
+    if (editProgramSelect.value && editProgramSelect.value !== editOriginalProgramId) body.program_id = Number(editProgramSelect.value);
     if (editResetPasswordInput.value) body.reset_temp_password = editResetPasswordInput.value;
 
     try {
@@ -278,6 +309,46 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  /* ---------- Resend without storing or resetting the password ---------- */
+  const resendPanel = document.getElementById('resendStudentPanel');
+  const resendForm = document.getElementById('resendStudentForm');
+  const resendPassword = document.getElementById('resendStudentPassword');
+  const resendError = document.getElementById('resendStudentError');
+  const resendSubmit = document.getElementById('resendStudentSubmitBtn');
+  let resendStudentId = null;
+  function closeResendPanel() {
+    resendPanel.style.display = 'none';
+    resendForm.reset();
+    resendStudentId = null;
+    resendError.style.display = 'none';
+  }
+  document.getElementById('cancelResendStudentBtn').addEventListener('click', closeResendPanel);
+  resendForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    resendError.style.display = 'none';
+    if (!resendPassword.value || resendPassword.value.length < 8) {
+      resendError.textContent = 'Enter the original temporary password (at least 8 characters).';
+      resendError.style.display = 'block';
+      return;
+    }
+    resendSubmit.disabled = true;
+    try {
+      const result = await ArckAPI.request(`/admin/students/${resendStudentId}/credentials-email`, {
+        method: 'POST', timeoutMs: 60000, body: { temp_password: resendPassword.value },
+      });
+      notice.textContent = result.detail;
+      notice.style.display = 'flex';
+      resendPassword.value = '';
+      if (result.credential_email_sent) closeResendPanel();
+    } catch (err) {
+      resendError.textContent = typeof err.detail === 'string' ? err.detail : 'Could not resend credentials. Please try again.';
+      resendError.style.display = 'block';
+      resendPassword.value = '';
+    } finally {
+      resendSubmit.disabled = false;
+    }
+  });
+
   /* ---------- Row actions (edit / delete) ---------- */
   tbody.addEventListener('click', async (e) => {
     const btn = e.target.closest('.table-action-btn');
@@ -286,6 +357,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const student = students.find((s) => s.id === id);
     if (!student) return;
 
+    if (btn.dataset.action === 'resend') {
+      closeAddPanel();
+      closeEditPanel();
+      closeResendPanel();
+      resendStudentId = student.id;
+      document.getElementById('resendStudentRecipient').textContent = `Send credentials to ${student.username}`;
+      resendPanel.style.display = 'block';
+      resendPassword.focus();
+      return;
+    }
     if (btn.dataset.action === 'edit') {
       openEditPanel(student);
       return;
@@ -319,4 +400,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  toggleBtn.addEventListener('click', () => {
+    if (addPanel.style.display === 'none') openAddPanel(); else closeAddPanel();
+  });
+  cancelBtn.addEventListener('click', closeAddPanel);
+  toggleBtn.disabled = false;
 });
