@@ -1,10 +1,9 @@
-import re
-
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import require_permission
+from app.core.approved_programs import approved_name, require_approved_program, resolve_approved_catalog
 from app.crud.audit import write_audit_event
 from app.database import get_db
 from app.models.audit_log import AuthEventType
@@ -36,21 +35,6 @@ _ENROLLED_STATES = (
 )
 
 
-def _slugify(name: str) -> str:
-    slug = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
-    return slug or "program"
-
-
-def _unique_slug(db: Session, name: str) -> str:
-    base = _slugify(name)
-    slug = base
-    n = 1
-    while db.scalar(select(Program).where(Program.slug == slug)) is not None:
-        n += 1
-        slug = f"{base}_{n}"
-    return slug
-
-
 def _client_meta(request: Request) -> tuple[str, str]:
     ip = request.client.host if request.client else "unknown"
     ua = request.headers.get("user-agent", "unknown")
@@ -80,7 +64,7 @@ def _enrolled_count(db: Session, program_id: int) -> int:
 
 def _list_item(db: Session, program: Program) -> ProgramListItemOut:
     return ProgramListItemOut(
-        id=program.id, slug=program.slug, name=program.name, code=program.code,
+        id=program.id, slug=program.slug, name=approved_name(program.name) or program.name, code=program.code,
         description=program.description, category=program.category,
         mode=program.mode.value, status=program.status.value,
         enrolled_count=_enrolled_count(db, program.id),
@@ -91,17 +75,17 @@ def _list_item(db: Session, program: Program) -> ProgramListItemOut:
 
 @router.get("/stats", response_model=ProgramStatsOut)
 def program_stats(db: Session = Depends(get_db), _actor: User = Depends(require_permission("programs.view"))):
-    total_programs = db.scalar(select(func.count()).select_from(Program)) or 0
-    active_programs = db.scalar(
-        select(func.count()).select_from(Program).where(Program.status == ProgramStatusEnum.active)
-    ) or 0
+    catalog = resolve_approved_catalog(db)
+    approved_ids = [p.id for p in catalog.programs]
+    total_programs = len(approved_ids)
+    active_programs = len(catalog.active)
     total_enrolled_students = db.scalar(
         select(func.count(func.distinct(ProgramEnrollment.student_id)))
-        .where(ProgramEnrollment.status.in_(_ENROLLED_STATES))
+        .where(ProgramEnrollment.status.in_(_ENROLLED_STATES), ProgramEnrollment.program_id.in_(approved_ids))
     ) or 0
     programs_with_upcoming_batches = db.scalar(
         select(func.count(func.distinct(Batch.program_id)))
-        .where(Batch.program_id.is_not(None), Batch.status == BatchStatusEnum.upcoming)
+        .where(Batch.program_id.in_(approved_ids), Batch.status == BatchStatusEnum.upcoming)
     ) or 0
 
     return ProgramStatsOut(
@@ -109,12 +93,13 @@ def program_stats(db: Session = Depends(get_db), _actor: User = Depends(require_
         inactive_programs=total_programs - active_programs,
         total_enrolled_students=total_enrolled_students,
         programs_with_upcoming_batches=programs_with_upcoming_batches,
+        catalog_notice=catalog.notice,
     )
 
 
 @router.get("", response_model=list[ProgramListItemOut])
 def list_programs(db: Session = Depends(get_db), _actor: User = Depends(require_permission("programs.view"))):
-    programs = db.scalars(select(Program).order_by(Program.id)).all()
+    programs = resolve_approved_catalog(db).programs
     return [_list_item(db, p) for p in programs]
 
 
@@ -125,33 +110,18 @@ def create_program(
     db: Session = Depends(get_db),
     actor: User = Depends(require_permission("programs.create")),
 ):
-    if payload.code:
-        existing = db.scalar(select(Program).where(Program.code == payload.code))
-        if existing is not None:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="That program code is already in use.")
-
-    program = Program(
-        slug=_unique_slug(db, payload.name), name=payload.name, code=payload.code or None,
-        description=payload.description, category=payload.category, duration=payload.duration,
-        eligibility=payload.eligibility, objectives=payload.objectives, max_capacity=payload.max_capacity,
-        mode=ProgramModeEnum(payload.mode), status=ProgramStatusEnum(payload.status),
+    raise HTTPException(
+        status_code=403,
+        detail="The admin catalog is restricted to three existing approved programs. "
+               "Program creation is disabled. Missing canonical records must be reviewed explicitly; no duplicate will be created.",
     )
-    db.add(program)
-    db.commit()
-    db.refresh(program)
-
-    ip, ua = _client_meta(request)
-    write_audit_event(
-        db, AuthEventType.program_created, ip, ua, user=actor, detail=f"Created program {program.name}",
-        module="programs", target=program.name, status="success",
-    )
-
-    return _list_item(db, program)
 
 
 @router.get("/{program_id}", response_model=ProgramDetailOut)
 def get_program(program_id: int, db: Session = Depends(get_db), _actor: User = Depends(require_permission("programs.view"))):
     program = _get_program_or_404(db, program_id)
+    approved_ids = {p.id for p in resolve_approved_catalog(db).programs}
+    is_approved = program.id in approved_ids
 
     batches = db.scalars(
         select(Batch)
@@ -205,12 +175,14 @@ def get_program(program_id: int, db: Session = Depends(get_db), _actor: User = D
     enrollment_stats = EnrollmentStatCounts(total=len(enrollment_rows), **{k: v for k, v in counts.items()})
 
     return ProgramDetailOut(
-        id=program.id, slug=program.slug, name=program.name, code=program.code,
+        id=program.id, slug=program.slug, name=approved_name(program.name) or program.name, code=program.code,
         description=program.description, category=program.category, duration=program.duration,
         eligibility=program.eligibility, objectives=program.objectives, max_capacity=program.max_capacity,
         mode=program.mode.value, status=program.status.value, created_at=program.created_at,
         enrollment_stats=enrollment_stats, batch_stats=batch_stats,
         batches=batch_summaries, enrollments=enrollments,
+        is_approved=is_approved,
+        allows_new_enrollments=is_approved and program.status == ProgramStatusEnum.active,
     )
 
 
@@ -222,7 +194,9 @@ def update_program(
     db: Session = Depends(get_db),
     actor: User = Depends(require_permission("programs.edit")),
 ):
-    program = _get_program_or_404(db, program_id)
+    program = require_approved_program(db, program_id, active=False)
+    if payload.name is not None and approved_name(payload.name) != approved_name(program.name):
+        raise HTTPException(status_code=400, detail="Approved program identities cannot be renamed. Existing student assignments must be preserved.")
 
     if payload.code is not None and payload.code != program.code:
         existing = db.scalar(select(Program).where(Program.code == payload.code, Program.id != program_id))
@@ -230,8 +204,8 @@ def update_program(
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="That program code is already in use.")
         program.code = payload.code
 
-    if payload.name is not None:
-        program.name = payload.name
+    # Name is an identity field for this closed catalog. Accept unchanged
+    # labels from existing clients without rewriting the persisted name.
     if payload.description is not None:
         program.description = payload.description
     if payload.category is not None:
@@ -268,7 +242,7 @@ def enroll_students(
     db: Session = Depends(get_db),
     actor: User = Depends(require_permission("programs.edit")),
 ):
-    program = _get_program_or_404(db, program_id)
+    program = require_approved_program(db, program_id)
 
     students = db.scalars(
         select(User).where(User.id.in_(payload.student_ids), User.role == RoleEnum.student)
@@ -304,7 +278,7 @@ def update_enrollment(
     db: Session = Depends(get_db),
     actor: User = Depends(require_permission("programs.edit")),
 ):
-    _get_program_or_404(db, program_id)
+    require_approved_program(db, program_id, active=False)
     enrollment = db.get(ProgramEnrollment, enrollment_id)
     if enrollment is None or enrollment.program_id != program_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Enrollment not found")
@@ -322,7 +296,7 @@ def remove_enrollment(
     db: Session = Depends(get_db),
     actor: User = Depends(require_permission("programs.edit")),
 ):
-    _get_program_or_404(db, program_id)
+    require_approved_program(db, program_id, active=False)
     enrollment = db.get(ProgramEnrollment, enrollment_id)
     if enrollment is None or enrollment.program_id != program_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Enrollment not found")

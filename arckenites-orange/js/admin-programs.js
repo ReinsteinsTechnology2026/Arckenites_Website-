@@ -58,6 +58,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('kpiInactivePrograms').textContent = stats.inactive_programs;
       document.getElementById('kpiTotalEnrolled').textContent = stats.total_enrolled_students;
       document.getElementById('kpiUpcomingBatchPrograms').textContent = stats.programs_with_upcoming_batches;
+      const notice = document.getElementById('programCatalogNotice');
+      notice.textContent = stats.catalog_notice || '';
+      notice.style.display = stats.catalog_notice ? 'flex' : 'none';
     } catch (err) {
       if (err.status === 0) showServerBanner();
     }
@@ -94,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const renderCards = () => {
     grid.innerHTML = programs.length
       ? programs.map(cardHtml).join('')
-      : '<div class="admin-panel-empty">No programs yet. Click "Create New Program" to add the first one.</div>';
+      : '<div class="admin-panel-empty">No unambiguous approved catalog records are available. Review the catalog notice above; no programs have been created automatically.</div>';
   };
 
   const loadPrograms = async () => {
@@ -111,15 +114,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const addPanel = document.getElementById('addProgramPanel');
   const addForm = document.getElementById('addProgramForm');
   const addErrorBox = document.getElementById('addProgramError');
-  const addSubmitBtn = document.getElementById('addProgramSubmitBtn');
 
-  if (!ArckAuth.hasPermission('programs.create')) document.getElementById('toggleAddProgramBtn').style.display = 'none';
+  document.getElementById('toggleAddProgramBtn').style.display = 'none';
+  document.getElementById('toggleAddProgramBtn').disabled = true;
 
-  document.getElementById('toggleAddProgramBtn').addEventListener('click', () => {
-    const isHidden = addPanel.style.display === 'none';
-    addPanel.style.display = isHidden ? 'block' : 'none';
-    if (isHidden) document.getElementById('programName').focus();
-  });
   document.getElementById('cancelAddProgramBtn').addEventListener('click', () => {
     addPanel.style.display = 'none';
     addForm.reset();
@@ -128,31 +126,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   addForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    addErrorBox.style.display = 'none';
-    addSubmitBtn.disabled = true;
-
-    const body = {
-      name: document.getElementById('programName').value.trim(),
-      category: document.getElementById('programCategory').value.trim() || null,
-      duration: document.getElementById('programDuration').value.trim() || null,
-      mode: document.getElementById('programMode').value,
-      max_capacity: document.getElementById('programCapacity').value ? Number(document.getElementById('programCapacity').value) : null,
-      description: document.getElementById('programDescription').value.trim() || null,
-      eligibility: document.getElementById('programEligibility').value.trim() || null,
-      objectives: document.getElementById('programObjectives').value.trim() || null,
-    };
-
-    try {
-      await ArckAPI.request('/admin/programs', { method: 'POST', body });
-      addPanel.style.display = 'none';
-      addForm.reset();
-      await Promise.all([loadPrograms(), loadStats()]);
-    } catch (err) {
-      addErrorBox.textContent = err.detail || 'Could not create program.';
-      addErrorBox.style.display = 'block';
-    } finally {
-      addSubmitBtn.disabled = false;
-    }
+    addErrorBox.textContent = 'Program creation is disabled. Only existing approved canonical records can be used.';
+    addErrorBox.style.display = 'block';
   });
 
   /* ---------- Edit program ---------- */

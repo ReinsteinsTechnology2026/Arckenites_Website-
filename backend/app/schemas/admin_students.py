@@ -68,6 +68,15 @@ class StudentProgramOption(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class StudentProgramOptionsOut(BaseModel):
+    options: list[StudentProgramOption]
+    approved_names: list[str]
+    missing_programs: list[str]
+    ambiguous_programs: list[str]
+    inactive_programs: list[str]
+    detail: str | None = None
+
+
 class StudentAdminOut(BaseModel):
     id: int
     username: str

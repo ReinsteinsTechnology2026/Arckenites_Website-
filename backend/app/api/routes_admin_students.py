@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import require_permission, require_role
+from app.core.approved_programs import APPROVED_PROGRAM_NAMES, require_approved_program, resolve_approved_catalog
 from app.core.security import hash_password, validate_password_strength, verify_password
 from app.core.student_credentials import send_student_credentials
 from app.crud.audit import write_audit_event
@@ -30,7 +31,7 @@ from app.models.lab_access_override import LabAccessOverride
 from app.models.lab_slot_booking import LabSlotBooking
 from app.models.lab_vm import LabVmAccess, LabVmAccessAuditLog
 from app.models.meeting import MeetingMessage, MeetingParticipant
-from app.models.program import EnrollmentStatusEnum, Program, ProgramEnrollment, ProgramStatusEnum
+from app.models.program import EnrollmentStatusEnum, Program, ProgramEnrollment
 from app.models.session import AuthSession
 from app.models.student import PROGRAM_LABELS, ProgramEnum, StudentProfile
 from app.models.support import SupportMessage, SupportTicket
@@ -43,6 +44,7 @@ from app.schemas.admin_students import (
     StudentAdminOut,
     StudentCreatedOut,
     StudentProgramOption,
+    StudentProgramOptionsOut,
     UpdateStudentRequest,
 )
 
@@ -90,15 +92,26 @@ def _email_in_use(db: Session, email: str) -> bool:
 _DUPLICATE_EMAIL = "A student account with this email already exists, or the email is already used as another portal login."
 
 
-@router.get("/students/program-options", response_model=list[StudentProgramOption])
+@router.get("/students/program-options", response_model=list[StudentProgramOption] | StudentProgramOptionsOut)
 def student_program_options(
+    include_status: bool = False,
     db: Session = Depends(get_db),
     _actor: User = Depends(require_role("admin")),
 ):
     # Provisioning does not require unrelated programs.view permission.
-    if not any(user_has_permission(db, _actor, key) for key in ("students.create", "students.edit")):
+    if not any(user_has_permission(db, _actor, key) for key in (
+        "students.create", "students.edit", "programs.view", "batches.view", "batches.create", "batches.edit",
+    )):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
-    return db.scalars(select(Program).where(Program.status == ProgramStatusEnum.active).order_by(Program.name)).all()
+    catalog = resolve_approved_catalog(db)
+    options = catalog.options()
+    if not include_status:
+        return options  # Retain the existing list response for current clients.
+    return StudentProgramOptionsOut(
+        options=options, approved_names=list(APPROVED_PROGRAM_NAMES),
+        missing_programs=catalog.missing, ambiguous_programs=catalog.ambiguous,
+        inactive_programs=catalog.inactive, detail=catalog.notice,
+    )
 
 
 def _client_meta(request: Request) -> tuple[str, str]:
@@ -150,9 +163,7 @@ def create_student(
             db.execute(text("SELECT pg_advisory_xact_lock(19041701)"))
         if _email_in_use(db, payload.email):
             raise HTTPException(status_code=409, detail=_DUPLICATE_EMAIL)
-        program = db.get(Program, payload.program_id)
-        if program is None or program.status != ProgramStatusEnum.active:
-            raise HTTPException(status_code=400, detail="Please select an active program.")
+        program = require_approved_program(db, payload.program_id)
         user = User(
             username=payload.email, password_hash=hash_password(payload.temp_password),
             full_name=payload.full_name, role=RoleEnum.student,
@@ -316,18 +327,25 @@ def update_student(
         program_query = (Program.id == payload.program_id if payload.program_id is not None
                          else Program.slug == payload.program)
         assigned = db.scalar(select(Program).where(program_query))
-        if assigned is None or assigned.status != ProgramStatusEnum.active:
-            raise HTTPException(status_code=400, detail="Please select an active program.")
         profile = user.student_profile
-        profile.program_id = assigned.id
-        profile.program = ProgramEnum._value2member_map_.get(assigned.slug)
-        enrollment = db.scalar(select(ProgramEnrollment).where(
-            ProgramEnrollment.student_id == user.id, ProgramEnrollment.program_id == assigned.id,
+        if assigned is None:
+            raise HTTPException(status_code=400, detail="Please select an existing approved program.")
+        # Old clients may echo a historical assignment during a name/status
+        # edit. Treat that as unchanged, without creating enrollment rows.
+        unchanged = (assigned.id == user.program_id or (
+            profile.program_id is None and profile.program is not None and assigned.slug == profile.program.value
         ))
-        if enrollment is None:
-            db.add(ProgramEnrollment(student_id=user.id, program_id=assigned.id, status=EnrollmentStatusEnum.active))
-        elif enrollment.status in (EnrollmentStatusEnum.withdrawn, EnrollmentStatusEnum.rejected, EnrollmentStatusEnum.pending):
-            enrollment.status = EnrollmentStatusEnum.active
+        if not unchanged:
+            assigned = require_approved_program(db, assigned.id)
+            profile.program_id = assigned.id
+            profile.program = ProgramEnum._value2member_map_.get(assigned.slug)
+            enrollment = db.scalar(select(ProgramEnrollment).where(
+                ProgramEnrollment.student_id == user.id, ProgramEnrollment.program_id == assigned.id,
+            ))
+            if enrollment is None:
+                db.add(ProgramEnrollment(student_id=user.id, program_id=assigned.id, status=EnrollmentStatusEnum.active))
+            elif enrollment.status in (EnrollmentStatusEnum.withdrawn, EnrollmentStatusEnum.rejected, EnrollmentStatusEnum.pending):
+                enrollment.status = EnrollmentStatusEnum.active
     if payload.is_active is not None:
         if payload.is_active != user.is_active:
             write_audit_event(

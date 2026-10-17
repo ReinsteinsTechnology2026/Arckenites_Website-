@@ -1,0 +1,4982 @@
+{
+  "as_of_client_date": "2026-10-17",
+  "commit": "f306d1ce44c02e40b73a03c531524ea04f01601c",
+  "counts": {
+    "tracked_files": 308,
+    "main_html_pages": 55,
+    "main_javascript_files": 42,
+    "api_route_modules": 33,
+    "api_routes_including_websocket": 228,
+    "orm_tables": 44,
+    "migration_files": 37,
+    "test_files": 9,
+    "declared_test_methods": 112
+  },
+  "migration_heads": [
+    "c6e8a2b4d9f1"
+  ],
+  "configuration_keys_only": [
+    "DATABASE_URL",
+    "JWT_SECRET",
+    "JWT_TTL_MIN",
+    "CORS_ORIGINS",
+    "ENV",
+    "SEED_ADMIN1_USERNAME",
+    "SEED_ADMIN1_PASSWORD",
+    "PUBLIC_SITE_URL",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "GOOGLE_REDIRECT_URI",
+    "MEET_DOMAIN",
+    "SMTP_HOST",
+    "SMTP_PORT",
+    "SMTP_USERNAME",
+    "SMTP_PASSWORD",
+    "SMTP_FROM_ADDRESS",
+    "SMTP_FROM_NAME",
+    "MS_GRAPH_TENANT_ID",
+    "MS_GRAPH_CLIENT_ID",
+    "MS_GRAPH_CLIENT_SECRET",
+    "MS_GRAPH_SENDER_EMAIL"
+  ],
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/api/admin/activity-logs",
+      "handler": "list_activity_logs",
+      "file": "backend/app/api/routes_admin_activity_logs.py",
+      "line": 67,
+      "dependencies": [
+        "get_db",
+        "require_permission('activity_logs.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/activity-logs/export",
+      "handler": "export_activity_logs",
+      "file": "backend/app/api/routes_admin_activity_logs.py",
+      "line": 99,
+      "dependencies": [
+        "get_db",
+        "require_permission('activity_logs.export')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/batches/stats",
+      "handler": "batch_stats",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 118,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/batches",
+      "handler": "list_batches",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 131,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.view')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/batches",
+      "handler": "create_batch",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 146,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.create')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/batches/{batch_id}",
+      "handler": "get_batch",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 185,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/batches/{batch_id}/video",
+      "handler": "batch_video_room",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 190,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.view')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/batches/{batch_id}",
+      "handler": "update_batch",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 207,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.edit')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/batches/{batch_id}",
+      "handler": "delete_batch",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 260,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.delete')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/batches/{batch_id}/students",
+      "handler": "allocate_students",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 280,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.edit')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/batches/{batch_id}/students/{student_id}",
+      "handler": "remove_student",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 307,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.edit')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/batches/lookup/available-students",
+      "handler": "available_students",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 324,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/batches/{batch_id}/sessions",
+      "handler": "list_sessions",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 348,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.view')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/batches/{batch_id}/sessions",
+      "handler": "create_session",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 357,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.edit')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/batches/{batch_id}/sessions/{session_id}",
+      "handler": "update_session",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 390,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.edit')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/batches/{batch_id}/sessions/{session_id}",
+      "handler": "delete_session",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 420,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.edit')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/batches/{batch_id}/videos",
+      "handler": "list_videos",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 446,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.view')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/batches/{batch_id}/videos",
+      "handler": "create_video",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 456,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.edit')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/batches/{batch_id}/videos/{video_id}",
+      "handler": "delete_video",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 472,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.edit')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/batches/{batch_id}/materials",
+      "handler": "list_materials",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 484,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.view')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/batches/{batch_id}/materials",
+      "handler": "create_material",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 494,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.edit')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/batches/{batch_id}/materials/{material_id}",
+      "handler": "delete_material",
+      "file": "backend/app/api/routes_admin_batches.py",
+      "line": 510,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.edit')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/class-schedule",
+      "handler": "list_all_sessions",
+      "file": "backend/app/api/routes_admin_class_schedule.py",
+      "line": 16,
+      "dependencies": [
+        "get_db",
+        "require_permission('batches.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/community",
+      "handler": "list_community_members",
+      "file": "backend/app/api/routes_admin_community.py",
+      "line": 40,
+      "dependencies": [
+        "get_db",
+        "require_permission('community.view')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/community/{member_id}",
+      "handler": "update_community_member",
+      "file": "backend/app/api/routes_admin_community.py",
+      "line": 54,
+      "dependencies": [
+        "get_db",
+        "require_permission('community.edit')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/community/export",
+      "handler": "export_community_members",
+      "file": "backend/app/api/routes_admin_community.py",
+      "line": 84,
+      "dependencies": [
+        "get_db",
+        "require_permission('community.export')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/community/posts",
+      "handler": "list_posts",
+      "file": "backend/app/api/routes_admin_community_posts.py",
+      "line": 65,
+      "dependencies": [
+        "get_db",
+        "require_permission('community.view')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/community/posts",
+      "handler": "create_post",
+      "file": "backend/app/api/routes_admin_community_posts.py",
+      "line": 75,
+      "dependencies": [
+        "get_db",
+        "require_permission('community.publish')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/community/posts/{post_id}",
+      "handler": "update_post",
+      "file": "backend/app/api/routes_admin_community_posts.py",
+      "line": 96,
+      "dependencies": [
+        "get_db",
+        "require_permission('community.publish')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/community/posts/{post_id}/publish",
+      "handler": "publish_post",
+      "file": "backend/app/api/routes_admin_community_posts.py",
+      "line": 117,
+      "dependencies": [
+        "get_db",
+        "require_permission('community.publish')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/community/posts/{post_id}/deliveries",
+      "handler": "list_deliveries",
+      "file": "backend/app/api/routes_admin_community_posts.py",
+      "line": 143,
+      "dependencies": [
+        "get_db",
+        "require_permission('community.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/contact-enquiries",
+      "handler": "list_enquiries",
+      "file": "backend/app/api/routes_admin_contact_enquiries.py",
+      "line": 22,
+      "dependencies": [
+        "get_db",
+        "require_role('admin')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/contact-enquiries/{enquiry_id}",
+      "handler": "update_enquiry",
+      "file": "backend/app/api/routes_admin_contact_enquiries.py",
+      "line": 35,
+      "dependencies": [
+        "get_db",
+        "require_role('admin')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/contact-enquiries/{enquiry_id}",
+      "handler": "delete_enquiry",
+      "file": "backend/app/api/routes_admin_contact_enquiries.py",
+      "line": 50,
+      "dependencies": [
+        "get_db",
+        "require_role('admin')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/interviews",
+      "handler": "list_interviews",
+      "file": "backend/app/api/routes_admin_interviews.py",
+      "line": 26,
+      "dependencies": [
+        "get_db",
+        "require_permission('placement.view')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/interviews",
+      "handler": "create_interview",
+      "file": "backend/app/api/routes_admin_interviews.py",
+      "line": 36,
+      "dependencies": [
+        "get_db",
+        "require_permission('placement.create')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/interviews/{interview_id}",
+      "handler": "update_interview",
+      "file": "backend/app/api/routes_admin_interviews.py",
+      "line": 64,
+      "dependencies": [
+        "get_db",
+        "require_permission('placement.edit')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/interviews/{interview_id}",
+      "handler": "delete_interview",
+      "file": "backend/app/api/routes_admin_interviews.py",
+      "line": 96,
+      "dependencies": [
+        "get_db",
+        "require_permission('placement.delete')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/interviews/lookup/students",
+      "handler": "available_students",
+      "file": "backend/app/api/routes_admin_interviews.py",
+      "line": 108,
+      "dependencies": [
+        "get_db",
+        "require_permission('placement.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/lab-access/batches",
+      "handler": "list_batches",
+      "file": "backend/app/api/routes_admin_lab_access.py",
+      "line": 33,
+      "dependencies": [
+        "get_db",
+        "require_permission('lab_access.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/lab-access/batches/{batch_id}/students",
+      "handler": "list_batch_students",
+      "file": "backend/app/api/routes_admin_lab_access.py",
+      "line": 39,
+      "dependencies": [
+        "get_db",
+        "require_permission('lab_access.view')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/lab-access/{student_id}/unlock",
+      "handler": "unlock_student",
+      "file": "backend/app/api/routes_admin_lab_access.py",
+      "line": 104,
+      "dependencies": [
+        "get_db",
+        "require_permission('lab_access.manage')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/lab-access/{student_id}/lock",
+      "handler": "lock_student",
+      "file": "backend/app/api/routes_admin_lab_access.py",
+      "line": 114,
+      "dependencies": [
+        "get_db",
+        "require_permission('lab_access.manage')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/lab-access/{student_id}/reset-auto",
+      "handler": "reset_student_to_auto",
+      "file": "backend/app/api/routes_admin_lab_access.py",
+      "line": 124,
+      "dependencies": [
+        "get_db",
+        "require_permission('lab_access.manage')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/lab-access/{student_id}/history",
+      "handler": "student_history",
+      "file": "backend/app/api/routes_admin_lab_access.py",
+      "line": 134,
+      "dependencies": [
+        "get_db",
+        "require_permission('lab_access.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/lab-vms",
+      "handler": "list_lab_vms",
+      "file": "backend/app/api/routes_admin_lab_vm.py",
+      "line": 73,
+      "dependencies": [
+        "get_db",
+        "require_permission('lab_vm.view')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/lab-vms",
+      "handler": "create_lab_vm",
+      "file": "backend/app/api/routes_admin_lab_vm.py",
+      "line": 79,
+      "dependencies": [
+        "get_db",
+        "require_permission('lab_vm.manage_vms')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/lab-vms/{vm_id}",
+      "handler": "update_lab_vm",
+      "file": "backend/app/api/routes_admin_lab_vm.py",
+      "line": 98,
+      "dependencies": [
+        "get_db",
+        "require_permission('lab_vm.manage_vms')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/lab-vms/{vm_id}/regenerate-token",
+      "handler": "regenerate_lab_vm_token",
+      "file": "backend/app/api/routes_admin_lab_vm.py",
+      "line": 127,
+      "dependencies": [
+        "get_db",
+        "require_permission('lab_vm.manage_vms')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/lab-vms/{vm_id}",
+      "handler": "delete_lab_vm",
+      "file": "backend/app/api/routes_admin_lab_vm.py",
+      "line": 144,
+      "dependencies": [
+        "get_db",
+        "require_permission('lab_vm.manage_vms')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/lab-vm-access",
+      "handler": "list_lab_vm_access",
+      "file": "backend/app/api/routes_admin_lab_vm.py",
+      "line": 175,
+      "dependencies": [
+        "get_db",
+        "require_permission('lab_vm.view')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/lab-vm-access/{student_id}/grant",
+      "handler": "grant_lab_vm_access",
+      "file": "backend/app/api/routes_admin_lab_vm.py",
+      "line": 198,
+      "dependencies": [
+        "get_db",
+        "require_permission('lab_vm.grant')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/lab-vm-access/{student_id}/revoke",
+      "handler": "revoke_lab_vm_access",
+      "file": "backend/app/api/routes_admin_lab_vm.py",
+      "line": 272,
+      "dependencies": [
+        "get_db",
+        "require_permission('lab_vm.revoke')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/lab-vm-access/audit",
+      "handler": "lab_vm_access_audit",
+      "file": "backend/app/api/routes_admin_lab_vm.py",
+      "line": 316,
+      "dependencies": [
+        "get_db",
+        "require_permission('lab_vm.view_history')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/leads",
+      "handler": "create_lead",
+      "file": "backend/app/api/routes_admin_leads.py",
+      "line": 36,
+      "dependencies": [
+        "get_db",
+        "require_permission('leads.create')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/leads",
+      "handler": "list_leads",
+      "file": "backend/app/api/routes_admin_leads.py",
+      "line": 52,
+      "dependencies": [
+        "get_db",
+        "require_permission('leads.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/leads/export",
+      "handler": "export_leads",
+      "file": "backend/app/api/routes_admin_leads.py",
+      "line": 63,
+      "dependencies": [
+        "get_db",
+        "require_permission('leads.export')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/leads/{lead_id}",
+      "handler": "update_lead",
+      "file": "backend/app/api/routes_admin_leads.py",
+      "line": 105,
+      "dependencies": [
+        "get_db",
+        "require_permission('leads.edit')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/leads/{lead_id}",
+      "handler": "delete_lead",
+      "file": "backend/app/api/routes_admin_leads.py",
+      "line": 133,
+      "dependencies": [
+        "get_db",
+        "require_permission('leads.delete')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/meetings/stats",
+      "handler": "meeting_stats",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 64,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/meetings",
+      "handler": "list_meetings",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 77,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/meetings/lookup/hosts",
+      "handler": "lookup_hosts",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 112,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.create')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/meetings/lookup/participants",
+      "handler": "lookup_participants",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 123,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.create')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/meetings",
+      "handler": "create_meeting",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 134,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.create')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/meetings/{meeting_id}",
+      "handler": "get_meeting",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 196,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.view')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/meetings/{meeting_id}",
+      "handler": "update_meeting",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 201,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.edit')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/meetings/{meeting_id}/start",
+      "handler": "start_meeting",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 227,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.manage')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/meetings/{meeting_id}/end",
+      "handler": "end_meeting",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 243,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.manage')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/meetings/{meeting_id}/cancel",
+      "handler": "cancel_meeting",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 275,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.edit')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/meetings/{meeting_id}",
+      "handler": "delete_meeting",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 289,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.delete')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/meetings/{meeting_id}/participants",
+      "handler": "add_participant",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 307,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.manage')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/meetings/{meeting_id}/participants/{participant_id}",
+      "handler": "remove_participant",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 325,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.manage')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/meetings/{meeting_id}/messages",
+      "handler": "admin_meeting_messages",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 336,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/meetings/{meeting_id}/notes",
+      "handler": "admin_meeting_notes",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 348,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/meetings/{meeting_id}/recordings",
+      "handler": "admin_meeting_recordings",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 358,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.view')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/meetings/{meeting_id}/recordings/start",
+      "handler": "start_recording",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 365,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.manage')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/meetings/{meeting_id}/recordings/{recording_id}/stop",
+      "handler": "stop_recording",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 386,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.manage')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/meetings/{meeting_id}/recordings/{recording_id}/download",
+      "handler": "download_recording",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 412,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.view')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/meetings/{meeting_id}/recordings/{recording_id}",
+      "handler": "delete_meeting_recording",
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "line": 421,
+      "dependencies": [
+        "get_db",
+        "require_permission('meetings.delete')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/programs/stats",
+      "handler": "program_stats",
+      "file": "backend/app/api/routes_admin_programs.py",
+      "line": 93,
+      "dependencies": [
+        "get_db",
+        "require_permission('programs.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/programs",
+      "handler": "list_programs",
+      "file": "backend/app/api/routes_admin_programs.py",
+      "line": 116,
+      "dependencies": [
+        "get_db",
+        "require_permission('programs.view')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/programs",
+      "handler": "create_program",
+      "file": "backend/app/api/routes_admin_programs.py",
+      "line": 122,
+      "dependencies": [
+        "get_db",
+        "require_permission('programs.create')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/programs/{program_id}",
+      "handler": "get_program",
+      "file": "backend/app/api/routes_admin_programs.py",
+      "line": 153,
+      "dependencies": [
+        "get_db",
+        "require_permission('programs.view')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/programs/{program_id}",
+      "handler": "update_program",
+      "file": "backend/app/api/routes_admin_programs.py",
+      "line": 218,
+      "dependencies": [
+        "get_db",
+        "require_permission('programs.edit')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/programs/{program_id}/enrollments",
+      "handler": "enroll_students",
+      "file": "backend/app/api/routes_admin_programs.py",
+      "line": 265,
+      "dependencies": [
+        "get_db",
+        "require_permission('programs.edit')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/programs/{program_id}/enrollments/{enrollment_id}",
+      "handler": "update_enrollment",
+      "file": "backend/app/api/routes_admin_programs.py",
+      "line": 300,
+      "dependencies": [
+        "get_db",
+        "require_permission('programs.edit')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/programs/{program_id}/enrollments/{enrollment_id}",
+      "handler": "remove_enrollment",
+      "file": "backend/app/api/routes_admin_programs.py",
+      "line": 319,
+      "dependencies": [
+        "get_db",
+        "require_permission('programs.edit')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/programs/lookup/available-students",
+      "handler": "available_students",
+      "file": "backend/app/api/routes_admin_programs.py",
+      "line": 336,
+      "dependencies": [
+        "get_db",
+        "require_permission('programs.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/roles",
+      "handler": "list_roles",
+      "file": "backend/app/api/routes_admin_roles.py",
+      "line": 69,
+      "dependencies": [
+        "get_db",
+        "require_permission('roles.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/permissions/catalog",
+      "handler": "permission_catalog",
+      "file": "backend/app/api/routes_admin_roles.py",
+      "line": 75,
+      "dependencies": [
+        "require_permission('roles.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/roles/{role_id}",
+      "handler": "get_role",
+      "file": "backend/app/api/routes_admin_roles.py",
+      "line": 80,
+      "dependencies": [
+        "get_db",
+        "require_permission('roles.view')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/roles",
+      "handler": "create_role",
+      "file": "backend/app/api/routes_admin_roles.py",
+      "line": 95,
+      "dependencies": [
+        "get_db",
+        "require_permission('roles.create')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/roles/{role_id}",
+      "handler": "update_role",
+      "file": "backend/app/api/routes_admin_roles.py",
+      "line": 137,
+      "dependencies": [
+        "get_db",
+        "require_permission('roles.edit')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/roles/{role_id}",
+      "handler": "delete_role",
+      "file": "backend/app/api/routes_admin_roles.py",
+      "line": 188,
+      "dependencies": [
+        "get_db",
+        "require_permission('roles.delete')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/settings",
+      "handler": "read_settings",
+      "file": "backend/app/api/routes_admin_settings.py",
+      "line": 22,
+      "dependencies": [
+        "get_db",
+        "require_permission('settings.view')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/settings",
+      "handler": "edit_settings",
+      "file": "backend/app/api/routes_admin_settings.py",
+      "line": 27,
+      "dependencies": [
+        "get_db",
+        "require_permission('settings.edit')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/staff",
+      "handler": "create_staff",
+      "file": "backend/app/api/routes_admin_staff.py",
+      "line": 47,
+      "dependencies": [
+        "get_db",
+        "require_permission('trainers.create')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/staff",
+      "handler": "list_staff",
+      "file": "backend/app/api/routes_admin_staff.py",
+      "line": 79,
+      "dependencies": [
+        "get_db",
+        "require_permission('trainers.view')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/staff/{staff_id}",
+      "handler": "update_staff",
+      "file": "backend/app/api/routes_admin_staff.py",
+      "line": 93,
+      "dependencies": [
+        "get_db",
+        "require_permission('trainers.edit')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/staff/{staff_id}",
+      "handler": "delete_staff",
+      "file": "backend/app/api/routes_admin_staff.py",
+      "line": 154,
+      "dependencies": [
+        "get_db",
+        "require_permission('trainers.delete')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/students/program-options",
+      "handler": "student_program_options",
+      "file": "backend/app/api/routes_admin_students.py",
+      "line": 94,
+      "dependencies": [
+        "get_db",
+        "require_role('admin')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/students",
+      "handler": "create_student",
+      "file": "backend/app/api/routes_admin_students.py",
+      "line": 136,
+      "dependencies": [
+        "get_db",
+        "require_permission('students.create')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/students/{student_id}/credentials-email",
+      "handler": "resend_student_credentials",
+      "file": "backend/app/api/routes_admin_students.py",
+      "line": 203,
+      "dependencies": [
+        "get_db",
+        "require_permission('students.create')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/students",
+      "handler": "list_students",
+      "file": "backend/app/api/routes_admin_students.py",
+      "line": 228,
+      "dependencies": [
+        "get_db",
+        "require_permission('students.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/students/export",
+      "handler": "export_students",
+      "file": "backend/app/api/routes_admin_students.py",
+      "line": 242,
+      "dependencies": [
+        "get_db",
+        "require_permission('students.export')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/students/{student_id}",
+      "handler": "update_student",
+      "file": "backend/app/api/routes_admin_students.py",
+      "line": 303,
+      "dependencies": [
+        "get_db",
+        "require_permission('students.edit')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/students/{student_id}",
+      "handler": "delete_student",
+      "file": "backend/app/api/routes_admin_students.py",
+      "line": 375,
+      "dependencies": [
+        "get_db",
+        "require_permission('students.delete')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/support/stats",
+      "handler": "get_stats",
+      "file": "backend/app/api/routes_admin_support.py",
+      "line": 74,
+      "dependencies": [
+        "get_db",
+        "require_permission('support.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/support/tickets",
+      "handler": "list_tickets",
+      "file": "backend/app/api/routes_admin_support.py",
+      "line": 106,
+      "dependencies": [
+        "get_db",
+        "require_permission('support.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/support/tickets/export",
+      "handler": "export_tickets",
+      "file": "backend/app/api/routes_admin_support.py",
+      "line": 124,
+      "dependencies": [
+        "get_db",
+        "require_permission('support.export')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/support/assignable-admins",
+      "handler": "assignable_admins",
+      "file": "backend/app/api/routes_admin_support.py",
+      "line": 161,
+      "dependencies": [
+        "get_db",
+        "require_permission('support.view')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/support/tickets/{ticket_id}",
+      "handler": "get_ticket",
+      "file": "backend/app/api/routes_admin_support.py",
+      "line": 169,
+      "dependencies": [
+        "get_db",
+        "require_permission('support.view')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/support/tickets/{ticket_id}/messages",
+      "handler": "reply_to_ticket",
+      "file": "backend/app/api/routes_admin_support.py",
+      "line": 183,
+      "dependencies": [
+        "get_db",
+        "require_permission('support.reply')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/support/tickets/{ticket_id}/notes",
+      "handler": "add_internal_note",
+      "file": "backend/app/api/routes_admin_support.py",
+      "line": 212,
+      "dependencies": [
+        "get_db",
+        "require_permission('support.add_internal_note')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/support/tickets/{ticket_id}/messages/{message_id}/attachments",
+      "handler": "upload_ticket_attachment",
+      "file": "backend/app/api/routes_admin_support.py",
+      "line": 238,
+      "dependencies": [
+        "get_db",
+        "require_permission('support.reply')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/support/tickets/{ticket_id}/attachments/{attachment_id}",
+      "handler": "download_ticket_attachment",
+      "file": "backend/app/api/routes_admin_support.py",
+      "line": 266,
+      "dependencies": [
+        "get_db",
+        "require_permission('support.view')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/support/tickets/{ticket_id}/status",
+      "handler": "change_status",
+      "file": "backend/app/api/routes_admin_support.py",
+      "line": 282,
+      "dependencies": [
+        "get_db",
+        "require_permission('support.change_status')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/support/tickets/{ticket_id}/priority",
+      "handler": "change_priority",
+      "file": "backend/app/api/routes_admin_support.py",
+      "line": 316,
+      "dependencies": [
+        "get_db",
+        "require_permission('support.change_priority')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/support/tickets/{ticket_id}/assign",
+      "handler": "assign_ticket",
+      "file": "backend/app/api/routes_admin_support.py",
+      "line": 339,
+      "dependencies": [
+        "get_db",
+        "require_permission('support.assign')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/support/tickets/{ticket_id}/close",
+      "handler": "close_ticket",
+      "file": "backend/app/api/routes_admin_support.py",
+      "line": 368,
+      "dependencies": [
+        "get_db",
+        "require_permission('support.close')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/support/tickets/{ticket_id}/reopen",
+      "handler": "reopen_ticket",
+      "file": "backend/app/api/routes_admin_support.py",
+      "line": 392,
+      "dependencies": [
+        "get_db",
+        "require_permission('support.change_status')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/support/tickets/{ticket_id}",
+      "handler": "delete_ticket",
+      "file": "backend/app/api/routes_admin_support.py",
+      "line": 416,
+      "dependencies": [
+        "get_db",
+        "require_permission('support.delete')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/admin-users",
+      "handler": "list_admin_users",
+      "file": "backend/app/api/routes_admin_users.py",
+      "line": 77,
+      "dependencies": [
+        "get_db",
+        "require_permission('admin_users.view')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/admin-users",
+      "handler": "create_admin_user",
+      "file": "backend/app/api/routes_admin_users.py",
+      "line": 91,
+      "dependencies": [
+        "get_db",
+        "require_permission('admin_users.create')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/admin-users/{admin_id}",
+      "handler": "update_admin_user",
+      "file": "backend/app/api/routes_admin_users.py",
+      "line": 130,
+      "dependencies": [
+        "get_db",
+        "require_permission('admin_users.edit')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/admin-users/{admin_id}/revoke-sessions",
+      "handler": "revoke_admin_sessions",
+      "file": "backend/app/api/routes_admin_users.py",
+      "line": 257,
+      "dependencies": [
+        "get_db",
+        "require_permission('admin_users.edit')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/admin-users/{admin_id}",
+      "handler": "delete_admin_user",
+      "file": "backend/app/api/routes_admin_users.py",
+      "line": 277,
+      "dependencies": [
+        "get_db",
+        "require_permission('admin_users.delete')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "handler": "login",
+      "file": "backend/app/api/routes_auth.py",
+      "line": 49,
+      "dependencies": [
+        "get_db"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me",
+      "handler": "me",
+      "file": "backend/app/api/routes_auth.py",
+      "line": 100,
+      "dependencies": [
+        "get_current_user",
+        "get_db"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/change-password",
+      "handler": "change_password",
+      "file": "backend/app/api/routes_auth.py",
+      "line": 105,
+      "dependencies": [
+        "get_current_user",
+        "get_db"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "handler": "logout",
+      "file": "backend/app/api/routes_auth.py",
+      "line": 138,
+      "dependencies": [
+        "get_current_user",
+        "get_db"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/users/search",
+      "handler": "search_users",
+      "file": "backend/app/api/routes_chat.py",
+      "line": 70,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/conversations",
+      "handler": "list_conversations",
+      "file": "backend/app/api/routes_chat.py",
+      "line": 97,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/messages/{other_user_id}",
+      "handler": "get_messages",
+      "file": "backend/app/api/routes_chat.py",
+      "line": 159,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "WEBSOCKET",
+      "path": "/api/chat/ws",
+      "handler": "chat_ws",
+      "file": "backend/app/api/routes_chat.py",
+      "line": 218,
+      "dependencies": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/community/register/start",
+      "handler": "start_registration",
+      "file": "backend/app/api/routes_community_auth.py",
+      "line": 241,
+      "dependencies": [
+        "get_db"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/community/register/resend-otp",
+      "handler": "resend_otp",
+      "file": "backend/app/api/routes_community_auth.py",
+      "line": 319,
+      "dependencies": [
+        "get_db"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/community/register/verify-otp",
+      "handler": "verify_otp_endpoint",
+      "file": "backend/app/api/routes_community_auth.py",
+      "line": 338,
+      "dependencies": [
+        "get_db"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/community/register/set-password",
+      "handler": "set_password",
+      "file": "backend/app/api/routes_community_auth.py",
+      "line": 390,
+      "dependencies": [
+        "get_db"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/community/posts",
+      "handler": "list_public_posts",
+      "file": "backend/app/api/routes_community_posts.py",
+      "line": 19,
+      "dependencies": [
+        "get_db"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/community/member/posts",
+      "handler": "list_member_posts",
+      "file": "backend/app/api/routes_community_posts.py",
+      "line": 35,
+      "dependencies": [
+        "get_db",
+        "require_role('community')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/contact/enquiries",
+      "handler": "submit_enquiry",
+      "file": "backend/app/api/routes_contact.py",
+      "line": 14,
+      "dependencies": [
+        "get_db"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/stats",
+      "handler": "stats",
+      "file": "backend/app/api/routes_dashboard.py",
+      "line": 22,
+      "dependencies": [
+        "get_db",
+        "require_role('admin')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/dashboard/activity",
+      "handler": "activity",
+      "file": "backend/app/api/routes_dashboard.py",
+      "line": 71,
+      "dependencies": [
+        "get_db",
+        "require_role('admin')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/google/login",
+      "handler": "google_login",
+      "file": "backend/app/api/routes_google_auth.py",
+      "line": 72,
+      "dependencies": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/google/callback",
+      "handler": "google_callback",
+      "file": "backend/app/api/routes_google_auth.py",
+      "line": 93,
+      "dependencies": [
+        "get_db"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/google/exchange",
+      "handler": "google_exchange",
+      "file": "backend/app/api/routes_google_auth.py",
+      "line": 146,
+      "dependencies": [
+        "get_db"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "handler": "health",
+      "file": "backend/app/api/routes_health.py",
+      "line": 14,
+      "dependencies": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/system/health",
+      "handler": "system_health",
+      "file": "backend/app/api/routes_health.py",
+      "line": 19,
+      "dependencies": [
+        "get_db",
+        "require_role('admin')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/lab-vm-agent/heartbeat",
+      "handler": "agent_heartbeat",
+      "file": "backend/app/api/routes_lab_vm_agent.py",
+      "line": 18,
+      "dependencies": [
+        "get_db",
+        "require_vm_agent"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/lab-vm-agent/events",
+      "handler": "agent_event",
+      "file": "backend/app/api/routes_lab_vm_agent.py",
+      "line": 61,
+      "dependencies": [
+        "get_db",
+        "require_vm_agent"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/meetings/me",
+      "handler": "my_meetings",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 51,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/meetings/batch/{batch_id}/join",
+      "handler": "join_batch_meeting",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 85,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/meetings/{token}/join",
+      "handler": "join_meeting",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 155,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/meetings/{meeting_id}/participants",
+      "handler": "get_meeting_participants",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 224,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/meetings/{meeting_id}/waiting",
+      "handler": "get_waiting_participants",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 240,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/meetings/{meeting_id}/participants/{participant_id}/admit",
+      "handler": "admit_participant",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 261,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/meetings/{meeting_id}/participants/{participant_id}/reject",
+      "handler": "reject_participant",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 276,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/meetings/{meeting_id}/participants/{participant_id}/remove",
+      "handler": "host_remove_participant",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 291,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/meetings/{meeting_id}/leave",
+      "handler": "leave_meeting",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 311,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/meetings/{meeting_id}/messages",
+      "handler": "get_messages",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 327,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/meetings/{meeting_id}/messages",
+      "handler": "send_message",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 351,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/meetings/{meeting_id}/notes",
+      "handler": "get_notes",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 375,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/meetings/{meeting_id}/notes",
+      "handler": "update_notes",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 391,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/meetings/{meeting_id}/start",
+      "handler": "host_start_meeting",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 432,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/meetings/{meeting_id}/end",
+      "handler": "host_end_meeting",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 448,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/meetings/{meeting_id}/recordings/start",
+      "handler": "host_start_recording",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 478,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/meetings/{meeting_id}/recordings/{recording_id}/stop",
+      "handler": "host_stop_recording",
+      "file": "backend/app/api/routes_meetings.py",
+      "line": 499,
+      "dependencies": [
+        "get_db",
+        "get_current_user"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/users/me/photo",
+      "handler": "upload_my_photo",
+      "file": "backend/app/api/routes_profile.py",
+      "line": 20,
+      "dependencies": [
+        "get_db",
+        "require_role(*PHOTO_ROLES)"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/users/me/photo",
+      "handler": "remove_my_photo",
+      "file": "backend/app/api/routes_profile.py",
+      "line": 41,
+      "dependencies": [
+        "get_db",
+        "require_role(*PHOTO_ROLES)"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/users/{user_id}/photo",
+      "handler": "get_user_photo",
+      "file": "backend/app/api/routes_profile.py",
+      "line": 55,
+      "dependencies": [
+        "get_db",
+        "get_current_user_flexible"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/sessions",
+      "handler": "list_my_sessions",
+      "file": "backend/app/api/routes_sessions.py",
+      "line": 52,
+      "dependencies": [
+        "get_current_user",
+        "get_db"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/me/sessions/{session_id}",
+      "handler": "revoke_my_session",
+      "file": "backend/app/api/routes_sessions.py",
+      "line": 67,
+      "dependencies": [
+        "get_current_user",
+        "get_db"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/me/sessions/revoke-others",
+      "handler": "revoke_other_sessions",
+      "file": "backend/app/api/routes_sessions.py",
+      "line": 95,
+      "dependencies": [
+        "get_current_user",
+        "get_db"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/staff/me/profile",
+      "handler": "update_my_profile",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 50,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/staff/me/notifications",
+      "handler": "update_notification_preference",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 74,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/staff/me/schedule",
+      "handler": "my_schedule",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 88,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/staff/me/schedule/{session_id}/video",
+      "handler": "my_schedule_video_room",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 112,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/staff/me/batches",
+      "handler": "my_batches",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 158,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/staff/me/batches/{batch_id}",
+      "handler": "get_my_batch",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 168,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/staff/me/batches/{batch_id}/video",
+      "handler": "my_batch_video_room",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 175,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/staff/me/batches/{batch_id}/members",
+      "handler": "get_my_batch_members",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 201,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/staff/me/batches/{batch_id}/materials",
+      "handler": "list_my_batch_materials",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 216,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/staff/me/batches/{batch_id}/materials",
+      "handler": "upload_batch_material",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 237,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/staff/me/batches/{batch_id}/materials/{material_id}",
+      "handler": "delete_batch_material",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 259,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/staff/me/batches/{batch_id}/videos",
+      "handler": "list_my_batch_videos",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 275,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/staff/me/batches/{batch_id}/videos",
+      "handler": "upload_batch_video",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 296,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/staff/me/batches/{batch_id}/videos/{video_id}",
+      "handler": "delete_batch_video",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 318,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/staff/me/batches/{batch_id}/sessions",
+      "handler": "list_my_batch_sessions",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 350,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/staff/me/batches/{batch_id}/sessions",
+      "handler": "create_my_batch_session",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 359,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/staff/me/batches/{batch_id}/sessions/{session_id}",
+      "handler": "update_my_batch_session",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 385,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/staff/me/batches/{batch_id}/sessions/{session_id}",
+      "handler": "delete_my_batch_session",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 414,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/staff/me/batches/{batch_id}/chat/messages",
+      "handler": "get_my_batch_chat",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 442,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/staff/me/batches/{batch_id}/chat/messages",
+      "handler": "send_my_batch_chat",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 463,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/staff/me/tickets",
+      "handler": "my_tickets",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 488,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/staff/me/tickets",
+      "handler": "create_ticket",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 499,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/staff/me/tickets/{ticket_id}",
+      "handler": "get_ticket",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 533,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/staff/me/tickets/{ticket_id}/messages",
+      "handler": "reply_to_ticket",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 543,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/staff/me/tickets/{ticket_id}/messages/{message_id}/attachments",
+      "handler": "upload_ticket_attachment",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 567,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/staff/me/tickets/{ticket_id}/attachments/{attachment_id}",
+      "handler": "download_ticket_attachment",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 595,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/staff/me/tickets/{ticket_id}/reopen",
+      "handler": "reopen_ticket",
+      "file": "backend/app/api/routes_staff.py",
+      "line": 613,
+      "dependencies": [
+        "get_db",
+        "require_role('staff')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/students/me/profile",
+      "handler": "complete_profile",
+      "file": "backend/app/api/routes_students.py",
+      "line": 66,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/students/me/profile",
+      "handler": "update_my_profile",
+      "file": "backend/app/api/routes_students.py",
+      "line": 86,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/students/me/notifications",
+      "handler": "update_notification_preference",
+      "file": "backend/app/api/routes_students.py",
+      "line": 110,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/schedule",
+      "handler": "my_schedule",
+      "file": "backend/app/api/routes_students.py",
+      "line": 124,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/schedule/{session_id}/video",
+      "handler": "my_schedule_video_room",
+      "file": "backend/app/api/routes_students.py",
+      "line": 151,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/batches",
+      "handler": "my_batches",
+      "file": "backend/app/api/routes_students.py",
+      "line": 194,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/batches/{batch_id}/video",
+      "handler": "my_batch_video_room",
+      "file": "backend/app/api/routes_students.py",
+      "line": 208,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/batches/{batch_id}/members",
+      "handler": "get_my_batch_members",
+      "file": "backend/app/api/routes_students.py",
+      "line": 235,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/batches/{batch_id}/chat/messages",
+      "handler": "get_my_batch_chat",
+      "file": "backend/app/api/routes_students.py",
+      "line": 259,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/students/me/batches/{batch_id}/chat/messages",
+      "handler": "send_my_batch_chat",
+      "file": "backend/app/api/routes_students.py",
+      "line": 282,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/lab-access-status",
+      "handler": "my_lab_access_status",
+      "file": "backend/app/api/routes_students.py",
+      "line": 306,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/lab-vm-access",
+      "handler": "my_lab_vm_access",
+      "file": "backend/app/api/routes_students.py",
+      "line": 312,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/lab-vm-access/connect-file",
+      "handler": "my_lab_vm_connect_file",
+      "file": "backend/app/api/routes_students.py",
+      "line": 345,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/lab-slots",
+      "handler": "my_lab_slots",
+      "file": "backend/app/api/routes_students.py",
+      "line": 384,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/students/me/lab-slots/book",
+      "handler": "book_lab_slot",
+      "file": "backend/app/api/routes_students.py",
+      "line": 440,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/students/me/lab-slots/{booking_id}",
+      "handler": "cancel_lab_slot",
+      "file": "backend/app/api/routes_students.py",
+      "line": 501,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/videos",
+      "handler": "my_videos",
+      "file": "backend/app/api/routes_students.py",
+      "line": 517,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/materials",
+      "handler": "my_materials",
+      "file": "backend/app/api/routes_students.py",
+      "line": 534,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/interviews",
+      "handler": "my_interviews",
+      "file": "backend/app/api/routes_students.py",
+      "line": 551,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/tickets",
+      "handler": "my_tickets",
+      "file": "backend/app/api/routes_students.py",
+      "line": 573,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/students/me/tickets",
+      "handler": "create_ticket",
+      "file": "backend/app/api/routes_students.py",
+      "line": 584,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/tickets/{ticket_id}",
+      "handler": "get_ticket",
+      "file": "backend/app/api/routes_students.py",
+      "line": 618,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/students/me/tickets/{ticket_id}/messages",
+      "handler": "reply_to_ticket",
+      "file": "backend/app/api/routes_students.py",
+      "line": 628,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/students/me/tickets/{ticket_id}/messages/{message_id}/attachments",
+      "handler": "upload_ticket_attachment",
+      "file": "backend/app/api/routes_students.py",
+      "line": 652,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/students/me/tickets/{ticket_id}/attachments/{attachment_id}",
+      "handler": "download_ticket_attachment",
+      "file": "backend/app/api/routes_students.py",
+      "line": 680,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/students/me/tickets/{ticket_id}/reopen",
+      "handler": "reopen_ticket",
+      "file": "backend/app/api/routes_students.py",
+      "line": 698,
+      "dependencies": [
+        "get_db",
+        "require_role('student')"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/me/video/ad-hoc",
+      "handler": "start_adhoc_meeting",
+      "file": "backend/app/api/routes_video.py",
+      "line": 12,
+      "dependencies": [
+        "get_current_user"
+      ]
+    }
+  ],
+  "tables": [
+    {
+      "table": "admin_profiles",
+      "model": "AdminProfile",
+      "file": "backend/app/models/admin_profile.py",
+      "line": 9,
+      "columns": [
+        "id",
+        "user_id",
+        "email",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "admin_roles",
+      "model": "AdminRole",
+      "file": "backend/app/models/admin_role.py",
+      "line": 26,
+      "columns": [
+        "id",
+        "name",
+        "slug",
+        "description",
+        "is_system",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": []
+    },
+    {
+      "table": "permissions",
+      "model": "Permission",
+      "file": "backend/app/models/admin_role.py",
+      "line": 53,
+      "columns": [
+        "id",
+        "key",
+        "module",
+        "action",
+        "description",
+        "created_at"
+      ],
+      "foreign_keys": []
+    },
+    {
+      "table": "admin_role_permissions",
+      "model": "AdminRolePermission",
+      "file": "backend/app/models/admin_role.py",
+      "line": 69,
+      "columns": [
+        "id",
+        "admin_role_id",
+        "permission_key"
+      ],
+      "foreign_keys": [
+        {
+          "column": "admin_role_id",
+          "references": "admin_roles.id"
+        },
+        {
+          "column": "permission_key",
+          "references": "permissions.key"
+        }
+      ]
+    },
+    {
+      "table": "auth_audit_log",
+      "model": "AuthAuditLog",
+      "file": "backend/app/models/audit_log.py",
+      "line": 94,
+      "columns": [
+        "id",
+        "user_id",
+        "username_attempted",
+        "event_type",
+        "ip_address",
+        "user_agent",
+        "detail",
+        "module",
+        "target",
+        "status",
+        "actor_role",
+        "created_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "batches",
+      "model": "Batch",
+      "file": "backend/app/models/batch.py",
+      "line": 24,
+      "columns": [
+        "id",
+        "name",
+        "course",
+        "batch_type",
+        "status",
+        "trainer_id",
+        "program_id",
+        "start_date",
+        "end_date",
+        "max_capacity",
+        "class_days",
+        "start_time",
+        "end_time",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "trainer_id",
+          "references": "users.id"
+        },
+        {
+          "column": "program_id",
+          "references": "programs.id"
+        }
+      ]
+    },
+    {
+      "table": "batch_enrollments",
+      "model": "BatchEnrollment",
+      "file": "backend/app/models/batch.py",
+      "line": 85,
+      "columns": [
+        "id",
+        "batch_id",
+        "student_id",
+        "joined_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "batch_id",
+          "references": "batches.id"
+        },
+        {
+          "column": "student_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "batch_messages",
+      "model": "BatchMessage",
+      "file": "backend/app/models/batch_chat.py",
+      "line": 9,
+      "columns": [
+        "id",
+        "batch_id",
+        "sender_id",
+        "message",
+        "created_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "batch_id",
+          "references": "batches.id"
+        },
+        {
+          "column": "sender_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "batch_chat_read_state",
+      "model": "BatchChatReadState",
+      "file": "backend/app/models/batch_chat.py",
+      "line": 28,
+      "columns": [
+        "id",
+        "batch_id",
+        "user_id",
+        "last_read_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "batch_id",
+          "references": "batches.id"
+        },
+        {
+          "column": "user_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "class_videos",
+      "model": "ClassVideo",
+      "file": "backend/app/models/batch_resources.py",
+      "line": 9,
+      "columns": [
+        "id",
+        "batch_id",
+        "title",
+        "video_url",
+        "description",
+        "created_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "batch_id",
+          "references": "batches.id"
+        }
+      ]
+    },
+    {
+      "table": "study_materials",
+      "model": "StudyMaterial",
+      "file": "backend/app/models/batch_resources.py",
+      "line": 27,
+      "columns": [
+        "id",
+        "batch_id",
+        "title",
+        "file_url",
+        "description",
+        "created_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "batch_id",
+          "references": "batches.id"
+        }
+      ]
+    },
+    {
+      "table": "conversations",
+      "model": "Conversation",
+      "file": "backend/app/models/chat.py",
+      "line": 9,
+      "columns": [
+        "id",
+        "user_a_id",
+        "user_b_id",
+        "user_a_last_read_at",
+        "user_b_last_read_at",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_a_id",
+          "references": "users.id"
+        },
+        {
+          "column": "user_b_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "direct_messages",
+      "model": "DirectMessage",
+      "file": "backend/app/models/chat.py",
+      "line": 35,
+      "columns": [
+        "id",
+        "conversation_id",
+        "sender_id",
+        "body",
+        "created_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "conversation_id",
+          "references": "conversations.id"
+        },
+        {
+          "column": "sender_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "class_sessions",
+      "model": "ClassSession",
+      "file": "backend/app/models/class_session.py",
+      "line": 9,
+      "columns": [
+        "id",
+        "batch_id",
+        "title",
+        "session_date",
+        "start_time",
+        "end_time",
+        "meeting_link",
+        "notes",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "batch_id",
+          "references": "batches.id"
+        }
+      ]
+    },
+    {
+      "table": "community_registrations",
+      "model": "CommunityRegistration",
+      "file": "backend/app/models/community.py",
+      "line": 15,
+      "columns": [
+        "id",
+        "full_name",
+        "mobile_number",
+        "mobile_normalized",
+        "email",
+        "status",
+        "otp_hash",
+        "otp_expires_at",
+        "otp_attempts",
+        "otp_send_count",
+        "otp_window_started_at",
+        "verified_at",
+        "verification_token_hash",
+        "verification_token_expires_at",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": []
+    },
+    {
+      "table": "community_profiles",
+      "model": "CommunityProfile",
+      "file": "backend/app/models/community.py",
+      "line": 78,
+      "columns": [
+        "id",
+        "user_id",
+        "mobile_number",
+        "mobile_normalized",
+        "email",
+        "email_verified_at",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "community_posts",
+      "model": "CommunityPost",
+      "file": "backend/app/models/community_post.py",
+      "line": 43,
+      "columns": [
+        "id",
+        "kind",
+        "title",
+        "body",
+        "visibility",
+        "status",
+        "published_at",
+        "created_by_id",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "created_by_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "community_post_email_deliveries",
+      "model": "CommunityPostEmailDelivery",
+      "file": "backend/app/models/community_post.py",
+      "line": 74,
+      "columns": [
+        "id",
+        "post_id",
+        "user_id",
+        "status",
+        "claimed_at",
+        "attempts",
+        "next_attempt_at",
+        "sent_at",
+        "error_code",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "post_id",
+          "references": "community_posts.id"
+        },
+        {
+          "column": "user_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "contact_enquiries",
+      "model": "ContactEnquiry",
+      "file": "backend/app/models/contact_enquiry.py",
+      "line": 9,
+      "columns": [
+        "id",
+        "full_name",
+        "phone",
+        "email",
+        "subject",
+        "message",
+        "is_read",
+        "created_at"
+      ],
+      "foreign_keys": []
+    },
+    {
+      "table": "user_google_identities",
+      "model": "UserGoogleIdentity",
+      "file": "backend/app/models/google_identity.py",
+      "line": 9,
+      "columns": [
+        "id",
+        "user_id",
+        "google_sub",
+        "linked_email",
+        "linked_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "google_login_tickets",
+      "model": "GoogleLoginTicket",
+      "file": "backend/app/models/google_identity.py",
+      "line": 26,
+      "columns": [
+        "id",
+        "token_hash",
+        "user_id",
+        "expires_at",
+        "used_at",
+        "created_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "interview_schedules",
+      "model": "InterviewSchedule",
+      "file": "backend/app/models/interview_schedule.py",
+      "line": 21,
+      "columns": [
+        "id",
+        "student_id",
+        "company_name",
+        "role",
+        "interview_date",
+        "interview_time",
+        "mode",
+        "location_or_link",
+        "status",
+        "notes",
+        "created_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "student_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "lab_access_audit_log",
+      "model": "LabAccessAuditLog",
+      "file": "backend/app/models/lab_access_audit.py",
+      "line": 9,
+      "columns": [
+        "id",
+        "student_id",
+        "admin_id",
+        "action",
+        "previous_status",
+        "new_status",
+        "reason",
+        "created_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "student_id",
+          "references": "users.id"
+        },
+        {
+          "column": "admin_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "lab_access_overrides",
+      "model": "LabAccessOverride",
+      "file": "backend/app/models/lab_access_override.py",
+      "line": 16,
+      "columns": [
+        "id",
+        "student_id",
+        "access_mode",
+        "reason",
+        "updated_by",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "student_id",
+          "references": "users.id"
+        },
+        {
+          "column": "updated_by",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "lab_slot_bookings",
+      "model": "LabSlotBooking",
+      "file": "backend/app/models/lab_slot_booking.py",
+      "line": 9,
+      "columns": [
+        "id",
+        "student_id",
+        "slot_date",
+        "start_time",
+        "end_time",
+        "created_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "student_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "lab_vms",
+      "model": "LabVm",
+      "file": "backend/app/models/lab_vm.py",
+      "line": 22,
+      "columns": [
+        "id",
+        "name",
+        "hostname",
+        "rdp_port",
+        "operating_system",
+        "description",
+        "student_rdp_username",
+        "is_active",
+        "agent_token_hash",
+        "agent_last_seen_at",
+        "current_agent_password_encrypted",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": []
+    },
+    {
+      "table": "lab_vm_access",
+      "model": "LabVmAccess",
+      "file": "backend/app/models/lab_vm.py",
+      "line": 77,
+      "columns": [
+        "id",
+        "student_id",
+        "vm_id",
+        "status",
+        "granted_at",
+        "expires_at",
+        "granted_by",
+        "revoked_at",
+        "revoked_by",
+        "rdp_password_encrypted",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "student_id",
+          "references": "users.id"
+        },
+        {
+          "column": "vm_id",
+          "references": "lab_vms.id"
+        },
+        {
+          "column": "granted_by",
+          "references": "users.id"
+        },
+        {
+          "column": "revoked_by",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "lab_vm_access_audit_log",
+      "model": "LabVmAccessAuditLog",
+      "file": "backend/app/models/lab_vm.py",
+      "line": 137,
+      "columns": [
+        "id",
+        "student_id",
+        "vm_id",
+        "action",
+        "performed_by",
+        "reason",
+        "event_metadata",
+        "created_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "student_id",
+          "references": "users.id"
+        },
+        {
+          "column": "vm_id",
+          "references": "lab_vms.id"
+        },
+        {
+          "column": "performed_by",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "leads",
+      "model": "Lead",
+      "file": "backend/app/models/lead.py",
+      "line": 18,
+      "columns": [
+        "id",
+        "full_name",
+        "phone",
+        "email",
+        "source",
+        "status",
+        "notes",
+        "created_by_id",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "created_by_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "meetings",
+      "model": "Meeting",
+      "file": "backend/app/models/meeting.py",
+      "line": 45,
+      "columns": [
+        "id",
+        "meeting_token",
+        "title",
+        "description",
+        "host_id",
+        "batch_id",
+        "password_hash",
+        "scheduled_at",
+        "duration_minutes",
+        "max_participants",
+        "status",
+        "started_at",
+        "ended_at",
+        "mic_enabled",
+        "camera_enabled",
+        "screen_share_enabled",
+        "chat_enabled",
+        "notes_enabled",
+        "participant_notes_enabled",
+        "recording_enabled",
+        "waiting_room_enabled",
+        "require_approval",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "host_id",
+          "references": "users.id"
+        },
+        {
+          "column": "batch_id",
+          "references": "batches.id"
+        }
+      ]
+    },
+    {
+      "table": "meeting_participants",
+      "model": "MeetingParticipant",
+      "file": "backend/app/models/meeting.py",
+      "line": 96,
+      "columns": [
+        "id",
+        "meeting_id",
+        "user_id",
+        "role",
+        "status",
+        "joined_at",
+        "left_at",
+        "created_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "meeting_id",
+          "references": "meetings.id"
+        },
+        {
+          "column": "user_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "meeting_messages",
+      "model": "MeetingMessage",
+      "file": "backend/app/models/meeting.py",
+      "line": 120,
+      "columns": [
+        "id",
+        "meeting_id",
+        "user_id",
+        "message",
+        "is_system",
+        "created_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "meeting_id",
+          "references": "meetings.id"
+        },
+        {
+          "column": "user_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "meeting_notes",
+      "model": "MeetingNote",
+      "file": "backend/app/models/meeting.py",
+      "line": 137,
+      "columns": [
+        "id",
+        "meeting_id",
+        "content",
+        "action_items",
+        "updated_by",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "meeting_id",
+          "references": "meetings.id"
+        },
+        {
+          "column": "updated_by",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "meeting_recordings",
+      "model": "MeetingRecording",
+      "file": "backend/app/models/meeting.py",
+      "line": 159,
+      "columns": [
+        "id",
+        "meeting_id",
+        "status",
+        "file_path",
+        "duration_seconds",
+        "file_size_bytes",
+        "started_at",
+        "completed_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "meeting_id",
+          "references": "meetings.id"
+        }
+      ]
+    },
+    {
+      "table": "programs",
+      "model": "Program",
+      "file": "backend/app/models/program.py",
+      "line": 31,
+      "columns": [
+        "id",
+        "slug",
+        "name",
+        "code",
+        "description",
+        "category",
+        "duration",
+        "eligibility",
+        "objectives",
+        "max_capacity",
+        "mode",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": []
+    },
+    {
+      "table": "program_enrollments",
+      "model": "ProgramEnrollment",
+      "file": "backend/app/models/program.py",
+      "line": 77,
+      "columns": [
+        "id",
+        "program_id",
+        "student_id",
+        "status",
+        "enrolled_at",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "program_id",
+          "references": "programs.id"
+        },
+        {
+          "column": "student_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "auth_sessions",
+      "model": "AuthSession",
+      "file": "backend/app/models/session.py",
+      "line": 11,
+      "columns": [
+        "id",
+        "user_id",
+        "issued_at",
+        "expires_at",
+        "revoked_at",
+        "ip_address",
+        "user_agent",
+        "created_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "staff_profiles",
+      "model": "StaffProfile",
+      "file": "backend/app/models/staff.py",
+      "line": 25,
+      "columns": [
+        "id",
+        "user_id",
+        "staff_code",
+        "designation",
+        "department",
+        "phone",
+        "email",
+        "address",
+        "permissions",
+        "email_notifications_enabled",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "student_profiles",
+      "model": "StudentProfile",
+      "file": "backend/app/models/student.py",
+      "line": 40,
+      "columns": [
+        "id",
+        "user_id",
+        "student_code",
+        "phone",
+        "email",
+        "address",
+        "current_role",
+        "program",
+        "program_id",
+        "email_notifications_enabled",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": "users.id"
+        },
+        {
+          "column": "program_id",
+          "references": "programs.id"
+        }
+      ]
+    },
+    {
+      "table": "support_tickets",
+      "model": "SupportTicket",
+      "file": "backend/app/models/support.py",
+      "line": 44,
+      "columns": [
+        "id",
+        "ticket_number",
+        "requester_id",
+        "subject",
+        "category",
+        "priority",
+        "status",
+        "assigned_to",
+        "requester_last_read_at",
+        "admin_last_read_at",
+        "created_at",
+        "updated_at",
+        "resolved_at",
+        "closed_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "requester_id",
+          "references": "users.id"
+        },
+        {
+          "column": "assigned_to",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "support_messages",
+      "model": "SupportMessage",
+      "file": "backend/app/models/support.py",
+      "line": 84,
+      "columns": [
+        "id",
+        "ticket_id",
+        "sender_id",
+        "sender_type",
+        "message",
+        "is_internal",
+        "created_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "ticket_id",
+          "references": "support_tickets.id"
+        },
+        {
+          "column": "sender_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "support_attachments",
+      "model": "SupportAttachment",
+      "file": "backend/app/models/support.py",
+      "line": 106,
+      "columns": [
+        "id",
+        "ticket_id",
+        "message_id",
+        "file_name",
+        "file_type",
+        "file_size",
+        "storage_reference",
+        "created_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "ticket_id",
+          "references": "support_tickets.id"
+        },
+        {
+          "column": "message_id",
+          "references": "support_messages.id"
+        }
+      ]
+    },
+    {
+      "table": "system_settings",
+      "model": "SystemSettings",
+      "file": "backend/app/models/system_settings.py",
+      "line": 11,
+      "columns": [
+        "id",
+        "institute_name",
+        "logo_url",
+        "contact_email",
+        "timezone",
+        "date_format",
+        "session_timeout_minutes",
+        "max_login_attempts",
+        "lockout_duration_minutes",
+        "require_strong_passwords",
+        "notify_new_account",
+        "notify_password_reset",
+        "notify_security_alert",
+        "maintenance_mode",
+        "updated_at",
+        "updated_by_id"
+      ],
+      "foreign_keys": [
+        {
+          "column": "updated_by_id",
+          "references": "users.id"
+        }
+      ]
+    },
+    {
+      "table": "users",
+      "model": "User",
+      "file": "backend/app/models/user.py",
+      "line": 22,
+      "columns": [
+        "id",
+        "username",
+        "password_hash",
+        "full_name",
+        "role",
+        "admin_role_id",
+        "is_active",
+        "must_change_password",
+        "photo_path",
+        "failed_login_count",
+        "locked_until",
+        "last_login_at",
+        "password_changed_at",
+        "created_at",
+        "updated_at"
+      ],
+      "foreign_keys": [
+        {
+          "column": "admin_role_id",
+          "references": "admin_roles.id"
+        }
+      ]
+    }
+  ],
+  "migrations": [
+    {
+      "file": "backend/alembic/versions/7f9c63c4ea71_add_leads.py",
+      "revision": "7f9c63c4ea71",
+      "down_revision": "d8e9f0a1b2c3"
+    },
+    {
+      "file": "backend/alembic/versions/8a2f4c6e9b1d_add_leads_admin_role.py",
+      "revision": "8a2f4c6e9b1d",
+      "down_revision": "7f9c63c4ea71"
+    },
+    {
+      "file": "backend/alembic/versions/a1b2c3d4e5f6_broaden_auth_event_type.py",
+      "revision": "a1b2c3d4e5f6",
+      "down_revision": "e5c8b3d9a2f4"
+    },
+    {
+      "file": "backend/alembic/versions/a3f9c2d4e1b7_add_student_program.py",
+      "revision": "a3f9c2d4e1b7",
+      "down_revision": "d17b417f440b"
+    },
+    {
+      "file": "backend/alembic/versions/a5b6c7d8e9f0_add_meetings_module.py",
+      "revision": "a5b6c7d8e9f0",
+      "down_revision": "f4a5b6c7d8e9"
+    },
+    {
+      "file": "backend/alembic/versions/a7b3f9d1e6c4_add_programs.py",
+      "revision": "a7b3f9d1e6c4",
+      "down_revision": "f3a7c1e9b2d5"
+    },
+    {
+      "file": "backend/alembic/versions/a7b8c9d0e1f2_add_staff_sender_type.py",
+      "revision": "a7b8c9d0e1f2",
+      "down_revision": "f6a7b8c9d0e1"
+    },
+    {
+      "file": "backend/alembic/versions/b2c3d4e5f6a7_add_rbac_and_settings.py",
+      "revision": "b2c3d4e5f6a7",
+      "down_revision": "a1b2c3d4e5f6"
+    },
+    {
+      "file": "backend/alembic/versions/b2d6f0a4c8e2_add_community_tables.py",
+      "revision": "b2d6f0a4c8e2",
+      "down_revision": "f8a1c5e9d3b7"
+    },
+    {
+      "file": "backend/alembic/versions/b3d6f1a9c4e2_add_lab_vm_access.py",
+      "revision": "b3d6f1a9c4e2",
+      "down_revision": "8a2f4c6e9b1d"
+    },
+    {
+      "file": "backend/alembic/versions/b4e8d2c6f1a9_add_class_sessions.py",
+      "revision": "b4e8d2c6f1a9",
+      "down_revision": "a7b3f9d1e6c4"
+    },
+    {
+      "file": "backend/alembic/versions/b6c7d8e9f0a1_add_meeting_batch_id.py",
+      "revision": "b6c7d8e9f0a1",
+      "down_revision": "a5b6c7d8e9f0"
+    },
+    {
+      "file": "backend/alembic/versions/b7c1e9a2f6d3_add_student_profile_details.py",
+      "revision": "b7c1e9a2f6d3",
+      "down_revision": "a3f9c2d4e1b7"
+    },
+    {
+      "file": "backend/alembic/versions/b8c9d0e1f2a3_rename_support_ticket_requester.py",
+      "revision": "b8c9d0e1f2a3",
+      "down_revision": "a7b8c9d0e1f2"
+    },
+    {
+      "file": "backend/alembic/versions/c1d2e3f4a5b6_add_user_photo_path.py",
+      "revision": "c1d2e3f4a5b6",
+      "down_revision": "b8c9d0e1f2a3"
+    },
+    {
+      "file": "backend/alembic/versions/c3d4e5f6a7b8_add_admin_profiles.py",
+      "revision": "c3d4e5f6a7b8",
+      "down_revision": "b2c3d4e5f6a7"
+    },
+    {
+      "file": "backend/alembic/versions/c3e9a1f5b7d2_add_community_posts.py",
+      "revision": "c3e9a1f5b7d2",
+      "down_revision": "b2d6f0a4c8e2"
+    },
+    {
+      "file": "backend/alembic/versions/c4d8f1a5b9e2_add_chat_tables.py",
+      "revision": "c4d8f1a5b9e2",
+      "down_revision": "b7c1e9a2f6d3"
+    },
+    {
+      "file": "backend/alembic/versions/c6e8a2b4d9f1_student_email_login.py",
+      "revision": "c6e8a2b4d9f1",
+      "down_revision": "f9c2b7d4e1a8"
+    },
+    {
+      "file": "backend/alembic/versions/c9f2a4e7b3d8_add_batch_resources_and_interviews.py",
+      "revision": "c9f2a4e7b3d8",
+      "down_revision": "b4e8d2c6f1a9"
+    },
+    {
+      "file": "backend/alembic/versions/d17b417f440b_create_auth_tables.py",
+      "revision": "d17b417f440b",
+      "down_revision": null
+    },
+    {
+      "file": "backend/alembic/versions/d2e3f4a5b6c7_add_profile_address.py",
+      "revision": "d2e3f4a5b6c7",
+      "down_revision": "c1d2e3f4a5b6"
+    },
+    {
+      "file": "backend/alembic/versions/d4e5f6a7b8c9_broaden_auth_event_type_support.py",
+      "revision": "d4e5f6a7b8c9",
+      "down_revision": "c3d4e5f6a7b8"
+    },
+    {
+      "file": "backend/alembic/versions/d4e7a2c8f6b1_add_lab_vm_rotating_password.py",
+      "revision": "d4e7a2c8f6b1",
+      "down_revision": "b3d6f1a9c4e2"
+    },
+    {
+      "file": "backend/alembic/versions/d5a7c3e1f9b4_add_community_identity_uniqueness.py",
+      "revision": "d5a7c3e1f9b4",
+      "down_revision": "c3e9a1f5b7d2"
+    },
+    {
+      "file": "backend/alembic/versions/d8e9f0a1b2c3_add_email_notification_toggle.py",
+      "revision": "d8e9f0a1b2c3",
+      "down_revision": "b6c7d8e9f0a1"
+    },
+    {
+      "file": "backend/alembic/versions/d9e3a7c1f4b6_add_staff_email_permissions.py",
+      "revision": "d9e3a7c1f4b6",
+      "down_revision": "c4d8f1a5b9e2"
+    },
+    {
+      "file": "backend/alembic/versions/e2f6a9c3d8b1_add_more_programs.py",
+      "revision": "e2f6a9c3d8b1",
+      "down_revision": "d9e3a7c1f4b6"
+    },
+    {
+      "file": "backend/alembic/versions/e3f4a5b6c7d8_add_lab_slot_bookings.py",
+      "revision": "e3f4a5b6c7d8",
+      "down_revision": "d2e3f4a5b6c7"
+    },
+    {
+      "file": "backend/alembic/versions/e5c8b3d9a2f4_add_contact_enquiries.py",
+      "revision": "e5c8b3d9a2f4",
+      "down_revision": "c9f2a4e7b3d8"
+    },
+    {
+      "file": "backend/alembic/versions/e5f6a7b8c9d0_add_support_tables.py",
+      "revision": "e5f6a7b8c9d0",
+      "down_revision": "d4e5f6a7b8c9"
+    },
+    {
+      "file": "backend/alembic/versions/e7b1d4c9a2f6_add_delivery_retry_state.py",
+      "revision": "e7b1d4c9a2f6",
+      "down_revision": "d5a7c3e1f9b4"
+    },
+    {
+      "file": "backend/alembic/versions/f3a7c1e9b2d5_add_batches.py",
+      "revision": "f3a7c1e9b2d5",
+      "down_revision": "e2f6a9c3d8b1"
+    },
+    {
+      "file": "backend/alembic/versions/f4a5b6c7d8e9_add_lab_access_control.py",
+      "revision": "f4a5b6c7d8e9",
+      "down_revision": "e3f4a5b6c7d8"
+    },
+    {
+      "file": "backend/alembic/versions/f6a7b8c9d0e1_add_batch_chat.py",
+      "revision": "f6a7b8c9d0e1",
+      "down_revision": "e5f6a7b8c9d0"
+    },
+    {
+      "file": "backend/alembic/versions/f8a1c5e9d3b7_add_community_role_and_tables.py",
+      "revision": "f8a1c5e9d3b7",
+      "down_revision": "d4e7a2c8f6b1"
+    },
+    {
+      "file": "backend/alembic/versions/f9c2b7d4e1a8_add_google_login_tables.py",
+      "revision": "f9c2b7d4e1a8",
+      "down_revision": "e7b1d4c9a2f6"
+    }
+  ],
+  "tests": [
+    {
+      "file": "backend/tests/test_admin_user_integration.py",
+      "test_methods": 5
+    },
+    {
+      "file": "backend/tests/test_admin_user_transactions.py",
+      "test_methods": 8
+    },
+    {
+      "file": "backend/tests/test_audit.py",
+      "test_methods": 3
+    },
+    {
+      "file": "backend/tests/test_google_auth.py",
+      "test_methods": 19
+    },
+    {
+      "file": "backend/tests/test_otp.py",
+      "test_methods": 16
+    },
+    {
+      "file": "backend/tests/test_rbac.py",
+      "test_methods": 10
+    },
+    {
+      "file": "backend/tests/test_student_creation.py",
+      "test_methods": 27
+    },
+    {
+      "file": "backend/tests/test_student_deletion.py",
+      "test_methods": 15
+    },
+    {
+      "file": "backend/tests/test_student_deletion_integration.py",
+      "test_methods": 9
+    }
+  ],
+  "source_sizes": [
+    {
+      "file": "arckenites-orange/404.html",
+      "lines": 189
+    },
+    {
+      "file": "arckenites-orange/about.html",
+      "lines": 272
+    },
+    {
+      "file": "arckenites-orange/admin-activity-logs.html",
+      "lines": 281
+    },
+    {
+      "file": "arckenites-orange/admin-batch-detail.html",
+      "lines": 430
+    },
+    {
+      "file": "arckenites-orange/admin-batches.html",
+      "lines": 299
+    },
+    {
+      "file": "arckenites-orange/admin-class-schedule.html",
+      "lines": 222
+    },
+    {
+      "file": "arckenites-orange/admin-community.html",
+      "lines": 206
+    },
+    {
+      "file": "arckenites-orange/admin-contact-enquiries.html",
+      "lines": 222
+    },
+    {
+      "file": "arckenites-orange/admin-dashboard.html",
+      "lines": 246
+    },
+    {
+      "file": "arckenites-orange/admin-interviews.html",
+      "lines": 275
+    },
+    {
+      "file": "arckenites-orange/admin-lab-access.html",
+      "lines": 208
+    },
+    {
+      "file": "arckenites-orange/admin-lab-vm.html",
+      "lines": 244
+    },
+    {
+      "file": "arckenites-orange/admin-leads.html",
+      "lines": 300
+    },
+    {
+      "file": "arckenites-orange/admin-login.html",
+      "lines": 13
+    },
+    {
+      "file": "arckenites-orange/admin-meetings.html",
+      "lines": 319
+    },
+    {
+      "file": "arckenites-orange/admin-program-detail.html",
+      "lines": 356
+    },
+    {
+      "file": "arckenites-orange/admin-programs.html",
+      "lines": 324
+    },
+    {
+      "file": "arckenites-orange/admin-roles.html",
+      "lines": 264
+    },
+    {
+      "file": "arckenites-orange/admin-settings.html",
+      "lines": 365
+    },
+    {
+      "file": "arckenites-orange/admin-staff.html",
+      "lines": 278
+    },
+    {
+      "file": "arckenites-orange/admin-students.html",
+      "lines": 321
+    },
+    {
+      "file": "arckenites-orange/admin-support-detail.html",
+      "lines": 300
+    },
+    {
+      "file": "arckenites-orange/admin-support.html",
+      "lines": 298
+    },
+    {
+      "file": "arckenites-orange/admin-users.html",
+      "lines": 283
+    },
+    {
+      "file": "arckenites-orange/blog.html",
+      "lines": 254
+    },
+    {
+      "file": "arckenites-orange/careers.html",
+      "lines": 243
+    },
+    {
+      "file": "arckenites-orange/certification-program.html",
+      "lines": 444
+    },
+    {
+      "file": "arckenites-orange/certifications.html",
+      "lines": 211
+    },
+    {
+      "file": "arckenites-orange/change-password.html",
+      "lines": 58
+    },
+    {
+      "file": "arckenites-orange/college-projects-program.html",
+      "lines": 182
+    },
+    {
+      "file": "arckenites-orange/community-dashboard.html",
+      "lines": 228
+    },
+    {
+      "file": "arckenites-orange/community-register.html",
+      "lines": 172
+    },
+    {
+      "file": "arckenites-orange/community.html",
+      "lines": 160
+    },
+    {
+      "file": "arckenites-orange/complete-profile.html",
+      "lines": 67
+    },
+    {
+      "file": "arckenites-orange/contact.html",
+      "lines": 253
+    },
+    {
+      "file": "arckenites-orange/corporate-training.html",
+      "lines": 253
+    },
+    {
+      "file": "arckenites-orange/course-details.html",
+      "lines": 173
+    },
+    {
+      "file": "arckenites-orange/courses.html",
+      "lines": 195
+    },
+    {
+      "file": "arckenites-orange/css/certification-program.css",
+      "lines": 154
+    },
+    {
+      "file": "arckenites-orange/css/depth-text.css",
+      "lines": 60
+    },
+    {
+      "file": "arckenites-orange/css/it360-max.css",
+      "lines": 144
+    },
+    {
+      "file": "arckenites-orange/css/meeting-room.css",
+      "lines": 130
+    },
+    {
+      "file": "arckenites-orange/css/style.css",
+      "lines": 1552
+    },
+    {
+      "file": "arckenites-orange/free-demo.html",
+      "lines": 228
+    },
+    {
+      "file": "arckenites-orange/index.html",
+      "lines": 378
+    },
+    {
+      "file": "arckenites-orange/interview-crack-program.html",
+      "lines": 182
+    },
+    {
+      "file": "arckenites-orange/it360-max.html",
+      "lines": 637
+    },
+    {
+      "file": "arckenites-orange/job-assist-program.html",
+      "lines": 182
+    },
+    {
+      "file": "arckenites-orange/js/admin-activity-logs.js",
+      "lines": 187
+    },
+    {
+      "file": "arckenites-orange/js/admin-batch-detail.js",
+      "lines": 529
+    },
+    {
+      "file": "arckenites-orange/js/admin-batches.js",
+      "lines": 273
+    },
+    {
+      "file": "arckenites-orange/js/admin-class-schedule.js",
+      "lines": 74
+    },
+    {
+      "file": "arckenites-orange/js/admin-community.js",
+      "lines": 162
+    },
+    {
+      "file": "arckenites-orange/js/admin-contact-enquiries.js",
+      "lines": 122
+    },
+    {
+      "file": "arckenites-orange/js/admin-dashboard.js",
+      "lines": 184
+    },
+    {
+      "file": "arckenites-orange/js/admin-interviews.js",
+      "lines": 237
+    },
+    {
+      "file": "arckenites-orange/js/admin-lab-access.js",
+      "lines": 187
+    },
+    {
+      "file": "arckenites-orange/js/admin-lab-vm.js",
+      "lines": 453
+    },
+    {
+      "file": "arckenites-orange/js/admin-leads.js",
+      "lines": 278
+    },
+    {
+      "file": "arckenites-orange/js/admin-meetings.js",
+      "lines": 469
+    },
+    {
+      "file": "arckenites-orange/js/admin-program-detail.js",
+      "lines": 404
+    },
+    {
+      "file": "arckenites-orange/js/admin-programs.js",
+      "lines": 237
+    },
+    {
+      "file": "arckenites-orange/js/admin-roles.js",
+      "lines": 353
+    },
+    {
+      "file": "arckenites-orange/js/admin-settings.js",
+      "lines": 221
+    },
+    {
+      "file": "arckenites-orange/js/admin-staff.js",
+      "lines": 516
+    },
+    {
+      "file": "arckenites-orange/js/admin-students.js",
+      "lines": 408
+    },
+    {
+      "file": "arckenites-orange/js/admin-support-detail.js",
+      "lines": 285
+    },
+    {
+      "file": "arckenites-orange/js/admin-support.js",
+      "lines": 168
+    },
+    {
+      "file": "arckenites-orange/js/admin-users.js",
+      "lines": 517
+    },
+    {
+      "file": "arckenites-orange/js/api.js",
+      "lines": 162
+    },
+    {
+      "file": "arckenites-orange/js/auth.js",
+      "lines": 250
+    },
+    {
+      "file": "arckenites-orange/js/certification-program.js",
+      "lines": 340
+    },
+    {
+      "file": "arckenites-orange/js/change-password.js",
+      "lines": 44
+    },
+    {
+      "file": "arckenites-orange/js/chat.js",
+      "lines": 271
+    },
+    {
+      "file": "arckenites-orange/js/community-dashboard.js",
+      "lines": 85
+    },
+    {
+      "file": "arckenites-orange/js/community-join-popup.js",
+      "lines": 79
+    },
+    {
+      "file": "arckenites-orange/js/community-posts.js",
+      "lines": 85
+    },
+    {
+      "file": "arckenites-orange/js/community-public.js",
+      "lines": 23
+    },
+    {
+      "file": "arckenites-orange/js/community-register.js",
+      "lines": 258
+    },
+    {
+      "file": "arckenites-orange/js/complete-profile.js",
+      "lines": 56
+    },
+    {
+      "file": "arckenites-orange/js/depth-text.js",
+      "lines": 135
+    },
+    {
+      "file": "arckenites-orange/js/login.js",
+      "lines": 86
+    },
+    {
+      "file": "arckenites-orange/js/meeting-room.js",
+      "lines": 452
+    },
+    {
+      "file": "arckenites-orange/js/script.js",
+      "lines": 245
+    },
+    {
+      "file": "arckenites-orange/js/staff-batch-workspace.js",
+      "lines": 425
+    },
+    {
+      "file": "arckenites-orange/js/staff-dashboard.js",
+      "lines": 263
+    },
+    {
+      "file": "arckenites-orange/js/staff-support.js",
+      "lines": 265
+    },
+    {
+      "file": "arckenites-orange/js/student-dashboard.js",
+      "lines": 1194
+    },
+    {
+      "file": "arckenites-orange/js/theme.js",
+      "lines": 43
+    },
+    {
+      "file": "arckenites-orange/js/video-conference.js",
+      "lines": 92
+    },
+    {
+      "file": "arckenites-orange/login.html",
+      "lines": 197
+    },
+    {
+      "file": "arckenites-orange/meeting-room.html",
+      "lines": 114
+    },
+    {
+      "file": "arckenites-orange/placements.html",
+      "lines": 290
+    },
+    {
+      "file": "arckenites-orange/privacy-policy.html",
+      "lines": 205
+    },
+    {
+      "file": "arckenites-orange/staff-batch-workspace.html",
+      "lines": 235
+    },
+    {
+      "file": "arckenites-orange/staff-dashboard.html",
+      "lines": 174
+    },
+    {
+      "file": "arckenites-orange/staff-login.html",
+      "lines": 13
+    },
+    {
+      "file": "arckenites-orange/staff-support.html",
+      "lines": 211
+    },
+    {
+      "file": "arckenites-orange/student-dashboard.html",
+      "lines": 526
+    },
+    {
+      "file": "arckenites-orange/student-login.html",
+      "lines": 13
+    },
+    {
+      "file": "arckenites-orange/terms.html",
+      "lines": 201
+    },
+    {
+      "file": "arckenites-orange/trainers.html",
+      "lines": 260
+    },
+    {
+      "file": "backend/alembic/env.py",
+      "lines": 46
+    },
+    {
+      "file": "backend/alembic/versions/7f9c63c4ea71_add_leads.py",
+      "lines": 44
+    },
+    {
+      "file": "backend/alembic/versions/8a2f4c6e9b1d_add_leads_admin_role.py",
+      "lines": 42
+    },
+    {
+      "file": "backend/alembic/versions/a1b2c3d4e5f6_broaden_auth_event_type.py",
+      "lines": 48
+    },
+    {
+      "file": "backend/alembic/versions/a3f9c2d4e1b7_add_student_program.py",
+      "lines": 36
+    },
+    {
+      "file": "backend/alembic/versions/a5b6c7d8e9f0_add_meetings_module.py",
+      "lines": 151
+    },
+    {
+      "file": "backend/alembic/versions/a7b3f9d1e6c4_add_programs.py",
+      "lines": 133
+    },
+    {
+      "file": "backend/alembic/versions/a7b8c9d0e1f2_add_staff_sender_type.py",
+      "lines": 32
+    },
+    {
+      "file": "backend/alembic/versions/b2c3d4e5f6a7_add_rbac_and_settings.py",
+      "lines": 146
+    },
+    {
+      "file": "backend/alembic/versions/b2d6f0a4c8e2_add_community_tables.py",
+      "lines": 59
+    },
+    {
+      "file": "backend/alembic/versions/b3d6f1a9c4e2_add_lab_vm_access.py",
+      "lines": 164
+    },
+    {
+      "file": "backend/alembic/versions/b4e8d2c6f1a9_add_class_sessions.py",
+      "lines": 43
+    },
+    {
+      "file": "backend/alembic/versions/b6c7d8e9f0a1_add_meeting_batch_id.py",
+      "lines": 27
+    },
+    {
+      "file": "backend/alembic/versions/b7c1e9a2f6d3_add_student_profile_details.py",
+      "lines": 31
+    },
+    {
+      "file": "backend/alembic/versions/b8c9d0e1f2a3_rename_support_ticket_requester.py",
+      "lines": 41
+    },
+    {
+      "file": "backend/alembic/versions/c1d2e3f4a5b6_add_user_photo_path.py",
+      "lines": 25
+    },
+    {
+      "file": "backend/alembic/versions/c3d4e5f6a7b8_add_admin_profiles.py",
+      "lines": 35
+    },
+    {
+      "file": "backend/alembic/versions/c3e9a1f5b7d2_add_community_posts.py",
+      "lines": 68
+    },
+    {
+      "file": "backend/alembic/versions/c4d8f1a5b9e2_add_chat_tables.py",
+      "lines": 52
+    },
+    {
+      "file": "backend/alembic/versions/c6e8a2b4d9f1_student_email_login.py",
+      "lines": 49
+    },
+    {
+      "file": "backend/alembic/versions/c9f2a4e7b3d8_add_batch_resources_and_interviews.py",
+      "lines": 99
+    },
+    {
+      "file": "backend/alembic/versions/d17b417f440b_create_auth_tables.py",
+      "lines": 107
+    },
+    {
+      "file": "backend/alembic/versions/d2e3f4a5b6c7_add_profile_address.py",
+      "lines": 27
+    },
+    {
+      "file": "backend/alembic/versions/d4e5f6a7b8c9_broaden_auth_event_type_support.py",
+      "lines": 44
+    },
+    {
+      "file": "backend/alembic/versions/d4e7a2c8f6b1_add_lab_vm_rotating_password.py",
+      "lines": 31
+    },
+    {
+      "file": "backend/alembic/versions/d5a7c3e1f9b4_add_community_identity_uniqueness.py",
+      "lines": 99
+    },
+    {
+      "file": "backend/alembic/versions/d8e9f0a1b2c3_add_email_notification_toggle.py",
+      "lines": 27
+    },
+    {
+      "file": "backend/alembic/versions/d9e3a7c1f4b6_add_staff_email_permissions.py",
+      "lines": 27
+    },
+    {
+      "file": "backend/alembic/versions/e2f6a9c3d8b1_add_more_programs.py",
+      "lines": 29
+    },
+    {
+      "file": "backend/alembic/versions/e3f4a5b6c7d8_add_lab_slot_bookings.py",
+      "lines": 38
+    },
+    {
+      "file": "backend/alembic/versions/e5c8b3d9a2f4_add_contact_enquiries.py",
+      "lines": 38
+    },
+    {
+      "file": "backend/alembic/versions/e5f6a7b8c9d0_add_support_tables.py",
+      "lines": 106
+    },
+    {
+      "file": "backend/alembic/versions/e7b1d4c9a2f6_add_delivery_retry_state.py",
+      "lines": 47
+    },
+    {
+      "file": "backend/alembic/versions/f3a7c1e9b2d5_add_batches.py",
+      "lines": 68
+    },
+    {
+      "file": "backend/alembic/versions/f4a5b6c7d8e9_add_lab_access_control.py",
+      "lines": 57
+    },
+    {
+      "file": "backend/alembic/versions/f6a7b8c9d0e1_add_batch_chat.py",
+      "lines": 55
+    },
+    {
+      "file": "backend/alembic/versions/f8a1c5e9d3b7_add_community_role_and_tables.py",
+      "lines": 45
+    },
+    {
+      "file": "backend/alembic/versions/f9c2b7d4e1a8_add_google_login_tables.py",
+      "lines": 54
+    },
+    {
+      "file": "backend/app/__init__.py",
+      "lines": 0
+    },
+    {
+      "file": "backend/app/api/__init__.py",
+      "lines": 0
+    },
+    {
+      "file": "backend/app/api/routes_admin_activity_logs.py",
+      "lines": 133
+    },
+    {
+      "file": "backend/app/api/routes_admin_batches.py",
+      "lines": 518
+    },
+    {
+      "file": "backend/app/api/routes_admin_class_schedule.py",
+      "lines": 38
+    },
+    {
+      "file": "backend/app/api/routes_admin_community.py",
+      "lines": 124
+    },
+    {
+      "file": "backend/app/api/routes_admin_community_posts.py",
+      "lines": 157
+    },
+    {
+      "file": "backend/app/api/routes_admin_contact_enquiries.py",
+      "lines": 58
+    },
+    {
+      "file": "backend/app/api/routes_admin_interviews.py",
+      "lines": 119
+    },
+    {
+      "file": "backend/app/api/routes_admin_lab_access.py",
+      "lines": 155
+    },
+    {
+      "file": "backend/app/api/routes_admin_lab_vm.py",
+      "lines": 336
+    },
+    {
+      "file": "backend/app/api/routes_admin_leads.py",
+      "lines": 141
+    },
+    {
+      "file": "backend/app/api/routes_admin_meetings.py",
+      "lines": 429
+    },
+    {
+      "file": "backend/app/api/routes_admin_programs.py",
+      "lines": 347
+    },
+    {
+      "file": "backend/app/api/routes_admin_roles.py",
+      "lines": 215
+    },
+    {
+      "file": "backend/app/api/routes_admin_settings.py",
+      "lines": 49
+    },
+    {
+      "file": "backend/app/api/routes_admin_staff.py",
+      "lines": 191
+    },
+    {
+      "file": "backend/app/api/routes_admin_students.py",
+      "lines": 477
+    },
+    {
+      "file": "backend/app/api/routes_admin_support.py",
+      "lines": 437
+    },
+    {
+      "file": "backend/app/api/routes_admin_users.py",
+      "lines": 334
+    },
+    {
+      "file": "backend/app/api/routes_auth.py",
+      "lines": 150
+    },
+    {
+      "file": "backend/app/api/routes_chat.py",
+      "lines": 243
+    },
+    {
+      "file": "backend/app/api/routes_community_auth.py",
+      "lines": 464
+    },
+    {
+      "file": "backend/app/api/routes_community_posts.py",
+      "lines": 47
+    },
+    {
+      "file": "backend/app/api/routes_contact.py",
+      "lines": 24
+    },
+    {
+      "file": "backend/app/api/routes_dashboard.py",
+      "lines": 96
+    },
+    {
+      "file": "backend/app/api/routes_google_auth.py",
+      "lines": 186
+    },
+    {
+      "file": "backend/app/api/routes_health.py",
+      "lines": 37
+    },
+    {
+      "file": "backend/app/api/routes_lab_vm_agent.py",
+      "lines": 89
+    },
+    {
+      "file": "backend/app/api/routes_meetings.py",
+      "lines": 516
+    },
+    {
+      "file": "backend/app/api/routes_profile.py",
+      "lines": 69
+    },
+    {
+      "file": "backend/app/api/routes_sessions.py",
+      "lines": 114
+    },
+    {
+      "file": "backend/app/api/routes_staff.py",
+      "lines": 634
+    },
+    {
+      "file": "backend/app/api/routes_students.py",
+      "lines": 719
+    },
+    {
+      "file": "backend/app/api/routes_video.py",
+      "lines": 21
+    },
+    {
+      "file": "backend/app/config.py",
+      "lines": 82
+    },
+    {
+      "file": "backend/app/core/__init__.py",
+      "lines": 0
+    },
+    {
+      "file": "backend/app/core/community_identity.py",
+      "lines": 31
+    },
+    {
+      "file": "backend/app/core/community_posts.py",
+      "lines": 333
+    },
+    {
+      "file": "backend/app/core/deps.py",
+      "lines": 185
+    },
+    {
+      "file": "backend/app/core/email.py",
+      "lines": 107
+    },
+    {
+      "file": "backend/app/core/google_auth.py",
+      "lines": 282
+    },
+    {
+      "file": "backend/app/core/lab_access.py",
+      "lines": 78
+    },
+    {
+      "file": "backend/app/core/lab_slots.py",
+      "lines": 16
+    },
+    {
+      "file": "backend/app/core/lab_vm_secrets.py",
+      "lines": 61
+    },
+    {
+      "file": "backend/app/core/lab_vm_watchdog.py",
+      "lines": 109
+    },
+    {
+      "file": "backend/app/core/meetings.py",
+      "lines": 48
+    },
+    {
+      "file": "backend/app/core/ms_graph_email.py",
+      "lines": 188
+    },
+    {
+      "file": "backend/app/core/notify.py",
+      "lines": 84
+    },
+    {
+      "file": "backend/app/core/otp.py",
+      "lines": 74
+    },
+    {
+      "file": "backend/app/core/rate_limit.py",
+      "lines": 47
+    },
+    {
+      "file": "backend/app/core/security.py",
+      "lines": 55
+    },
+    {
+      "file": "backend/app/core/student_credentials.py",
+      "lines": 59
+    },
+    {
+      "file": "backend/app/core/uploads.py",
+      "lines": 162
+    },
+    {
+      "file": "backend/app/core/video.py",
+      "lines": 26
+    },
+    {
+      "file": "backend/app/core/ws_manager.py",
+      "lines": 34
+    },
+    {
+      "file": "backend/app/crud/__init__.py",
+      "lines": 0
+    },
+    {
+      "file": "backend/app/crud/audit.py",
+      "lines": 60
+    },
+    {
+      "file": "backend/app/crud/permissions.py",
+      "lines": 161
+    },
+    {
+      "file": "backend/app/crud/profile.py",
+      "lines": 10
+    },
+    {
+      "file": "backend/app/crud/session.py",
+      "lines": 39
+    },
+    {
+      "file": "backend/app/crud/support.py",
+      "lines": 89
+    },
+    {
+      "file": "backend/app/crud/system_settings.py",
+      "lines": 28
+    },
+    {
+      "file": "backend/app/crud/user.py",
+      "lines": 99
+    },
+    {
+      "file": "backend/app/database.py",
+      "lines": 19
+    },
+    {
+      "file": "backend/app/main.py",
+      "lines": 183
+    },
+    {
+      "file": "backend/app/models/__init__.py",
+      "lines": 131
+    },
+    {
+      "file": "backend/app/models/admin_profile.py",
+      "lines": 25
+    },
+    {
+      "file": "backend/app/models/admin_role.py",
+      "lines": 81
+    },
+    {
+      "file": "backend/app/models/audit_log.py",
+      "lines": 118
+    },
+    {
+      "file": "backend/app/models/batch.py",
+      "lines": 98
+    },
+    {
+      "file": "backend/app/models/batch_chat.py",
+      "lines": 41
+    },
+    {
+      "file": "backend/app/models/batch_resources.py",
+      "lines": 42
+    },
+    {
+      "file": "backend/app/models/chat.py",
+      "lines": 45
+    },
+    {
+      "file": "backend/app/models/class_session.py",
+      "lines": 32
+    },
+    {
+      "file": "backend/app/models/community.py",
+      "lines": 108
+    },
+    {
+      "file": "backend/app/models/community_post.py",
+      "lines": 115
+    },
+    {
+      "file": "backend/app/models/contact_enquiry.py",
+      "lines": 23
+    },
+    {
+      "file": "backend/app/models/google_identity.py",
+      "lines": 38
+    },
+    {
+      "file": "backend/app/models/interview_schedule.py",
+      "lines": 46
+    },
+    {
+      "file": "backend/app/models/lab_access_audit.py",
+      "lines": 25
+    },
+    {
+      "file": "backend/app/models/lab_access_override.py",
+      "lines": 36
+    },
+    {
+      "file": "backend/app/models/lab_slot_booking.py",
+      "lines": 26
+    },
+    {
+      "file": "backend/app/models/lab_vm.py",
+      "lines": 162
+    },
+    {
+      "file": "backend/app/models/lead.py",
+      "lines": 42
+    },
+    {
+      "file": "backend/app/models/meeting.py",
+      "lines": 178
+    },
+    {
+      "file": "backend/app/models/program.py",
+      "lines": 105
+    },
+    {
+      "file": "backend/app/models/session.py",
+      "lines": 28
+    },
+    {
+      "file": "backend/app/models/staff.py",
+      "lines": 48
+    },
+    {
+      "file": "backend/app/models/student.py",
+      "lines": 73
+    },
+    {
+      "file": "backend/app/models/support.py",
+      "lines": 127
+    },
+    {
+      "file": "backend/app/models/system_settings.py",
+      "lines": 44
+    },
+    {
+      "file": "backend/app/models/user.py",
+      "lines": 197
+    },
+    {
+      "file": "backend/app/schemas/__init__.py",
+      "lines": 0
+    },
+    {
+      "file": "backend/app/schemas/activity_logs.py",
+      "lines": 27
+    },
+    {
+      "file": "backend/app/schemas/admin_batches.py",
+      "lines": 120
+    },
+    {
+      "file": "backend/app/schemas/admin_programs.py",
+      "lines": 162
+    },
+    {
+      "file": "backend/app/schemas/admin_roles.py",
+      "lines": 41
+    },
+    {
+      "file": "backend/app/schemas/admin_staff.py",
+      "lines": 70
+    },
+    {
+      "file": "backend/app/schemas/admin_students.py",
+      "lines": 145
+    },
+    {
+      "file": "backend/app/schemas/admin_users.py",
+      "lines": 57
+    },
+    {
+      "file": "backend/app/schemas/auth.py",
+      "lines": 96
+    },
+    {
+      "file": "backend/app/schemas/batch_chat.py",
+      "lines": 17
+    },
+    {
+      "file": "backend/app/schemas/batch_members.py",
+      "lines": 9
+    },
+    {
+      "file": "backend/app/schemas/batch_resources.py",
+      "lines": 35
+    },
+    {
+      "file": "backend/app/schemas/chat.py",
+      "lines": 39
+    },
+    {
+      "file": "backend/app/schemas/class_sessions.py",
+      "lines": 44
+    },
+    {
+      "file": "backend/app/schemas/community.py",
+      "lines": 109
+    },
+    {
+      "file": "backend/app/schemas/community_posts.py",
+      "lines": 95
+    },
+    {
+      "file": "backend/app/schemas/contact_enquiry.py",
+      "lines": 42
+    },
+    {
+      "file": "backend/app/schemas/dashboard.py",
+      "lines": 32
+    },
+    {
+      "file": "backend/app/schemas/interview_schedule.py",
+      "lines": 65
+    },
+    {
+      "file": "backend/app/schemas/lab_access.py",
+      "lines": 46
+    },
+    {
+      "file": "backend/app/schemas/lab_slots.py",
+      "lines": 43
+    },
+    {
+      "file": "backend/app/schemas/lab_vm.py",
+      "lines": 127
+    },
+    {
+      "file": "backend/app/schemas/leads.py",
+      "lines": 50
+    },
+    {
+      "file": "backend/app/schemas/meeting.py",
+      "lines": 172
+    },
+    {
+      "file": "backend/app/schemas/profile.py",
+      "lines": 10
+    },
+    {
+      "file": "backend/app/schemas/sessions.py",
+      "lines": 12
+    },
+    {
+      "file": "backend/app/schemas/staff_batches.py",
+      "lines": 16
+    },
+    {
+      "file": "backend/app/schemas/student_batches.py",
+      "lines": 13
+    },
+    {
+      "file": "backend/app/schemas/support.py",
+      "lines": 120
+    },
+    {
+      "file": "backend/app/schemas/system_settings.py",
+      "lines": 54
+    },
+    {
+      "file": "backend/app/schemas/video.py",
+      "lines": 7
+    },
+    {
+      "file": "backend/scratchpad/audit_community_identity.py",
+      "lines": 142
+    },
+    {
+      "file": "backend/seed.py",
+      "lines": 172
+    },
+    {
+      "file": "backend/tests/__init__.py",
+      "lines": 0
+    },
+    {
+      "file": "backend/tests/test_admin_user_integration.py",
+      "lines": 190
+    },
+    {
+      "file": "backend/tests/test_admin_user_transactions.py",
+      "lines": 206
+    },
+    {
+      "file": "backend/tests/test_audit.py",
+      "lines": 40
+    },
+    {
+      "file": "backend/tests/test_google_auth.py",
+      "lines": 239
+    },
+    {
+      "file": "backend/tests/test_otp.py",
+      "lines": 225
+    },
+    {
+      "file": "backend/tests/test_rbac.py",
+      "lines": 110
+    },
+    {
+      "file": "backend/tests/test_student_creation.py",
+      "lines": 441
+    },
+    {
+      "file": "backend/tests/test_student_deletion.py",
+      "lines": 319
+    },
+    {
+      "file": "backend/tests/test_student_deletion_integration.py",
+      "lines": 315
+    },
+    {
+      "file": "deploy.sh",
+      "lines": 175
+    },
+    {
+      "file": "inauguration/css/style.css",
+      "lines": 486
+    },
+    {
+      "file": "inauguration/google-apps-script.gs",
+      "lines": 680
+    },
+    {
+      "file": "inauguration/index.html",
+      "lines": 408
+    },
+    {
+      "file": "inauguration/js/app.js",
+      "lines": 440
+    },
+    {
+      "file": "windows-lab-agent/agent_core.py",
+      "lines": 309
+    },
+    {
+      "file": "windows-lab-agent/install.ps1",
+      "lines": 30
+    },
+    {
+      "file": "windows-lab-agent/service.py",
+      "lines": 91
+    },
+    {
+      "file": "windows-lab-agent/uninstall.ps1",
+      "lines": 20
+    }
+  ]
+}

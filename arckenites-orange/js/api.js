@@ -100,6 +100,10 @@ const ArckAPI = {
     return data;
   },
 
+  async approvedProgramOptions() {
+    return this.request('/admin/students/program-options?include_status=true');
+  },
+
   // Multipart upload — deliberately separate from request() since a file
   // body must never be JSON.stringify'd and must NOT set its own
   // Content-Type (the browser needs to add the multipart boundary itself).

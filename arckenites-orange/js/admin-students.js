@@ -116,7 +116,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
   if (ArckAuth.hasPermission('students.create') || ArckAuth.hasPermission('students.edit')) {
     try {
-      programOptions = await ArckAPI.request('/admin/students/program-options');
+      const catalog = await ArckAPI.approvedProgramOptions();
+      programOptions = catalog.options;
+      const catalogNotice = document.getElementById('studentProgramCatalogNotice');
+      catalogNotice.textContent = catalog.detail || '';
+      catalogNotice.style.display = catalog.detail ? 'flex' : 'none';
       populateProgramSelect(newProgramSelect);
     } catch (_) {
       errorBox.textContent = 'Could not load programs. Refresh the page before creating a student.';
@@ -267,14 +271,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     editIdInput.value = student.id;
     editNameInput.value = student.full_name;
     editLoginInput.value = student.username;
-    editProgramSelect.replaceChildren(new Option('Keep current program', ''));
+    const currentProgramLabel = student.program_name || PROGRAM_LABELS[student.program] || student.program || '';
+    editProgramSelect.replaceChildren(new Option(`Keep current program${currentProgramLabel ? ': ' + currentProgramLabel : ''}`, ''));
     populateProgramSelect(editProgramSelect);
     const existing = programOptions.find((p) => p.id === student.program_id || (!student.program_id && p.slug === student.program));
     if (existing) editProgramSelect.value = existing.id;
-    else if (student.program_id) {
-      editProgramSelect.add(new Option(student.program_name || 'Current program (inactive)', student.program_id));
-      editProgramSelect.value = student.program_id;
-    }
+    // Historical/inactive assignments are shown as the unchanged placeholder,
+    // never added back to the selectable approved options.
     editOriginalProgramId = editProgramSelect.value;
     editActiveSelect.value = String(student.is_active);
     editResetPasswordInput.value = '';

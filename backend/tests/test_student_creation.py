@@ -82,13 +82,15 @@ class StudentCreationTests(unittest.TestCase):
             db.flush()
             db.add(StudentProfile(user_id=old.id, student_code="AK-STU-0001", email="legacy@example.com",
                                   program=ProgramEnum.institutional, phone="9876543210"))
-            program = Program(slug="python_full_stack", name="Python Full Stack", status=ProgramStatusEnum.active)
+            program = Program(slug="python_full_stack", name="Freshers Job Hack Program", status=ProgramStatusEnum.active)
             institutional = Program(slug="institutional", name="Institutional Program", status=ProgramStatusEnum.active)
+            certificational = Program(slug="certificate_catalog_record", name="Certificational Program", status=ProgramStatusEnum.active)
             inactive = Program(slug="inactive_program", name="Inactive", status=ProgramStatusEnum.inactive)
-            db.add_all([program, institutional, inactive])
+            db.add_all([program, institutional, certificational, inactive])
             db.commit()
             self.admin_id, self.trainer_id, self.legacy_id = admin.id, trainer.id, old.id
             self.program_id, self.institutional_id, self.inactive_id = program.id, institutional.id, inactive.id
+            self.certificational_id = certificational.id
         self.original_overrides = app.dependency_overrides.copy()
         app.dependency_overrides[get_db] = self._db
         self.client = TestClient(app)  # No lifespan: do not start production background workers.
@@ -133,7 +135,7 @@ class StudentCreationTests(unittest.TestCase):
         self.assertEqual(data["username"], "arun@example.com")
         self.assertEqual(data["email"], "arun@example.com")
         self.assertEqual(data["full_name"], "Arun Kumar")
-        self.assertEqual(data["program_name"], "Python Full Stack")
+        self.assertEqual(data["program_name"], "Freshers Job Hack Program")
         self.assertEqual(data["program_id"], self.program_id)
         self.assertTrue(data["is_active"])
         self.assertTrue(data["must_change_password"])
@@ -163,7 +165,7 @@ class StudentCreationTests(unittest.TestCase):
                 self.assertEqual(len(user.program_enrollments), 1)
                 self.assertIsNotNone(observer.scalar(select(AuthAuditLog).where(AuthAuditLog.target == to)))
             self.assertIn(PASSWORD, body)
-            self.assertIn("Python Full Stack", html_body)
+            self.assertIn("Freshers Job Hack Program", html_body)
             self.assertIn("/login.html", html_body)
             return SendResult(accepted=True)
         self.send.side_effect = send_after_commit
@@ -214,7 +216,7 @@ class StudentCreationTests(unittest.TestCase):
         self.assertEqual(self._create().status_code, 201)
         response = self.client.post("/api/auth/login", json={"username": " ARUN@EXAMPLE.COM ", "password": PASSWORD})
         self.assertEqual(response.status_code, 200, response.text)
-        self.assertEqual(response.json()["user"]["program_name"], "Python Full Stack")
+        self.assertEqual(response.json()["user"]["program_name"], "Freshers Job Hack Program")
         auth = {"Authorization": f"Bearer {response.json()['access_token']}"}
         me = self.client.get("/api/auth/me", headers=auth)
         self.assertEqual(me.status_code, 200, me.text)
@@ -350,7 +352,7 @@ class StudentCreationTests(unittest.TestCase):
         headers = rows[0]
         row = next(r for r in rows[1:] if r[headers.index("Email")] == "arun@example.com")
         self.assertEqual(row[headers.index("Full Name")], "Arun Kumar")
-        self.assertEqual(row[headers.index("Program")], "Python Full Stack")
+        self.assertEqual(row[headers.index("Program")], "Freshers Job Hack Program")
         self.assertEqual(row[headers.index("Status")], "Active")
         self.assertIn("Username", headers)
         self.assertIn("Created At", headers)
@@ -365,7 +367,7 @@ class StudentCreationTests(unittest.TestCase):
             db.commit()
         response = self.client.get("/api/admin/students/program-options", headers=self.headers)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual({row["id"] for row in response.json()}, {self.program_id, self.institutional_id})
+        self.assertEqual({row["id"] for row in response.json()}, {self.program_id, self.institutional_id, self.certificational_id})
         self.assertEqual(self._create().status_code, 201)
 
     def test_excel_user_text_is_not_a_formula(self):

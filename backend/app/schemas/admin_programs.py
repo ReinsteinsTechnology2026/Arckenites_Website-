@@ -99,6 +99,7 @@ class ProgramStatsOut(BaseModel):
     inactive_programs: int
     total_enrolled_students: int
     programs_with_upcoming_batches: int
+    catalog_notice: str | None = None
 
 
 class EnrollmentStatCounts(BaseModel):
@@ -160,3 +161,5 @@ class ProgramDetailOut(BaseModel):
     batch_stats: BatchStatCounts
     batches: list[ProgramBatchSummary]
     enrollments: list[EnrollmentOut]
+    is_approved: bool = False
+    allows_new_enrollments: bool = False

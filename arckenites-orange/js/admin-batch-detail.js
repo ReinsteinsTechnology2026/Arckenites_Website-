@@ -77,16 +77,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ---------- Programs dropdown (for edit form) ---------- */
   const editProgramSelect = document.getElementById('editBatchProgram');
+  let programOptions = [];
+  let keepHistoricalProgram = false;
   const loadPrograms = async () => {
     try {
-      const programs = await ArckAPI.request('/admin/programs');
-      programs.forEach((p) => {
+      const catalog = await ArckAPI.approvedProgramOptions();
+      programOptions = catalog.options;
+      const notice = document.getElementById('batchProgramCatalogNotice');
+      notice.textContent = catalog.detail || '';
+      notice.style.display = catalog.detail ? 'flex' : 'none';
+      programOptions.forEach((p) => {
         const opt = document.createElement('option');
         opt.value = p.id;
         opt.textContent = p.name;
         editProgramSelect.appendChild(opt);
       });
-    } catch (_) { /* dropdown just stays at "No program linked" */ }
+    } catch (_) {
+      const notice = document.getElementById('batchProgramCatalogNotice');
+      notice.textContent = 'Could not load approved programs. Existing batch assignments will be kept unless you choose an available approved program.';
+      notice.style.display = 'flex';
+    }
   };
 
   let batch = null;
@@ -169,7 +179,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('editBatchType').value = batch.batch_type;
     document.getElementById('editBatchStatus').value = batch.status;
     editTrainerSelect.value = batch.trainer ? String(batch.trainer.id) : '';
-    editProgramSelect.value = batch.program ? String(batch.program.id) : '';
+    keepHistoricalProgram = !!batch.program && !programOptions.some((p) => p.id === batch.program.id);
+    editProgramSelect.options[0].textContent = keepHistoricalProgram
+      ? `Keep current program: ${batch.program.name}` : 'No program linked';
+    editProgramSelect.value = batch.program && !keepHistoricalProgram ? String(batch.program.id) : '';
     document.getElementById('editBatchCapacity').value = batch.max_capacity || '';
     document.getElementById('editBatchStartDate').value = batch.start_date || '';
 
@@ -199,11 +212,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       status: document.getElementById('editBatchStatus').value,
       trainer_id: trainerValue ? Number(trainerValue) : null,
       clear_trainer: !trainerValue,
-      program_id: programValue ? Number(programValue) : null,
-      clear_program: !programValue,
       max_capacity: document.getElementById('editBatchCapacity').value ? Number(document.getElementById('editBatchCapacity').value) : null,
       start_date: document.getElementById('editBatchStartDate').value || null,
     };
+    if (programValue && Number(programValue) !== (batch.program ? batch.program.id : null)) {
+      body.program_id = Number(programValue);
+    } else if (!programValue && !keepHistoricalProgram) {
+      body.clear_program = true;
+    }
 
     try {
       batch = await ArckAPI.request(`/admin/batches/${batchId}`, { method: 'PATCH', body });

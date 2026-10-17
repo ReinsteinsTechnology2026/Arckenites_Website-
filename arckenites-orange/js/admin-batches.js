@@ -85,18 +85,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   const preselectProgramId = new URLSearchParams(window.location.search).get('program_id');
   const loadPrograms = async () => {
     try {
-      const programs = await ArckAPI.request('/admin/programs');
+      const catalog = await ArckAPI.approvedProgramOptions();
+      const programs = catalog.options;
+      const notice = document.getElementById('batchProgramCatalogNotice');
+      notice.textContent = catalog.detail || '';
+      notice.style.display = catalog.detail ? 'flex' : 'none';
       programs.forEach((p) => {
         const opt = document.createElement('option');
         opt.value = p.id;
         opt.textContent = p.name;
         programSelect.appendChild(opt);
       });
-      if (preselectProgramId) {
+      if (preselectProgramId && programs.some((p) => String(p.id) === preselectProgramId)) {
         programSelect.value = preselectProgramId;
         document.getElementById('toggleAddBatchBtn').click();
       }
-    } catch (_) { /* program dropdown just stays at "No program linked" */ }
+    } catch (_) {
+      const notice = document.getElementById('batchProgramCatalogNotice');
+      notice.textContent = 'Could not load approved programs. Existing batch assignments are preserved; refresh before choosing a program.';
+      notice.style.display = 'flex';
+    }
   };
 
   /* ---------- Student allocation picker ---------- */

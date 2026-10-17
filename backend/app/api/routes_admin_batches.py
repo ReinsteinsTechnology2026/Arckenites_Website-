@@ -3,6 +3,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import require_permission
+from app.core.approved_programs import require_approved_program
 from app.core.notify import notify_batch_update
 from app.core.video import generate_batch_room_name
 from app.crud.audit import write_audit_event
@@ -53,10 +54,7 @@ def _get_batch_or_404(db: Session, batch_id: int) -> Batch:
 
 
 def _validate_program(db: Session, program_id: int) -> Program:
-    program = db.get(Program, program_id)
-    if program is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="program_id must reference an existing program.")
-    return program
+    return require_approved_program(db, program_id)
 
 
 def _class_days_list(value: str | None) -> list[str]:
@@ -229,8 +227,9 @@ def update_batch(
     if payload.clear_program:
         batch.program_id = None
     elif payload.program_id is not None:
-        _validate_program(db, payload.program_id)
-        batch.program_id = payload.program_id
+        if payload.program_id != batch.program_id:
+            _validate_program(db, payload.program_id)
+            batch.program_id = payload.program_id
     if payload.start_date is not None:
         batch.start_date = payload.start_date
     if payload.end_date is not None:
@@ -287,6 +286,8 @@ def allocate_students(
     students = _validate_students(db, payload.student_ids)
 
     existing_ids = {e.student_id for e in batch.enrollments}
+    if batch.program_id is not None and any(s.id not in existing_ids for s in students):
+        require_approved_program(db, batch.program_id)
     if batch.max_capacity is not None:
         new_ids = {s.id for s in students} - existing_ids
         if len(existing_ids) + len(new_ids) > batch.max_capacity:

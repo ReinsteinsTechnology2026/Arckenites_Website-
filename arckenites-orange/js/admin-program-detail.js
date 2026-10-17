@@ -76,6 +76,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('programDetailName').textContent = program.name;
     document.getElementById('programBreadcrumbName').textContent = program.name;
     document.getElementById('createBatchLink').href = `admin-batches.html?program_id=${program.id}`;
+    const historical = !program.is_approved;
+    const notice = document.getElementById('historicalProgramNotice');
+    notice.textContent = historical
+      ? 'Historical program: existing students, enrollments, batches and resources are preserved. This program is unavailable for new selection or enrollment.'
+      : '';
+    notice.style.display = historical ? 'flex' : 'none';
+    document.getElementById('editProgramBtn').style.display = historical ? 'none' : '';
+    document.getElementById('toggleStatusBtn').style.display = historical ? 'none' : '';
+    document.getElementById('createBatchLink').style.display = program.allows_new_enrollments ? '' : 'none';
+    document.getElementById('toggleEnrollBtn').style.display = program.allows_new_enrollments ? '' : 'none';
 
     document.getElementById('infoStatus').textContent = program.status === 'active' ? 'Active' : 'Inactive';
     document.getElementById('infoTotalEnrolled').textContent = program.enrollment_stats.total;
@@ -138,17 +148,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             <td>${escapeHtml(e.student_name)}<br><span style="color:var(--muted); font-size:.78rem;">@${escapeHtml(e.student_username)}</span></td>
             <td>${formatDate(e.enrolled_at)}</td>
             <td>
-              <select class="form-select" data-status-select="${e.id}" style="min-width:130px;">
+              <select class="form-select" data-status-select="${e.id}" style="min-width:130px;" ${program.is_approved ? '' : 'disabled'}>
                 ${ENROLLMENT_STATUSES.map((s) => `<option value="${s}" ${s === e.status ? 'selected' : ''}>${ENROLLMENT_STATUS_LABEL[s]}</option>`).join('')}
               </select>
             </td>
             <td>
-              <select class="form-select" data-batch-select="${e.id}" data-student-id="${e.student_id}" style="min-width:150px;" ${program.batches.length === 0 ? 'disabled' : ''}>
+              <select class="form-select" data-batch-select="${e.id}" data-student-id="${e.student_id}" style="min-width:150px;" ${!program.allows_new_enrollments || program.batches.length === 0 ? 'disabled' : ''}>
                 ${batchOptionsHtml(e.current_batch ? e.current_batch.id : null)}
               </select>
             </td>
             <td>
-              <button type="button" class="table-action-btn is-danger" data-remove-enrollment="${e.id}" title="Remove ${escapeHtml(e.student_name)} from this program">
+              <button type="button" class="table-action-btn is-danger" data-remove-enrollment="${e.id}" title="Remove ${escapeHtml(e.student_name)} from this program" ${program.is_approved ? '' : 'disabled'}>
                 <i class="fa-solid fa-user-minus"></i>
               </button>
             </td>

@@ -169,7 +169,7 @@
           <p>Create, configure, and monitor every training program offered by the institute.</p>
         </div>
         <div class="admin-page-header-actions">
-          <button type="button" class="btn btn-accent" id="toggleAddProgramBtn"><i class="fa-solid fa-plus"></i> Create New Program</button>
+          <button type="button" class="btn btn-accent" id="toggleAddProgramBtn" style="display:none;" disabled><i class="fa-solid fa-plus"></i> Create New Program</button>
         </div>
       </div>
 
@@ -237,7 +237,7 @@
           <div class="admin-form-grid">
             <div>
               <label class="form-label">Program Name</label>
-              <input type="text" class="form-control" id="editProgramName" required>
+              <input type="text" class="form-control" id="editProgramName" readonly required>
             </div>
             <div>
               <label class="form-label">Category</label>
@@ -280,6 +280,7 @@
         </form>
       </div>
 
+      <div class="dashboard-notice" id="programCatalogNotice" role="status" style="display:none;"></div>
       <div id="programCardGrid" class="program-card-grid">
         <div class="admin-panel-empty">Loading&hellip;</div>
       </div>
