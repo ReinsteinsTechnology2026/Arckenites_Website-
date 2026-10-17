@@ -181,9 +181,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         <div class="admin-row-actions">
           ${canEditStudents ? `<button type="button" class="table-action-btn" data-action="edit" data-id="${student.id}" title="Edit ${escapeHtml(student.full_name)}"><i class="fa-solid fa-pen"></i></button>` : ''}
           ${canResend(student) ? `<button type="button" class="table-action-btn" data-action="resend" data-id="${student.id}" title="Resend Credentials" aria-label="Resend Credentials"><i class="fa-solid fa-envelope"></i></button>` : ''}
-          ${canDeleteStudents ? `<button type="button" class="table-action-btn is-danger" data-action="delete" data-id="${student.id}" title="Delete ${escapeHtml(student.full_name)}"><i class="fa-solid fa-trash"></i></button>` : ''}
-          ${isSuperAdmin ? `<button type="button" class="table-action-btn" data-action="revoke-sessions" data-id="${student.id}" title="Revoke all sessions" aria-label="Revoke all sessions"><i class="fa-solid fa-right-from-bracket"></i></button>
-          <button type="button" class="table-action-btn is-danger" data-action="permanent-delete" data-id="${student.id}" title="Permanently delete student" aria-label="Permanently delete student">Permanent delete</button>` : ''}
+          ${canDeleteStudents ? `<button type="button" class="table-action-btn is-danger" data-action="${isSuperAdmin ? 'permanent-delete' : 'delete'}" data-id="${student.id}" title="${isSuperAdmin ? 'Permanently delete' : 'Delete'} ${escapeHtml(student.full_name)}" aria-label="${isSuperAdmin ? 'Permanently delete student' : 'Delete student'}"><i class="fa-solid fa-trash"></i></button>` : ''}
+          ${isSuperAdmin ? `<button type="button" class="table-action-btn" data-action="revoke-sessions" data-id="${student.id}" title="Revoke all sessions" aria-label="Revoke all sessions"><i class="fa-solid fa-right-from-bracket"></i></button>` : ''}
         </div>
       </td>
     </tr>

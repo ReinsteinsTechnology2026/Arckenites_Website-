@@ -7,9 +7,10 @@ Super Admin is identified using `RoleEnum.admin` and the existing
 The same predicate is used by the existing permission helpers and the new
 `require_super_admin` dependency. Regular Admin grants are unchanged.
 
-In Admin → Students, Super Admin has a separate **Permanent delete** action.
-It requires typing the exact login ID and confirming the irreversible action.
-The existing delete/deactivate action retains its original behavior.
+In Admin → Students, Super Admin's main trash-can **Delete** action opens
+permanent deletion. It requires typing the exact login ID and confirming the
+irreversible action. Regular Admin's Delete retains the original safe
+delete/deactivate behavior. The backend endpoints remain separate.
 Create, edit, activation/deactivation and password reset retain existing RBAC.
 Password resets now revoke existing sessions. Super Admin also has a standalone
 **Revoke all sessions** action, without changing the password or active status.
@@ -113,11 +114,14 @@ inventing replacement users.
 
 ## Implementation status
 
-Existing deletion regression tests were inspected. No tests were added or run
-for this change. The migration, browser interactions, live PostgreSQL rollback
-behavior, and external VM/media enforcement have not been verified. No real
-student account was deleted, no migration was applied, and this change has not
-been pushed or deployed.
+The initial implementation was committed as `a526761` and its GitHub deployment
+log records a successful upgrade to `d7f9b3c5e2a1`. The October 17 follow-up
+diagnosis found the main Delete action still used the old safe endpoint while
+the new action was separate. That frontend routing is corrected locally with
+isolated HTTP/ORM and simulated-DOM regressions. See
+[STUDENT_DELETION_DIAGNOSIS.md](STUDENT_DELETION_DIAGNOSIS.md) for evidence,
+test results, deployment commands and remaining verification limits. No real
+student was deleted during diagnosis; the follow-up fix has not been deployed.
 
 When validation is requested, use an isolated database to cover: Super Admin vs
 regular Admin/student/staff authorization; confirmation errors; absent/nonstudent

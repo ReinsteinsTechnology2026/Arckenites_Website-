@@ -16,7 +16,8 @@ class Option {
   constructor(text, value) { this.textContent = text; this.value = String(value); }
 }
 
-function environment(script, {batch = false, catalogFailure = false} = {}) {
+function environment(script, {batch = false, catalogFailure = false, superAdmin = false,
+  promptValue = 'legacy.student', confirmation = true, failDeletion = false} = {}) {
   const elements = new Map();
   class Element {
     constructor(id = '') {
@@ -47,6 +48,7 @@ function environment(script, {batch = false, catalogFailure = false} = {}) {
   };
   let boot;
   const calls = [];
+  const alerts = [];
   const student = {id: 42, full_name: 'Existing Student', username: 'legacy.student', email: 'legacy@example.com',
     program: 'corporate_training', program_id: 507, program_name: legacyProgram.name,
     is_active: true, must_change_password: false, created_at: '2026-10-17T00:00:00Z'};
@@ -62,6 +64,12 @@ function environment(script, {batch = false, catalogFailure = false} = {}) {
       calls.push({url, ...options});
       if (url === '/admin/students' && !options.method) return [student];
       if (url === '/admin/students/42' && options.method === 'PATCH') return {...student, ...options.body};
+      if (url === '/admin/students/42/permanent-delete' || (url === '/admin/students/42' && options.method === 'DELETE')) {
+        if (failDeletion) throw {detail: 'Deletion failed; no changes were made.'};
+        return url.endsWith('permanent-delete')
+          ? {action: 'permanently_deleted', detail: 'Permanently deleted.'}
+          : {action: 'deactivated', student: {...student, is_active: false}, detail: 'Deactivated with history retained.'};
+      }
       if (url === '/admin/staff') return [];
       if (url === '/admin/batches/9' && !options.method) return batchRecord;
       if (url === '/admin/batches/9' && options.method === 'PATCH') return batchRecord;
@@ -73,12 +81,13 @@ function environment(script, {batch = false, catalogFailure = false} = {}) {
   const context = {
     document: {getElementById: get, querySelectorAll() {return [];}, createElement() {return new Element();},
       addEventListener(name, fn) {if (name === 'DOMContentLoaded') boot = fn;}, body: {classList: {toggle() {}}}},
-    window: {location, confirm() {return true;}, alert() {}}, location,
-    ArckAPI: api, ArckAuth: {async requireRole() {return {full_name: 'Admin', role: 'admin'};}, hasPermission() {return true;}},
+    window: {location, confirm() {return confirmation;}, prompt() {return promptValue;}, alert(message) {alerts.push(message);}}, location,
+    ArckAPI: api, ArckAuth: {async requireRole() {return {full_name: 'Admin', role: 'admin',
+      admin_role: {slug: superAdmin ? 'super_admin' : 'admin'}};}, hasPermission() {return true;}},
     Option, URLSearchParams, TextEncoder, Date, console,
   };
   vm.runInNewContext(fs.readFileSync(path.join(root, script), 'utf8'), context);
-  return {get, calls, boot: () => boot()};
+  return {get, calls, alerts, boot: () => boot()};
 }
 
 const submit = {preventDefault() {}};
@@ -121,9 +130,48 @@ async function batchHistoryTest(catalogFailure) {
   }
 }
 
+async function deletionRoutingTest() {
+  for (const superAdmin of [true, false]) {
+    const app = environment('arckenites-orange/js/admin-students.js', {superAdmin});
+    await app.boot();
+    // Derive the action from the real rendered trash button. This catches
+    // the original bug: a separate permanent button while Delete stayed old.
+    const action = app.get('studentsTableBody').innerHTML.match(/class="table-action-btn is-danger" data-action="([^"]+)"/)[1];
+    assert.equal(action, superAdmin ? 'permanent-delete' : 'delete');
+    await app.get('studentsTableBody').listeners.click({target: {closest() {return {dataset: {id: '42', action}};}}});
+    const request = app.calls.at(-1);
+    assert.equal(request.url, superAdmin ? '/admin/students/42/permanent-delete' : '/admin/students/42');
+    assert.equal(request.method, superAdmin ? 'POST' : 'DELETE');
+    if (superAdmin) {
+      assert.equal(request.body.confirm_username, 'legacy.student');
+      assert.equal(request.body.confirmation, 'PERMANENTLY DELETE');
+      assert.ok(!app.get('studentsTableBody').innerHTML.includes('legacy.student'));
+    } else {
+      assert.ok(app.get('studentsTableBody').innerHTML.includes('legacy.student'));
+      assert.match(app.alerts[0], /Deactivated/);
+    }
+  }
+  for (const options of [{promptValue: null}, {promptValue: 'wrong'}, {confirmation: false}]) {
+    const app = environment('arckenites-orange/js/admin-students.js', {superAdmin: true, ...options});
+    await app.boot();
+    const before = app.calls.length;
+    await app.get('studentsTableBody').listeners.click({target: {closest() {return {dataset: {id: '42', action: 'permanent-delete'}};}}});
+    assert.equal(app.calls.length, before, 'Canceled/mismatched confirmation must not submit');
+  }
+  const failed = environment('arckenites-orange/js/admin-students.js', {superAdmin: true, failDeletion: true});
+  await failed.boot();
+  const button = {dataset: {id: '42', action: 'permanent-delete'}};
+  await failed.get('studentsTableBody').listeners.click({target: {closest() {return button;}}});
+  assert.equal(button.disabled, false);
+  assert.ok(failed.get('studentsTableBody').innerHTML.includes('legacy.student'));
+  assert.match(failed.alerts[0], /no changes/);
+  assert.ok(!failed.calls.some(c => c.method === 'DELETE'), 'Never fall back to old deletion');
+}
+
 (async () => {
   await studentHistoryTest();
   await batchHistoryTest(false);
   await batchHistoryTest(true);
-  console.log('PASS: student and batch selectors allow approved IDs only; legacy mappings survive edits and catalog failure.');
+  await deletionRoutingTest();
+  console.log('PASS: approved selectors/history; Super Admin Delete routes to typed permanent deletion; regular Admin, cancellation and failure behavior preserved.');
 })().catch(error => {console.error(error); process.exitCode = 1;});
