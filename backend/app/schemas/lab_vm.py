@@ -97,7 +97,7 @@ class MyLabVmAccessOut(BaseModel):
 
 class LabVmAuditEntryOut(BaseModel):
     id: int
-    student_id: int
+    student_id: int | None
     student_name: str
     vm_id: int | None
     vm_name: str | None

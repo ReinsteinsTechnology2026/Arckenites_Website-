@@ -16,7 +16,7 @@ class UserSearchResult(BaseModel):
 
 class MessageOut(BaseModel):
     id: int
-    sender_id: int
+    sender_id: int | None
     sender_name: str
     sender_photo_url: str | None = None
     is_me: bool
@@ -25,7 +25,9 @@ class MessageOut(BaseModel):
 
 
 class ConversationOut(BaseModel):
-    other_user_id: int
+    conversation_id: int | None = None
+    is_archived: bool = False
+    other_user_id: int | None
     other_name: str
     other_role: str
     other_photo_url: str | None = None

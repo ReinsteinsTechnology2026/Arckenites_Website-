@@ -38,8 +38,7 @@ def _get_or_create_conversation(db: Session, id1: int, id2: int) -> Conversation
     if convo is None:
         convo = Conversation(user_a_id=a, user_b_id=b)
         db.add(convo)
-        db.commit()
-        db.refresh(convo)
+        db.flush()
     return convo
 
 
@@ -55,7 +54,7 @@ def _mark_read(convo: Conversation, user_id: int) -> None:
         convo.user_b_last_read_at = now
 
 
-def _other_user_id(convo: Conversation, user_id: int) -> int:
+def _other_user_id(convo: Conversation, user_id: int) -> int | None:
     return convo.user_b_id if user_id == convo.user_a_id else convo.user_a_id
 
 
@@ -109,10 +108,11 @@ def list_conversations(
 
     for convo in convos:
         other_id = _other_user_id(convo, user.id)
-        other = db.get(User, other_id)
-        if other is None or not _can_chat(user, other):
+        other = db.get(User, other_id) if other_id is not None else None
+        if other is not None and not _can_chat(user, other):
             continue
-        seen_other_ids.add(other_id)
+        if other_id is not None:
+            seen_other_ids.add(other_id)
 
         last_msg = db.scalar(
             select(DirectMessage)
@@ -122,14 +122,16 @@ def list_conversations(
         )
 
         last_read = _last_read_at(convo, user.id)
-        unread_filters = [DirectMessage.conversation_id == convo.id, DirectMessage.sender_id != user.id]
+        unread_filters = [DirectMessage.conversation_id == convo.id,
+                          or_(DirectMessage.sender_id != user.id, DirectMessage.sender_id.is_(None))]
         if last_read is not None:
             unread_filters.append(DirectMessage.created_at > last_read)
         unread_count = db.scalar(select(func.count()).select_from(DirectMessage).where(*unread_filters)) or 0
 
         out.append(ConversationOut(
-            other_user_id=other.id, other_name=other.full_name,
-            other_role=other.role.value, other_photo_url=other.photo_url,
+            conversation_id=convo.id, is_archived=other is None,
+            other_user_id=other.id if other else None, other_name=other.full_name if other else "Deleted student",
+            other_role=other.role.value if other else "student", other_photo_url=other.photo_url if other else None,
             last_message=last_msg.body if last_msg else None,
             last_message_at=last_msg.created_at if last_msg else None,
             unread_count=unread_count,
@@ -169,7 +171,7 @@ def get_messages(
 
     rows = db.execute(
         select(DirectMessage, User)
-        .join(User, DirectMessage.sender_id == User.id)
+        .outerjoin(User, DirectMessage.sender_id == User.id)
         .where(DirectMessage.conversation_id == convo.id)
         .order_by(DirectMessage.created_at)
     ).all()
@@ -178,14 +180,45 @@ def get_messages(
     db.add(convo)
     db.commit()
 
-    return [_message_out(msg, sender.full_name, sender.photo_url, user.id) for msg, sender in rows]
+    return [_message_out(msg, sender.full_name if sender else "Deleted student",
+                         sender.photo_url if sender else None, user.id) for msg, sender in rows]
+
+
+@router.get("/conversations/{conversation_id}/messages", response_model=list[MessageOut])
+def conversation_history(
+    conversation_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user),
+):
+    # A conversation ID grants no authority: only a remaining participant
+    # may read it. This includes archived conversations after peer deletion.
+    convo = db.scalar(select(Conversation).where(
+        Conversation.id == conversation_id,
+        or_(Conversation.user_a_id == user.id, Conversation.user_b_id == user.id),
+    ))
+    if convo is None:
+        raise HTTPException(404, "Conversation not found")
+    other_id = _other_user_id(convo, user.id)
+    other = db.get(User, other_id) if other_id is not None else None
+    if other is not None and not _can_chat(user, other):
+        raise HTTPException(404, "Conversation not found")
+    rows = db.execute(select(DirectMessage, User).outerjoin(User, DirectMessage.sender_id == User.id)
+                      .where(DirectMessage.conversation_id == convo.id).order_by(DirectMessage.created_at)).all()
+    _mark_read(convo, user.id)
+    db.commit()
+    return [_message_out(msg, sender.full_name if sender else "Deleted student",
+                         sender.photo_url if sender else None, user.id) for msg, sender in rows]
 
 
 async def _handle_send(db: Session, sender: User, recipient_id: int, body_text: str) -> dict | None:
     if recipient_id == sender.id:
         return None
-    recipient = db.get(User, recipient_id)
-    if recipient is None or not _can_chat(sender, recipient):
+    # Serialize messages against account deletion, using one lock order for
+    # reciprocal sends. Never use a stale connection-time User as authority.
+    users = {u.id: u for u in db.scalars(select(User).where(
+        User.id.in_([sender.id, recipient_id]), User.is_active.is_(True)
+    ).order_by(User.id).with_for_update().execution_options(populate_existing=True)).all()}
+    sender = users.get(sender.id)
+    recipient = users.get(recipient_id)
+    if sender is None or recipient is None or not _can_chat(sender, recipient):
         return None
 
     convo = _get_or_create_conversation(db, sender.id, recipient_id)
@@ -216,28 +249,32 @@ async def _handle_send(db: Session, sender: User, recipient_id: int, body_text: 
 
 @router.websocket("/ws")
 async def chat_ws(websocket: WebSocket):
-    db = SessionLocal()
-    try:
+    with SessionLocal() as db:
         user = await get_ws_user(websocket, db, required_role=None)
         if user is None:
             return
-
-        await websocket.accept()
-        manager.connect(user.id, websocket)
-
-        try:
-            while True:
-                data = await websocket.receive_json()
+        user_id = user.id
+    await websocket.accept()
+    manager.connect(user_id, websocket)
+    try:
+        while True:
+            try:
+                data = await asyncio.wait_for(websocket.receive_json(), timeout=15)
+            except asyncio.TimeoutError:
+                data = None
+            with SessionLocal() as db:
+                user = await get_ws_user(websocket, db, required_role=None)
+                if user is None:
+                    return
+                if data is None:
+                    continue
                 try:
                     recipient_id = int(data.get("recipient_id"))
                     body = SendMessageBody(body=str(data.get("body", "")).strip())
                 except (TypeError, ValueError, ValidationError):
                     continue
-
                 await _handle_send(db, user, recipient_id, body.body)
-        except WebSocketDisconnect:
-            pass
-        finally:
-            manager.disconnect(user.id, websocket)
+    except WebSocketDisconnect:
+        pass
     finally:
-        db.close()
+        manager.disconnect(user_id, websocket)

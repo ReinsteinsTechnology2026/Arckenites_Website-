@@ -46,6 +46,7 @@ from app.api.routes_video import router as video_router
 from app.config import settings
 from app.core.community_posts import run_community_post_email_worker
 from app.core.lab_vm_watchdog import run_lab_vm_watchdog
+from app.core.upload_cleanup import run_file_cleanup_worker
 from app.core.rate_limit import limiter
 from app.crud.audit import write_audit_event
 from app.database import SessionLocal
@@ -148,6 +149,7 @@ async def _start_lab_vm_watchdog() -> None:
     asyncio background task is the right tool here rather than a
     scheduler library."""
     asyncio.create_task(run_lab_vm_watchdog())
+    asyncio.create_task(run_file_cleanup_worker())
 
 
 @app.on_event("startup")

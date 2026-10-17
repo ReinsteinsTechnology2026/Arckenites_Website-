@@ -55,8 +55,10 @@ from app.models.support import (
 )
 from app.models.system_settings import SystemSettings
 from app.models.user import RoleEnum, User
+from app.models.file_cleanup import FileCleanupJob
 
 __all__ = [
+    "FileCleanupJob",
     "User",
     "RoleEnum",
     "StudentProfile",

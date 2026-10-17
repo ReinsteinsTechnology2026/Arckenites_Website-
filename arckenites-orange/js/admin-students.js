@@ -162,6 +162,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     : '<span class="admin-activity-badge is-pending">Not selected yet</span>';
 
   const canDeleteStudents = ArckAuth.hasPermission('students.delete');
+  const isSuperAdmin = user.role === 'admin' && user.admin_role?.slug === 'super_admin';
   const canCreateStudents = ArckAuth.hasPermission('students.create');
   const canEditStudents = ArckAuth.hasPermission('students.edit');
   const canResend = (student) => canCreateStudents && student.is_active && student.must_change_password
@@ -181,6 +182,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           ${canEditStudents ? `<button type="button" class="table-action-btn" data-action="edit" data-id="${student.id}" title="Edit ${escapeHtml(student.full_name)}"><i class="fa-solid fa-pen"></i></button>` : ''}
           ${canResend(student) ? `<button type="button" class="table-action-btn" data-action="resend" data-id="${student.id}" title="Resend Credentials" aria-label="Resend Credentials"><i class="fa-solid fa-envelope"></i></button>` : ''}
           ${canDeleteStudents ? `<button type="button" class="table-action-btn is-danger" data-action="delete" data-id="${student.id}" title="Delete ${escapeHtml(student.full_name)}"><i class="fa-solid fa-trash"></i></button>` : ''}
+          ${isSuperAdmin ? `<button type="button" class="table-action-btn" data-action="revoke-sessions" data-id="${student.id}" title="Revoke all sessions" aria-label="Revoke all sessions"><i class="fa-solid fa-right-from-bracket"></i></button>
+          <button type="button" class="table-action-btn is-danger" data-action="permanent-delete" data-id="${student.id}" title="Permanently delete student" aria-label="Permanently delete student">Permanent delete</button>` : ''}
         </div>
       </td>
     </tr>
@@ -359,6 +362,49 @@ document.addEventListener('DOMContentLoaded', async () => {
     const id = Number(btn.dataset.id);
     const student = students.find((s) => s.id === id);
     if (!student) return;
+
+    if (btn.dataset.action === 'permanent-delete') {
+      const login = window.prompt(
+        `Permanently delete ${student.full_name}? This cannot be undone. The account, enrollments, bookings, access grants, credentials and exclusive uploads will be removed. Shared support/chat/meeting history remains with identity detached. Type the exact login ID to continue: ${student.username}`
+      );
+      if (login === null) return;
+      if (login !== student.username) {
+        window.alert('Login ID did not match. Nothing was deleted.');
+        return;
+      }
+      if (!window.confirm(`Permanently delete ${student.username} and their student-owned records now?`)) return;
+      btn.disabled = true;
+      try {
+        const result = await ArckAPI.request(`/admin/students/${id}/permanent-delete`, {
+          method: 'POST', body: { confirm_username: login, confirmation: 'PERMANENTLY DELETE' },
+        });
+        students = students.filter((s) => s.id !== id);
+        if (editIdInput.value === String(id)) closeEditPanel();
+        if (resendStudentId === id) closeResendPanel();
+        renderStudents(students);
+        notice.textContent = result.detail;
+        notice.style.display = 'flex';
+      } catch (err) {
+        window.alert(typeof err.detail === 'string' ? err.detail : 'Permanent deletion failed. Refresh the list before retrying.');
+        btn.disabled = false;
+      }
+      return;
+    }
+
+    if (btn.dataset.action === 'revoke-sessions') {
+      if (!window.confirm(`Sign ${student.username} out of all portal sessions?`)) return;
+      btn.disabled = true;
+      try {
+        const result = await ArckAPI.request(`/admin/students/${id}/revoke-sessions`, { method: 'POST' });
+        notice.textContent = result.detail;
+        notice.style.display = 'flex';
+      } catch (err) {
+        window.alert(typeof err.detail === 'string' ? err.detail : 'Could not revoke sessions.');
+      } finally {
+        btn.disabled = false;
+      }
+      return;
+    }
 
     if (btn.dataset.action === 'resend') {
       closeAddPanel();

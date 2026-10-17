@@ -53,7 +53,7 @@ class SupportTicket(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     ticket_number: Mapped[str] = mapped_column(String(20), unique=True, nullable=False, index=True)
-    requester_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    requester_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
 
     subject: Mapped[str] = mapped_column(String(200), nullable=False)
     category: Mapped[TicketCategoryEnum] = mapped_column(Enum(TicketCategoryEnum, name="ticket_category_enum"), nullable=False)
@@ -74,7 +74,7 @@ class SupportTicket(Base):
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    requester: Mapped["User"] = relationship(foreign_keys=[requester_id])
+    requester: Mapped["User | None"] = relationship(foreign_keys=[requester_id])
     assignee: Mapped["User | None"] = relationship(foreign_keys=[assigned_to])
     messages: Mapped[list["SupportMessage"]] = relationship(
         back_populates="ticket", cascade="all, delete-orphan", order_by="SupportMessage.created_at"
@@ -90,7 +90,7 @@ class SupportMessage(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     ticket_id: Mapped[int] = mapped_column(ForeignKey("support_tickets.id"), nullable=False, index=True)
-    sender_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    sender_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     sender_type: Mapped[SenderTypeEnum] = mapped_column(Enum(SenderTypeEnum, name="sender_type_enum"), nullable=False)
 
     message: Mapped[str] = mapped_column(Text, nullable=False)
@@ -99,7 +99,7 @@ class SupportMessage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     ticket: Mapped["SupportTicket"] = relationship(back_populates="messages")
-    sender: Mapped["User"] = relationship(foreign_keys=[sender_id])
+    sender: Mapped["User | None"] = relationship(foreign_keys=[sender_id])
     attachments: Mapped[list["SupportAttachment"]] = relationship(back_populates="message", cascade="all, delete-orphan")
 
 

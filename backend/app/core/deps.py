@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.core.security import decode_access_token
-from app.crud.permissions import user_has_permission
+from app.crud.permissions import is_super_admin, user_has_permission
 from app.database import get_db
 from app.models.lab_vm import LabVm
 from app.models.session import AuthSession
@@ -99,6 +99,12 @@ def require_permission(permission_key: str):
         return user
 
     return _dependency
+
+
+def require_super_admin(user: User = Depends(get_current_user)) -> User:
+    if not is_super_admin(user):
+        raise HTTPException(status_code=403, detail="Super Admin access required.")
+    return user
 
 
 def hash_vm_agent_token(token: str) -> str:

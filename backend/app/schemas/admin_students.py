@@ -152,3 +152,16 @@ class UpdateStudentRequest(BaseModel):
     @classmethod
     def validate_program(cls, value: str | None) -> str | None:
         return value if value is None else _validate_program_value(value)
+
+
+class PermanentDeleteStudentRequest(BaseModel):
+    confirm_username: str = Field(min_length=1, max_length=255)
+    confirmation: Literal["PERMANENTLY DELETE"]
+
+
+class PermanentDeleteStudentResponse(BaseModel):
+    action: Literal["permanently_deleted"] = "permanently_deleted"
+    detail: str
+    deleted_student_id: int
+    upload_cleanup: Literal["queued"] = "queued"
+    affected_records: dict[str, int]

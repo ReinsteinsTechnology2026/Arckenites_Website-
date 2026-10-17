@@ -10,7 +10,7 @@ class SendBatchMessageRequest(BaseModel):
 class BatchMessageOut(BaseModel):
     id: int
     batch_id: int
-    sender_id: int
+    sender_id: int | None
     sender_name: str
     sender_photo_url: str | None = None
     message: str

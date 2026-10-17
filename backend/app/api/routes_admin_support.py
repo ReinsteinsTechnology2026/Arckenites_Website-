@@ -142,7 +142,7 @@ def export_tickets(
     ws.append(["Ticket ID", "Requester", "Subject", "Category", "Priority", "Status", "Assigned To", "Created", "Updated"])
     for t in tickets:
         ws.append([
-            t.ticket_number, t.requester.full_name, t.subject, t.category.value, t.priority.value, t.status.value,
+            t.ticket_number, (t.requester.full_name if t.requester else "Deleted student"), t.subject, t.category.value, t.priority.value, t.status.value,
             t.assignee.full_name if t.assignee else "", t.created_at.strftime("%Y-%m-%d %H:%M"),
             t.updated_at.strftime("%Y-%m-%d %H:%M"),
         ])

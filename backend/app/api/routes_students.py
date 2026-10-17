@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile, status
 from fastapi.responses import FileResponse
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import require_role
@@ -176,7 +176,8 @@ def _unread_chat_count(db: Session, batch_id: int, user_id: int) -> int:
     read_state = db.scalar(
         select(BatchChatReadState).where(BatchChatReadState.batch_id == batch_id, BatchChatReadState.user_id == user_id)
     )
-    filters = [BatchMessage.batch_id == batch_id, BatchMessage.sender_id != user_id]
+    filters = [BatchMessage.batch_id == batch_id,
+               or_(BatchMessage.sender_id != user_id, BatchMessage.sender_id.is_(None))]
     if read_state is not None:
         filters.append(BatchMessage.created_at > read_state.last_read_at)
     return db.scalar(select(func.count()).select_from(BatchMessage).where(*filters)) or 0
@@ -250,8 +251,8 @@ def get_my_batch_members(batch_id: int, db: Session = Depends(get_db), user: Use
 
 def _batch_message_out(m: BatchMessage) -> BatchMessageOut:
     return BatchMessageOut(
-        id=m.id, batch_id=m.batch_id, sender_id=m.sender_id, sender_name=m.sender.full_name,
-        sender_photo_url=m.sender.photo_url, message=m.message, created_at=m.created_at,
+        id=m.id, batch_id=m.batch_id, sender_id=m.sender_id, sender_name=(m.sender.full_name if m.sender else "Deleted student"),
+        sender_photo_url=(m.sender.photo_url if m.sender else None), message=m.message, created_at=m.created_at,
     )
 
 

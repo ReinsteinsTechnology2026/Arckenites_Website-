@@ -326,7 +326,7 @@ def lab_vm_access_audit(db: Session = Depends(get_db), _actor: User = Depends(re
     return [
         LabVmAuditEntryOut(
             id=r.id, student_id=r.student_id,
-            student_name=students[r.student_id].full_name if r.student_id in students else "—",
+            student_name=students[r.student_id].full_name if r.student_id in students else "Deleted student",
             vm_id=r.vm_id, vm_name=vms[r.vm_id].name if r.vm_id in vms else None,
             action=r.action,
             performed_by_name=performers[r.performed_by].full_name if r.performed_by in performers else None,

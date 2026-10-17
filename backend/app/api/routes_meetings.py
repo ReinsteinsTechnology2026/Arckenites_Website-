@@ -231,7 +231,7 @@ def get_meeting_participants(meeting_id: int, db: Session = Depends(get_db), use
     user_ids = {p.user_id for p in rows if p.user_id is not None}
     names = {u.id: u.full_name for u in db.scalars(select(User).where(User.id.in_(user_ids))).all()} if user_ids else {}
     return [
-        ParticipantOut(id=p.id, user_id=p.user_id, full_name=names.get(p.user_id, "Unknown"), role=p.role.value, status=p.status.value, joined_at=p.joined_at, left_at=p.left_at)
+        ParticipantOut(id=p.id, user_id=p.user_id, full_name=names.get(p.user_id, "Deleted student"), role=p.role.value, status=p.status.value, joined_at=p.joined_at, left_at=p.left_at)
         for p in rows
     ]
 
@@ -252,7 +252,7 @@ def get_waiting_participants(meeting_id: int, db: Session = Depends(get_db), use
     user_ids = {p.user_id for p in rows if p.user_id is not None}
     names = {u.id: u.full_name for u in db.scalars(select(User).where(User.id.in_(user_ids))).all()} if user_ids else {}
     return [
-        ParticipantOut(id=p.id, user_id=p.user_id, full_name=names.get(p.user_id, "Unknown"), role=p.role.value, status=p.status.value, joined_at=p.joined_at, left_at=p.left_at)
+        ParticipantOut(id=p.id, user_id=p.user_id, full_name=names.get(p.user_id, "Deleted student"), role=p.role.value, status=p.status.value, joined_at=p.joined_at, left_at=p.left_at)
         for p in rows
     ]
 
@@ -342,7 +342,7 @@ def get_messages(
     user_ids = {m.user_id for m in rows if m.user_id is not None}
     names = {u.id: u.full_name for u in db.scalars(select(User).where(User.id.in_(user_ids))).all()} if user_ids else {}
     return [
-        MessageOut(id=m.id, user_id=m.user_id, sender_name=names.get(m.user_id, "System"), message=m.message, is_system=m.is_system, created_at=m.created_at)
+        MessageOut(id=m.id, user_id=m.user_id, sender_name=names.get(m.user_id, "System" if m.is_system else "Deleted student"), message=m.message, is_system=m.is_system, created_at=m.created_at)
         for m in rows
     ]
 

@@ -16,8 +16,8 @@ class Conversation(Base):
     __table_args__ = (UniqueConstraint("user_a_id", "user_b_id"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_a_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    user_b_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    user_a_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    user_b_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
 
     user_a_last_read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     user_b_last_read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -37,7 +37,7 @@ class DirectMessage(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     conversation_id: Mapped[int] = mapped_column(ForeignKey("conversations.id"), nullable=False, index=True)
-    sender_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    sender_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
 
     body: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

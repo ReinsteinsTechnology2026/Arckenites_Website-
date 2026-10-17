@@ -19,7 +19,7 @@ def attachment_out(a: SupportAttachment) -> AttachmentOut:
 
 def message_out(m: SupportMessage) -> TicketMessageOut:
     return TicketMessageOut(
-        id=m.id, sender_id=m.sender_id, sender_name=m.sender.full_name, sender_type=m.sender_type.value,
+        id=m.id, sender_id=m.sender_id, sender_name=(m.sender.full_name if m.sender else "Deleted student"), sender_type=m.sender_type.value,
         message=m.message, is_internal=m.is_internal, created_at=m.created_at,
         attachments=[attachment_out(a) for a in m.attachments],
     )
@@ -56,7 +56,7 @@ def ticket_list_item_out(ticket: SupportTicket, *, for_admin: bool) -> TicketLis
     unread = ticket_has_unread_for_admin(ticket) if for_admin else ticket_has_unread_for_requester(ticket)
     return TicketListItemOut(
         id=ticket.id, ticket_number=ticket.ticket_number, requester_id=ticket.requester_id,
-        requester_name=ticket.requester.full_name, requester_role=ticket.requester.role.value,
+        requester_name=(ticket.requester.full_name if ticket.requester else "Deleted student"), requester_role=(ticket.requester.role.value if ticket.requester else "student"),
         subject=ticket.subject, category=ticket.category.value, priority=ticket.priority.value,
         status=ticket.status.value, assigned_to=ticket.assigned_to,
         assigned_to_name=ticket.assignee.full_name if ticket.assignee else None,
@@ -68,8 +68,8 @@ def ticket_detail_out(ticket: SupportTicket, *, include_internal: bool) -> Ticke
     messages = ticket.messages if include_internal else [m for m in ticket.messages if not m.is_internal]
     return TicketDetailOut(
         id=ticket.id, ticket_number=ticket.ticket_number, requester_id=ticket.requester_id,
-        requester_name=ticket.requester.full_name, requester_username=ticket.requester.username,
-        requester_role=ticket.requester.role.value, subject=ticket.subject,
+        requester_name=(ticket.requester.full_name if ticket.requester else "Deleted student"), requester_username=(ticket.requester.username if ticket.requester else ""),
+        requester_role=(ticket.requester.role.value if ticket.requester else "student"), subject=ticket.subject,
         category=ticket.category.value, priority=ticket.priority.value, status=ticket.status.value,
         assigned_to=ticket.assigned_to, assigned_to_name=ticket.assignee.full_name if ticket.assignee else None,
         created_at=ticket.created_at, updated_at=ticket.updated_at, resolved_at=ticket.resolved_at,

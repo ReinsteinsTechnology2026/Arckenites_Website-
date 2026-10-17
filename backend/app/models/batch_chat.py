@@ -16,13 +16,13 @@ class BatchMessage(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     batch_id: Mapped[int] = mapped_column(ForeignKey("batches.id"), nullable=False, index=True)
-    sender_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    sender_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     message: Mapped[str] = mapped_column(Text, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     batch: Mapped["Batch"] = relationship(back_populates="chat_messages")
-    sender: Mapped["User"] = relationship(foreign_keys=[sender_id])
+    sender: Mapped["User | None"] = relationship(foreign_keys=[sender_id])
 
 
 class BatchChatReadState(Base):

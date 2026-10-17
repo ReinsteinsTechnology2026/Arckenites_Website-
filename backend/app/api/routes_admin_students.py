@@ -9,7 +9,8 @@ from sqlalchemy import delete, func, or_, select, text, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.deps import require_permission, require_role
+from app.core.deps import require_permission, require_role, require_super_admin
+from app.core.student_deletion import stage_student_deletion
 from app.core.approved_programs import APPROVED_PROGRAM_NAMES, require_approved_program, resolve_approved_catalog
 from app.core.security import hash_password, validate_password_strength, verify_password
 from app.core.student_credentials import send_student_credentials
@@ -46,6 +47,8 @@ from app.schemas.admin_students import (
     StudentProgramOption,
     StudentProgramOptionsOut,
     UpdateStudentRequest,
+    PermanentDeleteStudentRequest,
+    PermanentDeleteStudentResponse,
 )
 
 # Every table (besides auth_sessions/auth_audit_log, which are always safe to
@@ -362,6 +365,7 @@ def update_student(
             revoke_all_sessions(db, user.id)
     if payload.reset_temp_password is not None:
         user.password_hash = hash_password(payload.reset_temp_password)
+        revoke_all_sessions(db, user.id)
         user.must_change_password = True
         user.failed_login_count = 0
         user.locked_until = None
@@ -387,6 +391,67 @@ def update_student(
     db.refresh(user)
 
     return StudentAdminOut.model_validate(user)
+
+
+@router.post("/students/{student_id}/permanent-delete", response_model=PermanentDeleteStudentResponse)
+def permanently_delete_student(
+    student_id: int,
+    payload: PermanentDeleteStudentRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+    actor: User = Depends(require_super_admin),
+):
+    try:
+        user = db.scalar(select(User).where(User.id == student_id).with_for_update())
+        if user is None or user.role != RoleEnum.student:
+            raise HTTPException(404, "Student not found")
+        if payload.confirm_username != user.username:
+            raise HTTPException(400, "Confirmation must exactly match the student's login ID.")
+        username = user.username
+        counts = stage_student_deletion(db, user)
+        ip, ua = _client_meta(request)
+        write_audit_event(
+            db, AuthEventType.student_deleted, ip, ua, user=actor,
+            detail=f"Permanently deleted student id={student_id}, login={username}; "
+                   "shared history retained with identity detached; exclusive uploads queued for cleanup",
+            module="students", target=f"student:{student_id}", status="success", commit=False,
+        )
+        db.commit()
+    except HTTPException:
+        db.rollback()
+        raise
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "A related record changed or prevents permanent deletion. "
+                            "No changes were made. Refresh and retry; if it persists, review shared ownership.")
+    except Exception as exc:
+        db.rollback()
+        logger.error("Permanent student deletion failed student_id=%s error_type=%s", student_id, type(exc).__name__)
+        raise HTTPException(500, "Permanent deletion could not complete. No changes were made.")
+    return PermanentDeleteStudentResponse(
+        detail="Student account permanently deleted. Shared history was preserved with identity detached. "
+               "Exclusive upload cleanup is queued and retries automatically.",
+        deleted_student_id=student_id, affected_records=counts,
+    )
+
+
+@router.post("/students/{student_id}/revoke-sessions")
+def revoke_student_sessions(
+    student_id: int, request: Request, db: Session = Depends(get_db),
+    actor: User = Depends(require_super_admin),
+):
+    user = _get_student_or_404(db, student_id)
+    ip, ua = _client_meta(request)
+    try:
+        revoke_all_sessions(db, user.id)
+        write_audit_event(db, AuthEventType.session_revoked, ip, ua, user=actor,
+                          detail=f"Revoked all sessions for student id={user.id}, login={user.username}",
+                          module="students", target=f"student:{student_id}", status="success", commit=False)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(500, "Unable to revoke sessions. No changes were made.")
+    return {"detail": "All student sessions revoked."}
 
 
 @router.delete("/students/{student_id}", response_model=DeleteStudentResponse)

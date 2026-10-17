@@ -65,7 +65,7 @@ class AttachmentOut(BaseModel):
 
 class TicketMessageOut(BaseModel):
     id: int
-    sender_id: int
+    sender_id: int | None
     sender_name: str
     sender_type: str
     message: str
@@ -77,7 +77,7 @@ class TicketMessageOut(BaseModel):
 class TicketListItemOut(BaseModel):
     id: int
     ticket_number: str
-    requester_id: int
+    requester_id: int | None
     requester_name: str
     requester_role: str
     subject: str
@@ -94,7 +94,7 @@ class TicketListItemOut(BaseModel):
 class TicketDetailOut(BaseModel):
     id: int
     ticket_number: str
-    requester_id: int
+    requester_id: int | None
     requester_name: str
     requester_username: str
     requester_role: str

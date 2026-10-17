@@ -55,7 +55,7 @@ def _get_meeting_or_404(db: Session, meeting_id: int) -> Meeting:
 
 def _participant_out(p: MeetingParticipant, name_by_user: dict[int, str]) -> ParticipantOut:
     return ParticipantOut(
-        id=p.id, user_id=p.user_id, full_name=name_by_user.get(p.user_id, "Unknown"),
+        id=p.id, user_id=p.user_id, full_name=name_by_user.get(p.user_id, "Deleted student"),
         role=p.role.value, status=p.status.value, joined_at=p.joined_at, left_at=p.left_at,
     )
 
@@ -339,7 +339,7 @@ def admin_meeting_messages(meeting_id: int, db: Session = Depends(get_db), _acto
     user_ids = {m.user_id for m in rows if m.user_id is not None}
     names = {u.id: u.full_name for u in db.scalars(select(User).where(User.id.in_(user_ids))).all()} if user_ids else {}
     return [
-        MessageOut(id=m.id, user_id=m.user_id, sender_name=names.get(m.user_id, "System"), message=m.message, is_system=m.is_system, created_at=m.created_at)
+        MessageOut(id=m.id, user_id=m.user_id, sender_name=names.get(m.user_id, "System" if m.is_system else "Deleted student"), message=m.message, is_system=m.is_system, created_at=m.created_at)
         for m in rows
     ]
 

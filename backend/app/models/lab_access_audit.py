@@ -9,12 +9,13 @@ from app.database import Base
 class LabAccessAuditLog(Base):
     """Immutable record of every admin lock/unlock/reset action on a
     student's lab access — separate from the general AuthAuditLog since
-    this needs its own per-student history view in the admin UI."""
+    this needs its own per-student history view in the admin UI. Event content
+    survives permanent student deletion with student_id detached."""
 
     __tablename__ = "lab_access_audit_log"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    student_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    student_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
     admin_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
 
     action: Mapped[str] = mapped_column(String(30), nullable=False)  # UNLOCK / LOCK / RESET_AUTO

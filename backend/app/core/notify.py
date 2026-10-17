@@ -9,7 +9,9 @@ from app.core.email import send_email
 from app.models.user import RoleEnum, User
 
 
-def notifications_enabled(user: User) -> bool:
+def notifications_enabled(user: User | None) -> bool:
+    if user is None:
+        return False
     if user.role == RoleEnum.student:
         return bool(user.student_profile and user.student_profile.email_notifications_enabled)
     if user.role == RoleEnum.staff:
@@ -17,7 +19,7 @@ def notifications_enabled(user: User) -> bool:
     return False  # admins aren't part of this feature
 
 
-def notify_user(user: User, subject: str, body: str) -> None:
+def notify_user(user: User | None, subject: str, body: str) -> None:
     """Best-effort — never raises, so a notification email is never allowed
     to break the request that triggered it."""
     if not notifications_enabled(user):
@@ -45,7 +47,7 @@ def notify_new_chat_message(recipient: User, sender_name: str, preview: str) -> 
     )
 
 
-def notify_support_activity(recipient: User, ticket_subject: str, event: str) -> None:
+def notify_support_activity(recipient: User | None, ticket_subject: str, event: str) -> None:
     notify_user(
         recipient,
         f"Support ticket update — {ticket_subject}",

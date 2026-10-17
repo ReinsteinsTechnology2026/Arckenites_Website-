@@ -137,13 +137,13 @@ class LabVmAccess(Base):
 class LabVmAccessAuditLog(Base):
     """Immutable history of every VM-lab-access action — grants, revokes,
     expirations, connect/disconnect events the agent reports, and agent
-    online/offline transitions. Never edited or deleted; vm_id is nullable
-    so this history survives a VM inventory entry being removed later."""
+    online/offline transitions. Event content is retained; nullable identity
+    links may be detached on permanent account or VM removal."""
 
     __tablename__ = "lab_vm_access_audit_log"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    student_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    student_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
     vm_id: Mapped[int | None] = mapped_column(ForeignKey("lab_vms.id"), nullable=True, index=True)
 
     # GRANTED / REVOKED / EXPIRED / CONNECTED / DISCONNECTED / AGENT_ONLINE /

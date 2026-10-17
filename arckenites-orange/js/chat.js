@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const renderConversationList = () => {
     conversationListEl.innerHTML = conversations.length
       ? conversations.map((c) => `
-          <button type="button" class="chat-conv-item" data-peer-id="${c.other_user_id}" data-peer-name="${escapeHtml(c.other_name)}">
+          <button type="button" class="chat-conv-item" data-peer-id="${c.other_user_id ?? ''}" data-conversation-id="${c.conversation_id ?? ''}" data-archived="${c.is_archived === true}" data-peer-name="${escapeHtml(c.other_name)}">
             ${ArckAPI.avatarHtml(c.other_name, c.other_photo_url, 40)}
             <div class="chat-conv-item-main">
               <strong>${escapeHtml(c.other_name)}${c.other_role === 'admin' ? ' <span class="chat-pin-badge">Admin</span>' : ''}</strong>
@@ -102,9 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
     messagesEl.scrollTop = messagesEl.scrollHeight;
   };
 
-  const openThread = async (peerId, peerName) => {
+  const openThread = async (peerId, peerName, conversationId = null, archived = false) => {
     activePeerId = peerId;
-    titleEl.textContent = peerName;
+    titleEl.textContent = archived ? `${peerName} (read only)` : peerName;
+    form.style.display = archived ? 'none' : '';
     backBtn.style.display = '';
     listView.style.display = 'none';
     threadView.style.display = 'flex';
@@ -113,10 +114,12 @@ document.addEventListener('DOMContentLoaded', () => {
     searchResultsEl.style.display = 'none';
 
     try {
-      const history = await ArckAPI.request(`/chat/messages/${peerId}`);
+      const history = await ArckAPI.request(archived
+        ? `/chat/conversations/${conversationId}/messages` : `/chat/messages/${peerId}`);
       messagesEl.innerHTML = '';
       if (!history.length) {
-        messagesEl.innerHTML = '<div class="admin-panel-empty">Send a message to start the conversation.</div>';
+        messagesEl.innerHTML = archived ? '<div class="admin-panel-empty">No archived messages.</div>'
+          : '<div class="admin-panel-empty">Send a message to start the conversation.</div>';
       } else {
         history.forEach(appendMessage);
       }
@@ -124,10 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
       messagesEl.innerHTML = '<div class="admin-panel-empty">Couldn\'t load this conversation.</div>';
     }
 
-    const c = conversations.find((x) => x.other_user_id === peerId);
+    const c = conversations.find((x) => archived ? x.conversation_id === conversationId : x.other_user_id === peerId);
     if (c) c.unread_count = 0;
     updateBadge();
-    input.focus();
+    if (!archived) input.focus();
   };
 
   const backToList = () => {
@@ -142,7 +145,8 @@ document.addEventListener('DOMContentLoaded', () => {
   conversationListEl.addEventListener('click', (e) => {
     const item = e.target.closest('.chat-conv-item');
     if (!item) return;
-    openThread(Number(item.dataset.peerId), item.dataset.peerName);
+    openThread(item.dataset.peerId ? Number(item.dataset.peerId) : null, item.dataset.peerName,
+      item.dataset.conversationId ? Number(item.dataset.conversationId) : null, item.dataset.archived === 'true');
   });
 
   backBtn.addEventListener('click', backToList);

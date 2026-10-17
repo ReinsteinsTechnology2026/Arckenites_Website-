@@ -4,6 +4,11 @@ from sqlalchemy.orm import Session
 from app.models.admin_role import AdminRolePermission, SUPER_ADMIN_SLUG
 from app.models.user import RoleEnum, User
 
+
+def is_super_admin(user: User) -> bool:
+    return (user.role == RoleEnum.admin and user.admin_role is not None
+            and user.admin_role.slug == SUPER_ADMIN_SLUG)
+
 # Static catalog — the single source of truth for every permission key that
 # exists in the system. Seeded into the `permissions` table by seed.py.
 # Modules are limited to areas that actually have a real backend route today
@@ -139,7 +144,7 @@ def get_effective_permissions(db: Session, user: User) -> list[str]:
     non-admin roles and for admins with no admin_role assigned yet."""
     if user.role != RoleEnum.admin or user.admin_role is None:
         return []
-    if user.admin_role.slug == SUPER_ADMIN_SLUG:
+    if is_super_admin(user):
         return sorted(PERMISSION_KEYS)
     rows = db.scalars(
         select(AdminRolePermission.permission_key).where(AdminRolePermission.admin_role_id == user.admin_role_id)
@@ -150,7 +155,7 @@ def get_effective_permissions(db: Session, user: User) -> list[str]:
 def user_has_permission(db: Session, user: User, permission_key: str) -> bool:
     if user.role != RoleEnum.admin or user.admin_role is None:
         return False
-    if user.admin_role.slug == SUPER_ADMIN_SLUG:
+    if is_super_admin(user):
         return True
     exists = db.scalar(
         select(AdminRolePermission.id).where(
