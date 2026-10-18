@@ -22,6 +22,10 @@ MAX_CHALLENGE_ATTEMPTS = 5
 RECOVERY_COUNT = 8
 
 
+class MfaUnavailable(RuntimeError):
+    """MFA cannot run because of server configuration (key missing/invalid/wrong)."""
+
+
 def _key() -> bytes:
     try:
         value = settings.mfa_encryption_key.strip().encode("ascii")
@@ -30,7 +34,7 @@ def _key() -> bytes:
             raise ValueError("wrong length")
         Fernet(value)
     except (ValueError, UnicodeError, base64.binascii.Error):
-        raise RuntimeError("MFA encryption key is unavailable or invalid")
+        raise MfaUnavailable("MFA encryption key is unavailable or invalid")
     return value
 
 
@@ -42,7 +46,7 @@ def decrypt_secret(ciphertext: str) -> str:
     try:
         return Fernet(_key()).decrypt(ciphertext.encode("ascii")).decode("ascii")
     except InvalidToken as exc:
-        raise RuntimeError("MFA secret cannot be decrypted") from exc
+        raise MfaUnavailable("MFA secret cannot be decrypted") from exc
 
 
 def new_secret() -> str:

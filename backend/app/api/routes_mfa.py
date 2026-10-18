@@ -1,12 +1,14 @@
 """Personal TOTP enrollment, challenge completion and Super Admin policy."""
 import base64
 import io
+import logging
 from datetime import datetime, timezone
 
 import qrcode
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import delete, func, select, update
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.api.routes_auth import finish_login
@@ -93,17 +95,26 @@ def _qr_data_uri(secret: str, username: str) -> str:
 
 
 def _begin_setup(db: Session, user: User) -> dict:
-    credential = _credential(db, user.id)
-    if credential is not None and credential.enabled_at is not None:
-        raise HTTPException(409, "MFA is already enabled.")
-    secret = new_secret()
-    if credential is None:
-        credential = MfaCredential(user_id=user.id)
-        db.add(credential)
-    credential.pending_ciphertext = encrypt_secret(secret)
-    credential.pending_expires_at = datetime.now(timezone.utc) + SETUP_TTL
-    credential.pending_attempts = 0
-    db.commit()
+    try:
+        credential = _credential(db, user.id)
+        if credential is not None and credential.enabled_at is not None:
+            raise HTTPException(409, "MFA is already enabled.")
+        secret = new_secret()
+        if credential is None:
+            credential = MfaCredential(user_id=user.id)
+            db.add(credential)
+        credential.pending_ciphertext = encrypt_secret(secret)
+        credential.pending_expires_at = datetime.now(timezone.utc) + SETUP_TTL
+        credential.pending_attempts = 0
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        # Log the failure class only; SQL parameters could include secrets.
+        logging.getLogger("mfa").error("MFA setup database failure type=%s", type(exc).__name__)
+        raise HTTPException(503, "MFA setup is temporarily unavailable (database not ready). No changes were made.")
+    except Exception:
+        db.rollback()
+        raise
     return {"qr_code": _qr_data_uri(secret, user.username),
             "expires_in_seconds": int(SETUP_TTL.total_seconds())}
 

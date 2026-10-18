@@ -268,6 +268,59 @@ class MfaHttpTests(unittest.TestCase):
         self.assertEqual(response.status_code, 503, response.text)
         self.assertNotIn("access_token", response.json())
 
+    def _start(self, password=PASSWORD, role="student"):
+        return self.client.post("/api/auth/mfa/setup/start", json={"password": password},
+                                headers=self._headers(role))
+
+    def _pending_rows(self):
+        with QaSession(self.engine) as db:
+            return db.scalars(select(MfaCredential)).all()
+
+    def test_qr_generation_succeeds_but_mfa_stays_disabled_until_confirmed(self):
+        response = self._start()
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertTrue(response.json()["qr_code"].startswith("data:image/png;base64,"))
+        self.assertEqual(response.headers["cache-control"], "no-store")
+        rows = self._pending_rows()
+        self.assertEqual(len(rows), 1)
+        self.assertIsNone(rows[0].enabled_at)
+        self.assertIsNone(rows[0].secret_ciphertext)
+        # Login is unchanged: no challenge until setup is confirmed.
+        self.assertIn("access_token", self._login("student").json())
+
+    def test_wrong_password_returns_no_qr_and_stores_nothing(self):
+        response = self._start(password="Wrong#Password999")
+        self.assertEqual(response.status_code, 401, response.text)
+        self.assertNotIn("qr_code", response.text)
+        self.assertEqual(self._pending_rows(), [])
+
+    def test_missing_or_invalid_key_gives_clear_503_without_secrets_and_stores_nothing(self):
+        for bad_key in ("", "not-a-valid-fernet-key", Fernet.generate_key().decode()[:-4]):
+            with self.subTest(key_length=len(bad_key)):
+                with patch.object(settings, "mfa_encryption_key", bad_key), \
+                        self.assertLogs("mfa", level="ERROR") as logs:
+                    response = self._start()
+                self.assertEqual(response.status_code, 503, response.text)
+                self.assertIn("not configured correctly", response.json()["detail"])
+                self.assertNotIn("qr_code", response.text)
+                self.assertNotIn(PASSWORD, response.text + "".join(logs.output))
+                if bad_key:
+                    self.assertNotIn(bad_key, response.text + "".join(logs.output))
+                self.assertEqual(self._pending_rows(), [])
+
+    def test_database_failure_gives_safe_503_and_rolls_back(self):
+        from sqlalchemy.exc import OperationalError
+        failure = OperationalError("INSERT secret-bearing statement", {"password": PASSWORD}, Exception("db down"))
+        with patch("app.api.routes_mfa._credential", side_effect=failure), \
+                self.assertLogs("mfa", level="ERROR") as logs:
+            response = self._start()
+        self.assertEqual(response.status_code, 503, response.text)
+        self.assertIn("No changes were made", response.json()["detail"])
+        joined = response.text + "".join(logs.output)
+        self.assertNotIn(PASSWORD, joined)
+        self.assertNotIn("secret-bearing", joined)
+        self.assertEqual(self._pending_rows(), [])
+
     def test_disabled_account_cannot_finish_existing_challenge(self):
         self._setup("student")
         challenge = self._login("student").json()["challenge"]

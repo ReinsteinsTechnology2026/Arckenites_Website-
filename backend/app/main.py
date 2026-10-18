@@ -45,6 +45,7 @@ from app.config import settings
 from app.core.community_posts import run_community_post_email_worker
 from app.core.lab_vm_watchdog import run_lab_vm_watchdog
 from app.core.upload_cleanup import run_file_cleanup_worker
+from app.core.mfa import MfaUnavailable
 from app.core.rate_limit import limiter
 from app.crud.audit import write_audit_event
 from app.database import SessionLocal
@@ -74,6 +75,16 @@ async def student_provisioning_validation_error(request: Request, exc: RequestVa
     }
     field = str(exc.errors()[0]["loc"][-1]) if exc.errors() else ""
     return JSONResponse(status_code=422, content={"detail": messages.get(field, "Please check the student details and try again.")})
+
+
+@app.exception_handler(MfaUnavailable)
+async def mfa_unavailable_handler(request: Request, exc: MfaUnavailable):
+    # Fail closed, but tell the user something actionable. Only the failure
+    # class is logged: never the key, secrets, passwords or provisioning URIs.
+    logging.getLogger("mfa").error("MFA unavailable path=%s reason=%s", request.url.path, exc)
+    return JSONResponse(status_code=503, content={
+        "detail": "Multi-factor authentication is not available because the server is not configured correctly. "
+                  "Contact an administrator; no changes were made."})
 
 
 @app.exception_handler(RateLimitExceeded)
