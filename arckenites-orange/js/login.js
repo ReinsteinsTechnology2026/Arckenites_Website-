@@ -8,16 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorBox = document.getElementById('loginError');
   const submitBtn = form.querySelector('button[type="submit"]');
 
-  /* ---------- Continue with Google ----------
-     The button starts the backend OAuth flow. The browser never sees the Google
-     client secret or any Google token: the backend returns a one-time ticket in
-     the URL, which is exchanged here for the same session the password login
-     creates. The ticket is removed from the address bar straight away. */
-  const googleBtn = document.getElementById('googleLoginBtn');
-  if (googleBtn && typeof API_BASE !== 'undefined') {
-    googleBtn.setAttribute('href', `${API_BASE}/auth/google/login`);
-  }
-
+  // Complete sign-ins that were already redirected back from Google.
   const GOOGLE_ERRORS = {
     cancelled: 'Google sign-in was cancelled.',
     no_account: 'No Arckenites Portal account is linked to this Google email. Google sign-in cannot create accounts. Please contact your administrator.',
