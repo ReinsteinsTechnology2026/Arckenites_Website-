@@ -187,6 +187,31 @@ class ApprovedCatalogApiPostgresTests(unittest.TestCase):
         self.assertEqual(len({row["id"] for row in options.json()}), 3)
         self.assertEqual(len({row["slug"] for row in options.json()}), 3)
 
+        legacy_sql = text("SELECT md5(coalesce(string_agg(p::text, ';' ORDER BY id), '')), count(*) FROM programs p "
+                          "WHERE lower(name) NOT IN ('institutional program','freshers job hack program','certificational program')")
+        with Session(bind=engine) as db:
+            legacy_before = tuple(db.execute(legacy_sql).one())
+            legacy_ids = [r[0] for r in db.execute(text(
+                "SELECT id FROM programs WHERE lower(name) NOT IN "
+                "('institutional program','freshers job hack program','certificational program') ORDER BY id"))]
+        self.assertGreaterEqual(len(legacy_ids), 1)
+
+        listing = client.get("/api/admin/programs", headers=headers)
+        self.assertEqual(listing.status_code, 200, listing.text)
+        self.assertEqual([row["name"] for row in listing.json()], [row["name"] for row in options.json()])
+        self.assertEqual({row["id"] for row in listing.json()}, {row["id"] for row in options.json()})
+        stats = client.get("/api/admin/programs/stats", headers=headers).json()
+        self.assertEqual(stats["total_programs"], 3)
+        self.assertIsNone(stats["catalog_notice"])
+        created = client.post("/api/admin/programs", headers=headers, json={"name": "Brand New Program"})
+        self.assertEqual(created.status_code, 403, created.text)
+        for legacy_id in legacy_ids:
+            self.assertEqual(client.get(f"/api/admin/programs/{legacy_id}", headers=headers).status_code, 404)
+            self.assertEqual(client.patch(f"/api/admin/programs/{legacy_id}", headers=headers,
+                                          json={"status": "inactive"}).status_code, 404)
+        with Session(bind=engine) as db:
+            self.assertEqual(tuple(db.execute(legacy_sql).one()), legacy_before)
+
         with patch("app.api.routes_admin_students.send_student_credentials",
                    return_value=CredentialEmailOut(credential_email_sent=False, detail="QA email disabled")) as send:
             for row in options.json():

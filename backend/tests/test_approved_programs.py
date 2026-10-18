@@ -4,6 +4,7 @@ No production catalog is modified or inferred. Fixture slugs and IDs are
 deliberately unrelated to approved display names.
 """
 import unittest
+from pathlib import Path
 
 from sqlalchemy import func, select
 
@@ -129,15 +130,17 @@ class ApprovedProgramTests(unittest.TestCase):
         self.assertNotIn(self.portal.program_id, {p["id"] for p in data["options"]})
         self.assertEqual(self.portal._create().status_code, 400)
 
-    def test_admin_catalog_lists_history_and_stats_without_widening_student_options(self):
+    def test_admin_catalog_lists_only_the_approved_programs(self):
         response = self.client.get("/api/admin/programs", headers=self.headers)
         self.assertEqual(response.status_code, 200, response.text)
-        self.assertEqual({p["name"] for p in response.json()}, set(APPROVED_PROGRAM_NAMES) |
-                         {"Corporate Training Program", "Official Certification Program", "Inactive"})
+        self.assertEqual([p["name"] for p in response.json()], list(APPROVED_PROGRAM_NAMES))
+        self.assertNotIn(self.legacy_id, {p["id"] for p in response.json()})
+        self.assertNotIn(self.other_id, {p["id"] for p in response.json()})
         stats = self.client.get("/api/admin/programs/stats", headers=self.headers).json()
-        self.assertEqual(stats["total_programs"], 6)
-        self.assertEqual(stats["active_programs"], 5)
-        self.assertEqual(stats["total_enrolled_students"], 1)
+        self.assertEqual(stats["total_programs"], 3)
+        self.assertEqual(stats["active_programs"] + stats["inactive_programs"], 3)
+        # The one fixture enrollment sits in a legacy program, so it is not counted here.
+        self.assertEqual(stats["total_enrolled_students"], 0)
         self.assertEqual([p["name"] for p in self.options().json()], list(APPROVED_PROGRAM_NAMES))
         self.assert_history_unchanged()
 
@@ -163,16 +166,15 @@ class ApprovedProgramTests(unittest.TestCase):
             self.assertEqual(response.status_code, 200, response.text)
         self.assert_history_unchanged()
 
-    def test_historical_program_details_remain_readable_and_read_only(self):
-        response = self.client.get(f"/api/admin/programs/{self.legacy_id}", headers=self.headers)
-        self.assertEqual(response.status_code, 200, response.text)
-        data = response.json()
-        self.assertEqual(data["id"], self.legacy_id)
-        self.assertFalse(data["is_approved"])
-        self.assertFalse(data["allows_new_enrollments"])
-        self.assertEqual(len(data["enrollments"]), 1)
-        self.assertEqual(len(data["batches"]), 1)
+    def test_legacy_program_details_are_not_exposed_but_records_remain(self):
+        for program_id in (self.legacy_id, self.other_id):
+            response = self.client.get(f"/api/admin/programs/{program_id}", headers=self.headers)
+            self.assertEqual(response.status_code, 404, response.text)
         self.assert_history_unchanged()
+        with fixtures.ProvisioningTestSession(self.engine) as db:
+            self.assertEqual(db.get(Program, self.legacy_id).name, "Corporate Training Program")
+            self.assertEqual(db.get(Program, self.other_id).name, "Official Certification Program")
+            self.assertEqual(db.get(Program, self.legacy_id).status, ProgramStatusEnum.active)
 
     def test_approved_detail_is_available_for_new_enrollments(self):
         response = self.client.get(f"/api/admin/programs/{self.portal.program_id}", headers=self.headers)
@@ -180,17 +182,35 @@ class ApprovedProgramTests(unittest.TestCase):
         self.assertTrue(response.json()["is_approved"])
         self.assertTrue(response.json()["allows_new_enrollments"])
 
-    def test_general_program_creation_is_explicit_and_never_becomes_student_option(self):
+    def test_program_creation_is_rejected_for_every_name(self):
         with fixtures.ProvisioningTestSession(self.engine) as db:
             count = db.scalar(select(func.count()).select_from(Program))
-        response = self.client.post("/api/admin/programs", json={"name": "New General Program"}, headers=self.headers)
-        self.assertEqual(response.status_code, 201, response.text)
-        self.assertNotIn(response.json()["id"], {p["id"] for p in self.options().json()})
-        for name in ("Institutional Program", "  new   GENERAL program "):
-            duplicate = self.client.post("/api/admin/programs", json={"name": name}, headers=self.headers)
-            self.assertEqual(duplicate.status_code, 409, duplicate.text)
+        for name in ("New General Program", "Institutional Program", "  new   GENERAL program "):
+            response = self.client.post("/api/admin/programs", json={"name": name}, headers=self.headers)
+            self.assertEqual(response.status_code, 403, response.text)
         with fixtures.ProvisioningTestSession(self.engine) as db:
-            self.assertEqual(db.scalar(select(func.count()).select_from(Program)), count + 1)
+            self.assertEqual(db.scalar(select(func.count()).select_from(Program)), count)
+        self.assertEqual([p["name"] for p in self.options().json()], list(APPROVED_PROGRAM_NAMES))
+
+    def test_legacy_program_cannot_be_modified_through_admin_programs_api(self):
+        for program_id in (self.legacy_id, self.other_id):
+            for body in ({"description": "changed"}, {"status": "inactive"}, {"name": "Freshers Job Hack Program"}):
+                response = self.client.patch(f"/api/admin/programs/{program_id}", json=body, headers=self.headers)
+                self.assertEqual(response.status_code, 404, response.text)
+        with fixtures.ProvisioningTestSession(self.engine) as db:
+            for program_id in (self.legacy_id, self.other_id):
+                row = db.get(Program, program_id)
+                self.assertIsNone(row.description)
+                self.assertEqual(row.status, ProgramStatusEnum.active)
+        self.assert_history_unchanged()
+
+    def test_admin_programs_page_has_no_create_path(self):
+        root = Path(__file__).resolve().parents[2] / "arckenites-orange"
+        html = (root / "admin-programs.html").read_text(encoding="utf-8")
+        script = (root / "js" / "admin-programs.js").read_text(encoding="utf-8")
+        for token in ("toggleAddProgramBtn", "addProgramForm", "Create New Program"):
+            self.assertNotIn(token, html)
+        self.assertNotIn("method: 'POST'", script)
 
     def test_approved_program_cannot_be_renamed_to_other_identity(self):
         for name in ("New Program", "Institutional Program"):
@@ -198,11 +218,6 @@ class ApprovedProgramTests(unittest.TestCase):
             self.assertEqual(response.status_code, 400)
         with fixtures.ProvisioningTestSession(self.engine) as db:
             self.assertEqual(db.get(Program, self.portal.program_id).name, "Freshers Job Hack Program")
-
-    def test_legacy_program_cannot_be_renamed_to_an_approved_name(self):
-        response = self.client.patch(f"/api/admin/programs/{self.legacy_id}", json={"name": "Freshers Job Hack Program"}, headers=self.headers)
-        self.assertEqual(response.status_code, 409)
-        self.assert_history_unchanged()
 
     def test_approved_program_metadata_remains_editable(self):
         response = self.client.patch(f"/api/admin/programs/{self.portal.program_id}", json={"description": "Updated details"}, headers=self.headers)

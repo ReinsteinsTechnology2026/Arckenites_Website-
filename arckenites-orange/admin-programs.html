@@ -166,10 +166,7 @@
       <div class="admin-page-header">
         <div>
           <h1>Programs</h1>
-          <p>Create, configure, and monitor every training program offered by the institute.</p>
-        </div>
-        <div class="admin-page-header-actions">
-          <button type="button" class="btn btn-accent" id="toggleAddProgramBtn" style="display:none;" disabled><i class="fa-solid fa-plus"></i> Create New Program</button>
+          <p>Configure and monitor the three approved training programs.</p>
         </div>
       </div>
 
@@ -179,55 +176,6 @@
         <div class="admin-kpi-card"><i class="fa-solid fa-circle-xmark"></i><h3 id="kpiInactivePrograms">&mdash;</h3><p>Inactive Programs</p></div>
         <div class="admin-kpi-card"><i class="fa-solid fa-user-graduate"></i><h3 id="kpiTotalEnrolled">&mdash;</h3><p>Total Enrolled Students</p></div>
         <div class="admin-kpi-card"><i class="fa-solid fa-clock"></i><h3 id="kpiUpcomingBatchPrograms">&mdash;</h3><p>Programs with Upcoming Batches</p></div>
-      </div>
-
-      <div class="form-card admin-inline-form" id="addProgramPanel" style="display:none;">
-        <h5>Create New Program</h5>
-        <form id="addProgramForm" novalidate>
-          <div class="admin-form-grid">
-            <div>
-              <label class="form-label">Program Name</label>
-              <input type="text" class="form-control" id="programName" required>
-            </div>
-            <div>
-              <label class="form-label">Category</label>
-              <input type="text" class="form-control" id="programCategory" placeholder="e.g. Certification">
-            </div>
-            <div>
-              <label class="form-label">Duration</label>
-              <input type="text" class="form-control" id="programDuration" placeholder="e.g. 12 weeks">
-            </div>
-            <div>
-              <label class="form-label">Mode</label>
-              <select class="form-select" id="programMode">
-                <option value="offline">Offline</option>
-                <option value="online">Online</option>
-                <option value="hybrid">Hybrid</option>
-              </select>
-            </div>
-            <div>
-              <label class="form-label">Maximum Capacity</label>
-              <input type="number" class="form-control" id="programCapacity" min="1" max="100000" placeholder="e.g. 60">
-            </div>
-          </div>
-          <div style="margin-top:16px;">
-            <label class="form-label">Short Description</label>
-            <textarea class="form-control" id="programDescription" rows="2"></textarea>
-          </div>
-          <div style="margin-top:16px;">
-            <label class="form-label">Eligibility</label>
-            <textarea class="form-control" id="programEligibility" rows="2"></textarea>
-          </div>
-          <div style="margin-top:16px;">
-            <label class="form-label">Program Objectives</label>
-            <textarea class="form-control" id="programObjectives" rows="2"></textarea>
-          </div>
-          <div class="login-error" id="addProgramError" style="display:none; margin-top:16px;"></div>
-          <div class="admin-form-actions">
-            <button type="submit" class="btn btn-accent" id="addProgramSubmitBtn">Create Program</button>
-            <button type="button" class="btn btn-primary-outline" id="cancelAddProgramBtn">Cancel</button>
-          </div>
-        </form>
       </div>
 
       <div class="form-card admin-inline-form" id="editProgramPanel" style="display:none;">
@@ -318,7 +266,7 @@
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=7"></script>
 <script src="js/theme.js?v=1"></script>
-<script src="js/admin-programs.js?v=2"></script>
+<script src="js/admin-programs.js?v=3"></script>
 <script src="js/chat.js?v=1"></script>
 
 </body>

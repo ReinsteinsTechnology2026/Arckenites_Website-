@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const renderCards = () => {
     grid.innerHTML = programs.length
       ? programs.map(cardHtml).join('')
-      : '<div class="admin-panel-empty">No programs are in the catalog yet. Review the catalog notice before adding a general program.</div>';
+      : '<div class="admin-panel-empty">No approved programs are available. Review the catalog notice above.</div>';
   };
 
   const loadPrograms = async () => {
@@ -110,54 +110,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
-  /* ---------- Create program ---------- */
-  const addPanel = document.getElementById('addProgramPanel');
-  const addForm = document.getElementById('addProgramForm');
-  const addErrorBox = document.getElementById('addProgramError');
-
-  const toggleAddProgramBtn = document.getElementById('toggleAddProgramBtn');
-  if (ArckAuth.hasPermission('programs.create')) {
-    toggleAddProgramBtn.style.display = '';
-    toggleAddProgramBtn.disabled = false;
-    toggleAddProgramBtn.addEventListener('click', () => {
-      addPanel.style.display = addPanel.style.display === 'none' ? 'block' : 'none';
-      if (addPanel.style.display === 'block') document.getElementById('programName').focus();
-    });
-  }
-
-  document.getElementById('cancelAddProgramBtn').addEventListener('click', () => {
-    addPanel.style.display = 'none';
-    addForm.reset();
-    addErrorBox.style.display = 'none';
-  });
-
-  addForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    addErrorBox.style.display = 'none';
-    const submit = document.getElementById('addProgramSubmitBtn');
-    submit.disabled = true;
-    try {
-      await ArckAPI.request('/admin/programs', { method: 'POST', body: {
-        name: document.getElementById('programName').value.trim(),
-        category: document.getElementById('programCategory').value.trim() || null,
-        duration: document.getElementById('programDuration').value.trim() || null,
-        mode: document.getElementById('programMode').value,
-        max_capacity: document.getElementById('programCapacity').value ? Number(document.getElementById('programCapacity').value) : null,
-        description: document.getElementById('programDescription').value.trim() || null,
-        eligibility: document.getElementById('programEligibility').value.trim() || null,
-        objectives: document.getElementById('programObjectives').value.trim() || null,
-      } });
-      addForm.reset();
-      addPanel.style.display = 'none';
-      await Promise.all([loadPrograms(), loadStats()]);
-    } catch (err) {
-      addErrorBox.textContent = typeof err.detail === 'string' ? err.detail : 'Could not create program.';
-      addErrorBox.style.display = 'block';
-    } finally {
-      submit.disabled = false;
-    }
-  });
-
   /* ---------- Edit program ---------- */
   const editPanel = document.getElementById('editProgramPanel');
   const editForm = document.getElementById('editProgramForm');
@@ -165,12 +117,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const editSubmitBtn = document.getElementById('editProgramSubmitBtn');
 
   const openEditPanel = (program) => {
-    addPanel.style.display = 'none';
     document.getElementById('editProgramId').value = program.id;
     const editName = document.getElementById('editProgramName');
     editName.value = program.name;
-    editName.readOnly = ['institutional program', 'freshers job hack program', 'certificational program']
-      .includes(program.name.trim().replace(/\s+/g, ' ').toLowerCase());
+    editName.readOnly = true; // the catalog is closed; approved names cannot change
     document.getElementById('editProgramCategory').value = program.category || '';
     document.getElementById('editProgramDuration').value = program.duration || '';
     document.getElementById('editProgramMode').value = program.mode;
