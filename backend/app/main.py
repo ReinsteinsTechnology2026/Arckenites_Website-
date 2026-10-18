@@ -16,8 +16,6 @@ from app.api.routes_admin_community import router as admin_community_router
 from app.api.routes_admin_community_posts import router as admin_community_posts_router
 from app.api.routes_admin_leads import router as admin_leads_router
 from app.api.routes_admin_interviews import router as admin_interviews_router
-from app.api.routes_admin_lab_access import router as admin_lab_access_router
-from app.api.routes_admin_lab_vm import router as admin_lab_vm_router
 from app.api.routes_lab_vm_agent import router as lab_vm_agent_router
 from app.api.routes_admin_meetings import router as admin_meetings_router
 from app.api.routes_meetings import router as meetings_router
@@ -118,8 +116,6 @@ app.include_router(admin_staff_router, prefix="/api")
 app.include_router(admin_batches_router, prefix="/api")
 app.include_router(admin_class_schedule_router, prefix="/api")
 app.include_router(admin_interviews_router, prefix="/api")
-app.include_router(admin_lab_access_router, prefix="/api")
-app.include_router(admin_lab_vm_router, prefix="/api")
 app.include_router(lab_vm_agent_router, prefix="/api")
 app.include_router(admin_meetings_router, prefix="/api")
 app.include_router(meetings_router, prefix="/api")

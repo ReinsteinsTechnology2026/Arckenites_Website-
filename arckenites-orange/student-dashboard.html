@@ -57,7 +57,6 @@
     <nav class="admin-sidebar-nav">
       <button type="button" class="admin-sidebar-link is-active" data-panel="overview"><i class="fa-solid fa-gauge-high"></i><span class="label">Dashboard</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="schedule"><i class="fa-solid fa-calendar-days"></i><span class="label">Class Schedule</span></button>
-      <button type="button" class="admin-sidebar-link" data-panel="lab"><i class="fa-solid fa-flask"></i><span class="label">Lab Access</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="videos"><i class="fa-solid fa-video"></i><span class="label">Class Videos</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="materials"><i class="fa-solid fa-book-open"></i><span class="label">Study Materials</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="meetings"><i class="fa-solid fa-video"></i><span class="label">Meetings</span></button>
@@ -235,7 +234,7 @@
             <div class="settings-toggle-row">
               <div class="settings-toggle-label">
                 <strong>Email Notifications</strong>
-                <span>Get an email at your linked address for messages, support replies, class/meeting updates, and lab access changes.</span>
+                <span>Get an email at your linked address for messages, support replies and class/meeting updates.</span>
               </div>
               <label class="settings-switch">
                 <input type="checkbox" id="notifyEmailToggle">
@@ -266,40 +265,6 @@
             <tbody id="scheduleTableBody">
               <tr><td colspan="7" class="admin-panel-empty">Loading&hellip;</td></tr>
             </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section data-panel="lab" style="display:none;">
-        <div class="admin-page-header"><div><h1>Lab Access</h1></div></div>
-
-        <div id="labAccessStatusBanner" class="lab-access-banner">Checking your lab access&hellip;</div>
-
-        <div class="admin-panel" style="margin-bottom:24px;">
-          <div style="padding:24px;">
-            <h2 style="margin:0 0 4px;font-size:1.1rem;"><i class="fa-solid fa-desktop"></i> VM Lab Access</h2>
-            <p style="margin:0 0 16px;color:var(--muted);font-size:.88rem;">Time-boxed remote desktop access to a lab VM, granted by an administrator.</p>
-            <div id="labEnvironmentBody">Loading&hellip;</div>
-          </div>
-        </div>
-
-        <div class="admin-panel">
-          <div style="padding:24px;">
-            <h2 style="margin:0 0 4px;font-size:1.1rem;">Book a Lab Slot</h2>
-            <p style="margin:0 0 16px;color:var(--muted);font-size:.88rem;">Each slot is 2 hours. You can book up to 6 hours (3 slots) per week.</p>
-
-            <div id="labWeekSummary" class="lab-week-summary">Loading&hellip;</div>
-
-            <div class="lab-date-strip" id="labDateStrip">Loading&hellip;</div>
-            <div class="lab-slots-grid" id="labSlotsGrid"></div>
-          </div>
-        </div>
-
-        <div class="admin-panel" style="margin-top:24px;">
-          <div class="admin-panel-header"><h2>My Upcoming Bookings</h2></div>
-          <table class="admin-activity-table">
-            <thead><tr><th>Date</th><th>Time</th><th></th></tr></thead>
-            <tbody id="labMyBookingsBody"><tr><td colspan="3" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
           </table>
         </div>
       </section>
@@ -519,7 +484,7 @@
 <script src="js/auth.js?v=7"></script>
 <script src="js/theme.js?v=1"></script>
 <script src="js/video-conference.js?v=1"></script>
-<script src="js/student-dashboard.js?v=14"></script>
+<script src="js/student-dashboard.js?v=15"></script>
 <script src="js/chat.js?v=1"></script>
 
 </body>

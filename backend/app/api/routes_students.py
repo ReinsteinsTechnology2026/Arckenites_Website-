@@ -6,9 +6,6 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import require_role
-from app.core.lab_access import compute_lab_access
-from app.core.lab_vm_secrets import decrypt_rdp_password
-from app.core.lab_slots import LAB_BOOKING_HORIZON_DAYS, LAB_SLOT_CAPACITY, LAB_SLOT_HOURS, LAB_SLOT_TEMPLATE, LAB_WEEKLY_HOUR_CAP
 from app.core.uploads import MAX_FILES_PER_MESSAGE, MAX_FILE_SIZE_BYTES, get_upload_path, read_upload_limited, save_upload
 from app.core.video import generate_batch_room_name
 from app.core.ws_manager import manager
@@ -28,8 +25,6 @@ from app.models.batch_chat import BatchChatReadState, BatchMessage
 from app.models.batch_resources import ClassVideo, StudyMaterial
 from app.models.class_session import ClassSession
 from app.models.interview_schedule import InterviewSchedule
-from app.models.lab_slot_booking import LabSlotBooking
-from app.models.lab_vm import LabVm, LabVmAccess, LabVmAccessStatus
 from app.models.support import SenderTypeEnum, SupportAttachment, SupportMessage, SupportTicket, TicketPriorityEnum, TicketStatusEnum
 from app.models.user import User
 from app.schemas.admin_students import CompleteProfileRequest
@@ -39,9 +34,6 @@ from app.schemas.batch_members import BatchMembersOut
 from app.schemas.batch_resources import ClassVideoOut, StudyMaterialOut
 from app.schemas.class_sessions import ClassSessionOut
 from app.schemas.interview_schedule import InterviewOut
-from app.schemas.lab_access import LabAccessStateOut
-from app.schemas.lab_slots import LabBookingOut, LabSlotBookRequest, LabSlotOut, LabSlotsPageOut, LabWeekSummaryOut
-from app.schemas.lab_vm import MyLabVmAccessOut
 from app.schemas.student_batches import StudentBatchCardOut
 from app.schemas.support import (
     AttachmentOut,
@@ -301,217 +293,6 @@ async def send_my_batch_chat(
         await manager.send_to_user(recipient_id, {"type": "batch_message", "batch_id": batch_id, "message": out.model_dump(mode="json")})
 
     return out
-
-
-@router.get("/me/lab-access-status", response_model=LabAccessStateOut)
-def my_lab_access_status(db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
-    return compute_lab_access(db, user.id)
-
-
-
-@router.get("/me/lab-vm-access", response_model=MyLabVmAccessOut)
-def my_lab_vm_access(db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
-    """Student's own VM lab status — derived entirely from the authenticated
-    user, never a client-supplied student_id. Connection details and the
-    current rotating password are included only while status is genuinely
-    active (live expires_at check, not just the stored status column)."""
-    now = datetime.now(timezone.utc)
-    access = db.scalar(
-        select(LabVmAccess).where(
-            LabVmAccess.student_id == user.id,
-            LabVmAccess.status == LabVmAccessStatus.active,
-            LabVmAccess.expires_at > now,
-        )
-    )
-    if access is None:
-        return MyLabVmAccessOut(has_access=False)
-
-    vm = db.get(LabVm, access.vm_id)
-    if vm is None:
-        return MyLabVmAccessOut(has_access=False)
-
-    return MyLabVmAccessOut(
-        has_access=True,
-        vm_name=vm.name,
-        status=access.status.value,
-        expires_at=access.expires_at,
-        hostname=vm.hostname,
-        rdp_port=vm.rdp_port,
-        student_rdp_username=vm.student_rdp_username,
-        rdp_password=decrypt_rdp_password(access.rdp_password_encrypted) if access.rdp_password_encrypted else None,
-    )
-
-
-@router.get("/me/lab-vm-access/connect-file")
-def my_lab_vm_connect_file(db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
-    """Streams a credential-free .rdp file — full address + username only.
-    No password field: Windows prompts for it normally on connect, so the
-    actual account password is never embedded in a downloadable file."""
-    now = datetime.now(timezone.utc)
-    access = db.scalar(
-        select(LabVmAccess).where(
-            LabVmAccess.student_id == user.id,
-            LabVmAccess.status == LabVmAccessStatus.active,
-            LabVmAccess.expires_at > now,
-        )
-    )
-    if access is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="You do not have active VM lab access.")
-
-    vm = db.get(LabVm, access.vm_id)
-    if vm is None or not vm.is_active:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This VM is no longer available.")
-
-    rdp_content = (
-        f"full address:s:{vm.hostname}:{vm.rdp_port}\n"
-        f"username:s:{vm.student_rdp_username}\n"
-        "prompt for credentials:i:1\n"
-    )
-    filename = f"{vm.name.replace(' ', '_')}.rdp"
-    return Response(
-        content=rdp_content,
-        media_type="application/x-rdp",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
-    )
-
-
-def _week_bounds(d: date) -> tuple[date, date]:
-    """Monday–Sunday bounds of the week containing d."""
-    start = d - timedelta(days=d.weekday())
-    return start, start + timedelta(days=6)
-
-
-@router.get("/me/lab-slots", response_model=LabSlotsPageOut)
-def my_lab_slots(db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
-    """Every fixed lab slot over the next LAB_BOOKING_HORIZON_DAYS days, with
-    each slot's seat count and whether this student already holds it, plus
-    this student's current Mon–Sun hour usage against the weekly cap."""
-    now = datetime.now(timezone.utc)
-    today = now.date()
-    horizon_end = today + timedelta(days=LAB_BOOKING_HORIZON_DAYS - 1)
-    week_start, week_end = _week_bounds(today)
-
-    range_start = min(week_start, today)
-    bookings_in_range = db.scalars(
-        select(LabSlotBooking).where(LabSlotBooking.slot_date >= range_start, LabSlotBooking.slot_date <= horizon_end)
-    ).all()
-
-    booked_counts = {}
-    my_slot_keys = set()
-    my_bookings_out = []
-    week_hours = 0
-    for b in bookings_in_range:
-        key = (b.slot_date, b.start_time)
-        booked_counts[key] = booked_counts.get(key, 0) + 1
-        if b.student_id == user.id:
-            if b.slot_date >= today:
-                my_slot_keys.add(key)
-                my_bookings_out.append(b)
-            if week_start <= b.slot_date <= week_end:
-                week_hours += LAB_SLOT_HOURS
-    my_bookings_out.sort(key=lambda b: (b.slot_date, b.start_time))
-
-    slots_out = []
-    for offset in range(LAB_BOOKING_HORIZON_DAYS):
-        d = today + timedelta(days=offset)
-        for start_t, end_t in LAB_SLOT_TEMPLATE:
-            key = (d, start_t)
-            slot_start_dt = datetime.combine(d, start_t, tzinfo=timezone.utc)
-            booked_count = booked_counts.get(key, 0)
-            slots_out.append(LabSlotOut(
-                slot_date=d, start_time=start_t, end_time=end_t,
-                capacity=LAB_SLOT_CAPACITY, booked_count=booked_count,
-                is_booked_by_me=key in my_slot_keys,
-                is_full=booked_count >= LAB_SLOT_CAPACITY,
-                is_past=slot_start_dt < now,
-            ))
-
-    return LabSlotsPageOut(
-        slots=slots_out,
-        week_summary=LabWeekSummaryOut(
-            week_start=week_start, week_end=week_end,
-            hours_booked=week_hours, hours_remaining=max(0, LAB_WEEKLY_HOUR_CAP - week_hours),
-            weekly_cap=LAB_WEEKLY_HOUR_CAP,
-        ),
-        my_bookings=my_bookings_out,
-    )
-
-
-@router.post("/me/lab-slots/book", response_model=LabBookingOut, status_code=status.HTTP_201_CREATED)
-def book_lab_slot(
-    payload: LabSlotBookRequest,
-    db: Session = Depends(get_db),
-    user: User = Depends(require_role("student")),
-):
-    matching = next((s for s in LAB_SLOT_TEMPLATE if s[0] == payload.start_time), None)
-    if matching is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a valid lab slot time.")
-    start_t, end_t = matching
-
-    now = datetime.now(timezone.utc)
-    today = now.date()
-    if payload.slot_date < today or payload.slot_date > today + timedelta(days=LAB_BOOKING_HORIZON_DAYS - 1):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="That date isn't open for booking.")
-    if datetime.combine(payload.slot_date, start_t, tzinfo=timezone.utc) < now:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This slot has already passed.")
-
-    existing = db.scalar(
-        select(LabSlotBooking).where(
-            LabSlotBooking.student_id == user.id,
-            LabSlotBooking.slot_date == payload.slot_date,
-            LabSlotBooking.start_time == start_t,
-        )
-    )
-    if existing:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You've already booked this slot.")
-
-    week_start, week_end = _week_bounds(payload.slot_date)
-    week_hours = (
-        db.scalar(
-            select(func.count()).select_from(LabSlotBooking).where(
-                LabSlotBooking.student_id == user.id,
-                LabSlotBooking.slot_date >= week_start,
-                LabSlotBooking.slot_date <= week_end,
-            )
-        )
-        or 0
-    ) * LAB_SLOT_HOURS
-    if week_hours + LAB_SLOT_HOURS > LAB_WEEKLY_HOUR_CAP:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"You've reached your {LAB_WEEKLY_HOUR_CAP}-hour weekly lab limit ({week_hours} hours already booked this week).",
-        )
-
-    booked_count = db.scalar(
-        select(func.count()).select_from(LabSlotBooking).where(
-            LabSlotBooking.slot_date == payload.slot_date,
-            LabSlotBooking.start_time == start_t,
-        )
-    ) or 0
-    if booked_count >= LAB_SLOT_CAPACITY:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This slot is fully booked.")
-
-    booking = LabSlotBooking(student_id=user.id, slot_date=payload.slot_date, start_time=start_t, end_time=end_t)
-    db.add(booking)
-    db.commit()
-    db.refresh(booking)
-    return booking
-
-
-@router.delete("/me/lab-slots/{booking_id}", status_code=status.HTTP_204_NO_CONTENT)
-def cancel_lab_slot(
-    booking_id: int,
-    db: Session = Depends(get_db),
-    user: User = Depends(require_role("student")),
-):
-    booking = db.get(LabSlotBooking, booking_id)
-    if booking is None or booking.student_id != user.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found.")
-    if datetime.combine(booking.slot_date, booking.start_time, tzinfo=timezone.utc) < datetime.now(timezone.utc):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Can't cancel a slot that has already started.")
-    db.delete(booking)
-    db.commit()
-    return None
 
 
 @router.get("/me/videos", response_model=list[ClassVideoOut])
