@@ -1,22 +1,21 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import delete, func, or_, select, update
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import require_permission
 from app.core.security import hash_password
+from app.core.student_deletion import stage_student_deletion
 from app.crud.audit import write_audit_event
+from app.crud.permissions import is_super_admin
 from app.crud.session import revoke_all_sessions
 from app.crud.user import generate_admin_username, get_by_username
-from app.database import get_db
+from app.database import Base, get_db
 from app.models.admin_profile import AdminProfile
 from app.models.admin_role import LAB_VM_ADMIN_SLUG, LEADS_ADMIN_SLUG, SUPER_ADMIN_SLUG, AdminRole
-from app.models.audit_log import AuthAuditLog, AuthEventType
-from app.models.chat import Conversation, DirectMessage
-from app.models.lead import Lead
-from app.models.session import AuthSession
+from app.models.audit_log import AuthEventType
 from app.models.user import RoleEnum, User
 from app.schemas.admin_users import AdminUserOut, CreateAdminUserRequest, UpdateAdminUserRequest
 
@@ -66,6 +65,18 @@ def _count_active_super_admins(db: Session, exclude_user_id: int | None = None) 
     return db.scalar(query) or 0
 
 
+def _lock_super_admin_role(db: Session) -> None:
+    """Serialize membership changes before evaluating the last-admin rule.
+
+    Acquire this lock before the target user's row lock. PostgreSQL READ
+    COMMITTED refreshes the subsequent count after a waiting transaction
+    commits; reversing the lock order can deadlock two concurrent requests.
+    """
+    role_id = db.scalar(select(AdminRole.id).where(AdminRole.slug == SUPER_ADMIN_SLUG).with_for_update())
+    if role_id is None:
+        raise HTTPException(status_code=409, detail="Super Admin role is unavailable.")
+
+
 def _get_role_or_400(db: Session, admin_role_id: int) -> AdminRole:
     role = db.get(AdminRole, admin_role_id)
     if role is None:
@@ -110,18 +121,24 @@ def create_admin_user(
         admin_role_id=role.id,
         must_change_password=True,
     )
-    db.add(user)
-    db.flush()
-    db.add(AdminProfile(user_id=user.id))
-    db.commit()
+    try:
+        db.add(user)
+        db.flush()
+        db.add(AdminProfile(user_id=user.id))
+        ip, ua = _client_meta(request)
+        write_audit_event(
+            db, AuthEventType.admin_user_created, ip, ua, user=actor,
+            detail=f"Created admin {username} ({role.name})", module="admin_users", target=username, status="success",
+            actor_role=(actor.admin_role.slug if actor.admin_role else actor.role.value), commit=False,
+        )
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Admin login already exists. Refresh and retry.")
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Unable to create admin account. No changes were made.")
     db.refresh(user)
-
-    ip, ua = _client_meta(request)
-    write_audit_event(
-        db, AuthEventType.admin_user_created, ip, ua, user=actor,
-        detail=f"Created admin {username} ({role.name})", module="admin_users", target=username, status="success",
-        actor_role=(actor.admin_role.slug if actor.admin_role else actor.role.value),
-    )
 
     return _admin_out(user)
 
@@ -134,7 +151,12 @@ def update_admin_user(
     db: Session = Depends(get_db),
     actor: User = Depends(require_permission("admin_users.edit")),
 ):
-    user = _get_admin_or_404(db, admin_id)
+    _lock_super_admin_role(db)
+    user = db.scalar(select(User).where(User.id == admin_id).with_for_update())
+    if user is None or user.role != RoleEnum.admin:
+        raise HTTPException(status_code=404, detail="Admin account not found")
+    if is_super_admin(user) and not is_super_admin(actor):
+        raise HTTPException(status_code=403, detail="Only a Super Admin can manage a Super Admin account.")
     profile = user.admin_profile
     ip, ua = _client_meta(request)
     actor_role_snapshot = actor.admin_role.slug if actor.admin_role else actor.role.value
@@ -261,15 +283,21 @@ def revoke_admin_sessions(
     actor: User = Depends(require_permission("admin_users.edit")),
 ):
     user = _get_admin_or_404(db, admin_id)
-    revoke_all_sessions(db, user.id)
-    db.commit()
-
-    ip, ua = _client_meta(request)
-    write_audit_event(
-        db, AuthEventType.session_revoked, ip, ua, user=actor, detail=f"Revoked all sessions for admin {user.username}",
-        module="admin_users", target=user.username, status="success",
-        actor_role=(actor.admin_role.slug if actor.admin_role else actor.role.value),
-    )
+    if is_super_admin(user) and not is_super_admin(actor):
+        raise HTTPException(status_code=403, detail="Only a Super Admin can manage a Super Admin account.")
+    try:
+        revoke_all_sessions(db, user.id)
+        ip, ua = _client_meta(request)
+        write_audit_event(
+            db, AuthEventType.session_revoked, ip, ua, user=actor,
+            detail=f"Revoked all sessions for admin {user.username}",
+            module="admin_users", target=user.username, status="success",
+            actor_role=(actor.admin_role.slug if actor.admin_role else actor.role.value), commit=False,
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Unable to revoke admin sessions. No changes were made.")
     return None
 
 
@@ -280,55 +308,54 @@ def delete_admin_user(
     db: Session = Depends(get_db),
     actor: User = Depends(require_permission("admin_users.delete")),
 ):
-    user = _get_admin_or_404(db, admin_id)
-
-    if user.id == actor.id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You cannot delete your own account.")
-
-    if user.admin_role and user.admin_role.slug == SUPER_ADMIN_SLUG:
-        if _count_active_super_admins(db, exclude_user_id=user.id) < 1:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot delete the last Super Admin.")
-
-    username = user.username
-    ip, ua = _client_meta(request)
-    actor_role_snapshot = actor.admin_role.slug if actor.admin_role else actor.role.value
-
-    # Detach (don't delete) audit history so security records survive account
-    # removal — auth_audit_log.user_id is nullable for exactly this reason.
-    db.execute(update(AuthAuditLog).where(AuthAuditLog.user_id == user.id).values(user_id=None))
-    db.execute(delete(AuthSession).where(AuthSession.user_id == user.id))
-
-    # Chat rows have no ON DELETE CASCADE to users.id, so any conversation
-    # this account took part in (as either side) must be cleared first.
-    convo_ids = db.scalars(
-        select(Conversation.id).where(or_(Conversation.user_a_id == user.id, Conversation.user_b_id == user.id))
-    ).all()
-    if convo_ids:
-        db.execute(delete(DirectMessage).where(DirectMessage.conversation_id.in_(convo_ids)))
-        db.execute(delete(Conversation).where(Conversation.id.in_(convo_ids)))
-
-    # Same story for leads this admin created — leads.created_by_id has no
-    # ON DELETE CASCADE either. Detach rather than delete, same reasoning as
-    # auth_audit_log above: the leads themselves are real business records
-    # that should survive the admin who happened to add them being removed.
-    db.execute(update(Lead).where(Lead.created_by_id == user.id).values(created_by_id=None))
-
-    db.delete(user)  # cascades to admin_profile via the User.admin_profile relationship
     try:
+        _lock_super_admin_role(db)
+        user = db.scalar(select(User).where(User.id == admin_id).with_for_update())
+        if user is None or user.role != RoleEnum.admin:
+            raise HTTPException(status_code=404, detail="Admin account not found")
+        if user.id == actor.id:
+            raise HTTPException(status_code=400, detail="You cannot delete your own account.")
+        if is_super_admin(user):
+            if not is_super_admin(actor):
+                raise HTTPException(status_code=403, detail="Only a Super Admin can delete a Super Admin account.")
+            if _count_active_super_admins(db, exclude_user_id=user.id) < 1:
+                raise HTTPException(status_code=400, detail="Cannot delete the last Super Admin.")
+
+        # No admin deletion may erase another user's conversation or silently
+        # detach a business record. Deactivate accounts with shared history.
+        exclusive_links = {
+            ("admin_profiles", "user_id"), ("auth_sessions", "user_id"),
+            ("auth_audit_log", "user_id"), ("user_google_identities", "user_id"),
+            ("google_login_tickets", "user_id"),
+        }
+        for table in Base.metadata.sorted_tables:
+            for column in table.c:
+                if not any(fk.target_fullname == "users.id" for fk in column.foreign_keys):
+                    continue
+                if (table.name, column.name) in exclusive_links:
+                    continue
+                if db.scalar(select(column).where(column == admin_id).limit(1)) is not None:
+                    raise HTTPException(status_code=409, detail="Admin has related records. "
+                                        "Deactivate the account to preserve shared history.")
+
+        stage_student_deletion(db, user)  # Shared account cleanup helper; caller commits.
+        ip, ua = _client_meta(request)
+        write_audit_event(
+            db, AuthEventType.admin_user_deleted, ip, ua, user=actor,
+            detail=f"Deleted admin id={admin_id}; exclusive uploads queued for cleanup",
+            module="admin_users", target=f"admin:{admin_id}", status="success",
+            actor_role=(actor.admin_role.slug if actor.admin_role else actor.role.value), commit=False,
+        )
         db.commit()
+    except HTTPException:
+        db.rollback()
+        raise
     except IntegrityError:
-        # Some other dependent record we don't know about yet is still
-        # pointing at this account — fail safely instead of a bare 500,
-        # without leaking the underlying SQL/constraint name to the client.
+        db.rollback()
+        raise HTTPException(status_code=409, detail="A related record prevents admin deletion. "
+                            "No changes were made; deactivate the account instead.")
+    except Exception:
         db.rollback()
         logger.exception("Failed to delete admin user id=%s", admin_id)
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="This admin has related records that prevent deletion. Contact engineering.",
-        )
-
-    write_audit_event(
-        db, AuthEventType.admin_user_deleted, ip, ua, user=actor, detail=f"Deleted admin {username}",
-        module="admin_users", target=username, status="success", actor_role=actor_role_snapshot,
-    )
+        raise HTTPException(status_code=500, detail="Unable to delete admin account. No changes were made.")
     return None

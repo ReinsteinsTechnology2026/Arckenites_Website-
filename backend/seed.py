@@ -107,6 +107,14 @@ def seed_rbac(db):
 def main():
     rbac_only = "--rbac-only" in sys.argv
 
+    # The full bootstrap path creates fixed demo credentials. Refuse it on a
+    # production-configured process before opening a database connection.
+    if not rbac_only:
+        if settings.env.strip().lower() == "production":
+            raise SystemExit("Full seed is disabled in production. Use --rbac-only.")
+        if settings.seed_admin1_password.strip().lower() in ("", "change-me", "admin#001"):
+            raise SystemExit("Set a non-placeholder SEED_ADMIN1_PASSWORD for local bootstrap.")
+
     db = SessionLocal()
     try:
         seed_rbac(db)

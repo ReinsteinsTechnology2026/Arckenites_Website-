@@ -1,4 +1,6 @@
 import uuid
+import io
+import zipfile
 from pathlib import Path
 
 from fastapi import HTTPException, UploadFile, status
@@ -23,6 +25,44 @@ ALLOWED_EXTENSIONS: dict[str, str] = {
     ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ".txt": "text/plain",
 }
+
+
+def _content_matches_extension(ext: str, contents: bytes) -> bool:
+    if ext in (".jpg", ".jpeg"):
+        return contents.startswith(b"\xff\xd8\xff")
+    if ext == ".png":
+        return contents.startswith(b"\x89PNG\r\n\x1a\n")
+    if ext == ".gif":
+        return contents.startswith((b"GIF87a", b"GIF89a"))
+    if ext == ".webp":
+        return len(contents) >= 12 and contents[:4] == b"RIFF" and contents[8:12] == b"WEBP"
+    if ext == ".pdf":
+        return contents.startswith(b"%PDF-")
+    if ext == ".doc":
+        return contents.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1")
+    if ext == ".docx":
+        try:
+            with zipfile.ZipFile(io.BytesIO(contents)) as archive:
+                names = set(archive.namelist())
+            return "[Content_Types].xml" in names and "word/document.xml" in names
+        except (OSError, ValueError, zipfile.BadZipFile):
+            return False
+    if ext == ".txt":
+        try:
+            decoded = contents.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            return False
+        return all(char.isprintable() or char in "\r\n\t" for char in decoded)
+    return False
+
+
+async def read_upload_limited(file: UploadFile, max_bytes: int) -> bytes:
+    """Read at most one byte beyond the limit before validation/persistence."""
+    contents = await file.read(max_bytes + 1)
+    if len(contents) > max_bytes:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"File is too large. Maximum size is {max_bytes // (1024 * 1024)}MB.")
+    return contents
 
 
 def save_upload(file: UploadFile, contents: bytes) -> tuple[str, str, str, int]:
@@ -52,6 +92,10 @@ def save_upload(file: UploadFile, contents: bytes) -> tuple[str, str, str, int]:
 
     if not contents:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty.")
+
+    if not _content_matches_extension(ext, contents):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="File content does not match its extension or is unsupported.")
 
     UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
     storage_reference = f"{uuid.uuid4().hex}{ext}"
@@ -119,6 +163,10 @@ def save_profile_photo(file: UploadFile, contents: bytes) -> str:
 
     if not contents:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty.")
+
+    if not _content_matches_extension(ext, contents):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Photo content does not match its extension or is unsupported.")
 
     PROFILE_PHOTO_ROOT.mkdir(parents=True, exist_ok=True)
     storage_reference = f"{uuid.uuid4().hex}{ext}"

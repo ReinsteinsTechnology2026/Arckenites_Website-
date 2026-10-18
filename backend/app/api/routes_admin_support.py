@@ -9,7 +9,7 @@ import io
 
 from app.core.deps import require_permission
 from app.core.notify import notify_support_activity
-from app.core.uploads import MAX_FILES_PER_MESSAGE, delete_upload, get_upload_path, save_upload
+from app.core.uploads import MAX_FILES_PER_MESSAGE, MAX_FILE_SIZE_BYTES, delete_upload, get_upload_path, read_upload_limited, save_upload
 from app.crud.audit import write_audit_event
 from app.crud.support import (
     client_meta,
@@ -249,7 +249,7 @@ async def upload_ticket_attachment(
     if len(message.attachments) >= MAX_FILES_PER_MESSAGE:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Maximum {MAX_FILES_PER_MESSAGE} attachments per message.")
 
-    contents = await file.read()
+    contents = await read_upload_limited(file, MAX_FILE_SIZE_BYTES)
     storage_reference, file_name, file_type, file_size = save_upload(file, contents)
 
     attachment = SupportAttachment(

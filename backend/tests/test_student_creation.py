@@ -32,9 +32,9 @@ from app.core.security import create_access_token, hash_password, verify_passwor
 from app.database import Base, get_db
 from app.main import app
 from app.models import (
-    AdminRole, AdminRolePermission, AuthAuditLog, AuthSession, EnrollmentStatusEnum,
+    AdminProfile, AdminRole, AdminRolePermission, AuthAuditLog, AuthSession, Conversation, DirectMessage, EnrollmentStatusEnum,
     Permission, Program, ProgramEnrollment, ProgramEnum, ProgramStatusEnum,
-    RoleEnum, StudentProfile, SystemSettings, User,
+    RoleEnum, StaffProfile, StudentProfile, SystemSettings, User,
 )
 from app.schemas.admin_students import CreateStudentRequest
 
@@ -154,6 +154,134 @@ class StudentCreationTests(unittest.TestCase):
             self.assertEqual(user.student_profile.program_id, self.program_id)
             audit = db.scalar(select(AuthAuditLog).where(AuthAuditLog.target == "arun@example.com"))
             self.assertNotIn(PASSWORD, audit.detail)
+
+    def test_candidate_email_with_digits_is_accepted_and_normalized(self):
+        response = self._create(email=" Candidate03@Example.COM ")
+        self.assertEqual(response.status_code, 201, response.text)
+        self.assertEqual(response.json()["username"], "candidate03@example.com")
+
+    def test_trainer_update_failure_rolls_back_status_password_and_sessions(self):
+        with ProvisioningTestSession(self.engine) as db:
+            db.add(StaffProfile(user_id=self.trainer_id, staff_code="AK-STF-0001"))
+            db.commit()
+        session = self._headers(self.trainer_id, "staff")
+        with patch.object(ProvisioningTestSession, "commit", side_effect=RuntimeError("simulated failure")):
+            response = self.client.patch(f"/api/admin/staff/{self.trainer_id}", headers=self.headers,
+                                         json={"is_active": False, "reset_temp_password": "New@Test123"})
+        self.assertEqual(response.status_code, 500)
+        with ProvisioningTestSession(self.engine) as db:
+            user = db.get(User, self.trainer_id)
+            self.assertTrue(user.is_active)
+            self.assertTrue(verify_password(ADMIN_PASSWORD, user.password_hash))
+            self.assertIsNone(db.scalar(select(AuthSession.revoked_at).where(AuthSession.user_id == user.id)))
+            self.assertIsNone(db.scalar(select(AuthAuditLog.id).where(AuthAuditLog.target == user.username)))
+        self.assertEqual(self.client.get("/api/auth/me", headers=session).status_code, 200)
+
+    def test_trainer_delete_preserves_shared_conversation_and_account(self):
+        with ProvisioningTestSession(self.engine) as db:
+            db.add(StaffProfile(user_id=self.trainer_id, staff_code="AK-STF-0001"))
+            conversation = Conversation(user_a_id=self.admin_id, user_b_id=self.trainer_id)
+            db.add(conversation)
+            db.flush()
+            message = DirectMessage(conversation_id=conversation.id, sender_id=self.admin_id, body="Shared note")
+            db.add(message)
+            db.commit()
+            conversation_id, message_id = conversation.id, message.id
+        response = self.client.delete(f"/api/admin/staff/{self.trainer_id}", headers=self.headers)
+        self.assertEqual(response.status_code, 409, response.text)
+        with ProvisioningTestSession(self.engine) as db:
+            self.assertIsNotNone(db.get(User, self.trainer_id))
+            self.assertEqual(db.get(Conversation, conversation_id).user_b_id, self.trainer_id)
+            self.assertEqual(db.get(DirectMessage, message_id).body, "Shared note")
+
+    def test_trainer_without_shared_records_deletes_atomically(self):
+        with ProvisioningTestSession(self.engine) as db:
+            db.add(StaffProfile(user_id=self.trainer_id, staff_code="AK-STF-0001"))
+            db.commit()
+        response = self.client.delete(f"/api/admin/staff/{self.trainer_id}", headers=self.headers)
+        self.assertEqual(response.status_code, 204, response.text)
+        with ProvisioningTestSession(self.engine) as db:
+            self.assertIsNone(db.get(User, self.trainer_id))
+            self.assertIsNone(db.scalar(select(StaffProfile).where(StaffProfile.user_id == self.trainer_id)))
+            self.assertIsNotNone(db.scalar(select(AuthAuditLog).where(AuthAuditLog.target == f"trainer:{self.trainer_id}")))
+
+    def test_admin_and_trainer_creation_roll_back_when_commit_fails(self):
+        cases = [
+            ("/api/admin/staff", {"full_name": "New Trainer", "temp_password": "New@Test123"}, "newtrainer.staff@arckenites.com"),
+            ("/api/admin/admin-users", {"full_name": "New Admin", "admin_role_id": 1,
+                                         "temp_password": "New@Test123"}, "newadmin@arckenites.com"),
+        ]
+        for url, payload, username in cases:
+            with self.subTest(url=url):
+                with patch.object(ProvisioningTestSession, "commit", side_effect=RuntimeError("simulated failure")):
+                    response = self.client.post(url, headers=self.headers, json=payload)
+                self.assertEqual(response.status_code, 500, response.text)
+                with ProvisioningTestSession(self.engine) as db:
+                    self.assertIsNone(db.scalar(select(User).where(User.username == username)))
+                    self.assertIsNone(db.scalar(select(AuthAuditLog).where(AuthAuditLog.target == username)))
+
+    def test_admin_deletion_preserves_shared_chat(self):
+        with ProvisioningTestSession(self.engine) as db:
+            target = User(username="target.admin", full_name="Target Admin", role=RoleEnum.admin,
+                          admin_role_id=1, password_hash=hash_password(ADMIN_PASSWORD))
+            db.add(target)
+            db.flush()
+            db.add(AdminProfile(user_id=target.id))
+            thread = Conversation(user_a_id=self.admin_id, user_b_id=target.id)
+            db.add(thread)
+            db.flush()
+            db.add(DirectMessage(conversation_id=thread.id, sender_id=self.admin_id, body="Shared admin note"))
+            db.commit()
+            target_id, thread_id = target.id, thread.id
+        response = self.client.delete(f"/api/admin/admin-users/{target_id}", headers=self.headers)
+        self.assertEqual(response.status_code, 409, response.text)
+        with ProvisioningTestSession(self.engine) as db:
+            self.assertIsNotNone(db.get(User, target_id))
+            self.assertEqual(db.get(Conversation, thread_id).user_b_id, target_id)
+            self.assertEqual(db.scalar(select(DirectMessage.body).where(
+                DirectMessage.conversation_id == thread_id)), "Shared admin note")
+
+    def test_admin_without_shared_records_deletes_with_audit(self):
+        with ProvisioningTestSession(self.engine) as db:
+            target = User(username="target.admin", full_name="Target Admin", role=RoleEnum.admin,
+                          admin_role_id=1, password_hash=hash_password(ADMIN_PASSWORD))
+            db.add(target)
+            db.flush()
+            db.add(AdminProfile(user_id=target.id))
+            db.commit()
+            target_id = target.id
+        response = self.client.delete(f"/api/admin/admin-users/{target_id}", headers=self.headers)
+        self.assertEqual(response.status_code, 204, response.text)
+        with ProvisioningTestSession(self.engine) as db:
+            self.assertIsNone(db.get(User, target_id))
+            self.assertIsNotNone(db.scalar(select(AuthAuditLog).where(AuthAuditLog.target == f"admin:{target_id}")))
+
+    def test_regular_admin_grants_cannot_modify_or_delete_super_admin(self):
+        with ProvisioningTestSession(self.engine) as db:
+            db.add(AdminRole(id=2, name="Admin", slug="admin", is_system=True))
+            db.add(Permission(key="admin_users.delete", module="admin_users", action="delete"))
+            db.add(Permission(key="admin_users.edit", module="admin_users", action="edit"))
+            db.flush()
+            db.add(AdminRolePermission(admin_role_id=2, permission_key="admin_users.delete"))
+            db.add(AdminRolePermission(admin_role_id=2, permission_key="admin_users.edit"))
+            ordinary = User(username="ordinary.admin", full_name="Ordinary Admin", role=RoleEnum.admin,
+                            admin_role_id=2, password_hash=hash_password(ADMIN_PASSWORD))
+            target = User(username="second.super", full_name="Second Super", role=RoleEnum.admin,
+                          admin_role_id=1, password_hash=hash_password(ADMIN_PASSWORD))
+            db.add_all([ordinary, target])
+            db.commit()
+            ordinary_id, target_id = ordinary.id, target.id
+        auth = self._headers(ordinary_id, "admin")
+        responses = [
+            self.client.patch(f"/api/admin/admin-users/{target_id}", headers=auth,
+                              json={"reset_temp_password": "Compromised@Test123"}),
+            self.client.post(f"/api/admin/admin-users/{target_id}/revoke-sessions", headers=auth),
+            self.client.delete(f"/api/admin/admin-users/{target_id}", headers=auth),
+        ]
+        for response in responses:
+            self.assertEqual(response.status_code, 403, response.text)
+        with ProvisioningTestSession(self.engine) as db:
+            self.assertTrue(verify_password(ADMIN_PASSWORD, db.get(User, target_id).password_hash))
 
     def test_email_observes_committed_user_profile_enrollment_and_audit(self):
         def send_after_commit(to, subject, body, html_body):
@@ -327,6 +455,49 @@ class StudentCreationTests(unittest.TestCase):
         self.assertFalse(profile.json()["must_change_password"])
         self.assertEqual(profile.json()["program"], "institutional")
         self.assertEqual(profile.json()["program_name"], "Institutional Program")
+
+    def test_password_change_revokes_other_sessions_and_keeps_current_onboarding_session(self):
+        created = self._create(program_id=self.institutional_id).json()
+        current = self._headers(created["id"], "student")
+        other = self._headers(created["id"], "student")
+        response = self.client.post("/api/auth/change-password", headers=current,
+                                    json={"current_password": PASSWORD, "new_password": "Changed@Test123"})
+        self.assertEqual(response.status_code, 204, response.text)
+        self.assertEqual(self.client.get("/api/auth/me", headers=current).status_code, 200)
+        self.assertEqual(self.client.get("/api/auth/me", headers=other).status_code, 401)
+        with ProvisioningTestSession(self.engine) as db:
+            user = db.get(User, created["id"])
+            self.assertTrue(verify_password("Changed@Test123", user.password_hash))
+            sessions = db.scalars(select(AuthSession).where(AuthSession.user_id == user.id)).all()
+            self.assertEqual(sum(session.revoked_at is not None for session in sessions), 1)
+
+    def test_password_change_commit_failure_preserves_password_and_sessions(self):
+        created = self._create(program_id=self.institutional_id).json()
+        current = self._headers(created["id"], "student")
+        other = self._headers(created["id"], "student")
+        with patch.object(ProvisioningTestSession, "commit", side_effect=RuntimeError("simulated failure")):
+            response = self.client.post("/api/auth/change-password", headers=current,
+                                        json={"current_password": PASSWORD, "new_password": "Changed@Test123"})
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(self.client.get("/api/auth/me", headers=current).status_code, 200)
+        self.assertEqual(self.client.get("/api/auth/me", headers=other).status_code, 200)
+        with ProvisioningTestSession(self.engine) as db:
+            self.assertTrue(verify_password(PASSWORD, db.get(User, created["id"]).password_hash))
+
+    def test_password_validation_rejects_bcrypt_truncation_without_echoing_secret(self):
+        long_password = "A" * 73
+        auth = self._headers(self.legacy_id, "student")
+        response = self.client.post("/api/auth/change-password", headers=auth,
+                                    json={"current_password": PASSWORD, "new_password": long_password})
+        self.assertEqual(response.status_code, 422)
+        self.assertNotIn(long_password, response.text)
+        self.assertNotIn('"input"', response.text)
+        self.assertIn("72 UTF-8 bytes", response.text)
+        response = self.client.patch(f"/api/admin/students/{self.legacy_id}", headers=self.headers,
+                                     json={"reset_temp_password": long_password})
+        self.assertEqual(response.status_code, 422)
+        self.assertNotIn(long_password, response.text)
+        self.assertNotIn('"input"', response.text)
 
     def test_program_edit_uses_enrollment_and_keeps_account_and_sessions(self):
         created = self._create().json()

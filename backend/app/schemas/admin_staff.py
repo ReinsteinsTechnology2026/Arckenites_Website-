@@ -3,6 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.core.security import validate_bcrypt_password_bytes
 from app.models.staff import PERMISSION_KEYS
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -24,6 +25,11 @@ class CreateStaffRequest(BaseModel):
     email: str | None = None
     temp_password: str = Field(min_length=8, max_length=128)
 
+    @field_validator("temp_password")
+    @classmethod
+    def check_password_bytes(cls, value: str) -> str:
+        return validate_bcrypt_password_bytes(value)
+
     @field_validator("email")
     @classmethod
     def validate_email(cls, value: str | None) -> str | None:
@@ -43,6 +49,11 @@ class UpdateStaffRequest(BaseModel):
     is_active: bool | None = None
     reset_temp_password: str | None = Field(default=None, min_length=8, max_length=128)
     permissions: dict[str, bool] | None = None
+
+    @field_validator("reset_temp_password")
+    @classmethod
+    def check_password_bytes(cls, value: str | None) -> str | None:
+        return validate_bcrypt_password_bytes(value) if value is not None else None
 
     @field_validator("email")
     @classmethod

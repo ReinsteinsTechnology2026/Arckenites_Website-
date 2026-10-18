@@ -5,7 +5,6 @@ import re
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
-from fastapi.exception_handlers import request_validation_exception_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.responses import JSONResponse
@@ -61,9 +60,13 @@ app.add_middleware(SlowAPIMiddleware)
 @app.exception_handler(RequestValidationError)
 async def student_provisioning_validation_error(request: Request, exc: RequestValidationError):
     # FastAPI's default validation response includes the rejected input,
-    # including passwords. Keep this change scoped to provisioning calls.
+    # including passwords. Provisioning keeps its existing simple message.
     if request.method != "POST" or not re.fullmatch(r"/api/admin/students(?:/\d+/credentials-email)?", request.url.path):
-        return await request_validation_exception_handler(request, exc)
+        # Preserve FastAPI's detail-list contract while omitting submitted
+        # values and validator context from every endpoint's error response.
+        errors = [{key: value for key, value in error.items() if key not in ("input", "ctx")}
+                  for error in exc.errors()]
+        return JSONResponse(status_code=422, content={"detail": errors})
     messages = {
         "full_name": "Full name is required (maximum 200 characters).",
         "email": "Please enter a valid email address.",

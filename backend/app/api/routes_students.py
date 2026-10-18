@@ -9,7 +9,7 @@ from app.core.deps import require_role
 from app.core.lab_access import compute_lab_access
 from app.core.lab_vm_secrets import decrypt_rdp_password
 from app.core.lab_slots import LAB_BOOKING_HORIZON_DAYS, LAB_SLOT_CAPACITY, LAB_SLOT_HOURS, LAB_SLOT_TEMPLATE, LAB_WEEKLY_HOUR_CAP
-from app.core.uploads import MAX_FILES_PER_MESSAGE, get_upload_path, save_upload
+from app.core.uploads import MAX_FILES_PER_MESSAGE, MAX_FILE_SIZE_BYTES, get_upload_path, read_upload_limited, save_upload
 from app.core.video import generate_batch_room_name
 from app.core.ws_manager import manager
 from app.crud.audit import write_audit_event
@@ -664,7 +664,7 @@ async def upload_ticket_attachment(
     if len(message.attachments) >= MAX_FILES_PER_MESSAGE:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Maximum {MAX_FILES_PER_MESSAGE} attachments per message.")
 
-    contents = await file.read()
+    contents = await read_upload_limited(file, MAX_FILE_SIZE_BYTES)
     storage_reference, file_name, file_type, file_size = save_upload(file, contents)
 
     attachment = SupportAttachment(

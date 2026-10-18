@@ -3,17 +3,10 @@ app/api/routes_admin_users.py:update_admin_user — the admin-account
 analogue of the bug fixed in routes_admin_students.py:delete_student (see
 test_student_deletion.py / test_student_deletion_integration.py).
 
-Audit finding: delete_admin_user (the DELETE endpoint) does NOT have this
-bug — it has no deactivation branch, and its one write_audit_event call
-happens AFTER a successful db.commit() already completed (same safe
-pattern used everywhere else in the codebase). The actual bug was in
-update_admin_user (PATCH): role changes, the is_active toggle + session
-revocation, password resets, and profile edits were each followed by a
-write_audit_event() call that committed independently (default
-commit=True), before the function's OWN final db.commit() — which also had
-NO try/except at all, so a later failure left whichever branches had
-already fired durably persisted with zero rollback possible, while the
-request itself could still surface as an unhandled error to the caller.
+The original DELETE path removed shared conversations and recorded its audit
+after the account deletion committed. It now preserves shared records and
+stages the audit in the same transaction. The PATCH path was also repaired:
+its status, session, password and audit changes commit together.
 
 Mocked tests here can only assert *calls* (commit=False passed, rollback()
 called) — real atomicity (that a real Postgres transaction genuinely
@@ -81,15 +74,17 @@ class TestUpdateAdminUserAuthorization(unittest.TestCase):
 
 
 class TestUpdateAdminUserTransaction(unittest.TestCase):
-    def _get_admin_patch(self, user):
-        return patch.object(admin_users_module, "_get_admin_or_404", return_value=user)
+    def _get_admin_patch(self, user, db):
+        # Real PostgreSQL concurrency tests cover the row and role locks.
+        db.scalar.return_value = user
+        return patch.object(admin_users_module, "_lock_super_admin_role")
 
     def test_is_active_toggle_writes_audit_with_commit_false_and_commits_once(self):
         user = make_target_admin(is_active=True)
         db = MagicMock()
         payload = UpdateAdminUserRequest(is_active=False)
 
-        with self._get_admin_patch(user), patch.object(admin_users_module, "revoke_all_sessions") as mock_revoke, \
+        with self._get_admin_patch(user, db), patch.object(admin_users_module, "revoke_all_sessions") as mock_revoke, \
              patch.object(admin_users_module, "write_audit_event") as mock_audit:
             admin_users_module.update_admin_user(50, payload, make_request(), db=db, actor=make_actor())
 
@@ -105,10 +100,10 @@ class TestUpdateAdminUserTransaction(unittest.TestCase):
         user = make_target_admin(admin_role=make_admin_role(slug="support_admin", role_id=3), admin_role_id=3)
         new_role = make_admin_role(slug="leads_admin", role_id=9)
         db = MagicMock()
-        db.scalar.return_value = 1  # _count_active_super_admins, irrelevant here
+        db.scalar.return_value = user
         payload = UpdateAdminUserRequest(admin_role_id=9)
 
-        with self._get_admin_patch(user), patch.object(admin_users_module, "_get_role_or_400", return_value=new_role), \
+        with self._get_admin_patch(user, db), patch.object(admin_users_module, "_get_role_or_400", return_value=new_role), \
              patch.object(admin_users_module, "write_audit_event") as mock_audit:
             admin_users_module.update_admin_user(50, payload, make_request(), db=db, actor=make_actor())
 
@@ -122,7 +117,7 @@ class TestUpdateAdminUserTransaction(unittest.TestCase):
         db = MagicMock()
         payload = UpdateAdminUserRequest(reset_temp_password="NewTemp#Pass1")
 
-        with self._get_admin_patch(user), patch.object(admin_users_module, "revoke_all_sessions") as mock_revoke, \
+        with self._get_admin_patch(user, db), patch.object(admin_users_module, "revoke_all_sessions") as mock_revoke, \
              patch.object(admin_users_module, "write_audit_event") as mock_audit:
             admin_users_module.update_admin_user(50, payload, make_request(), db=db, actor=make_actor())
 
@@ -143,7 +138,7 @@ class TestUpdateAdminUserTransaction(unittest.TestCase):
         db.commit.side_effect = Exception("connection lost")
         payload = UpdateAdminUserRequest(is_active=False)
 
-        with self._get_admin_patch(user), patch.object(admin_users_module, "revoke_all_sessions"):
+        with self._get_admin_patch(user, db), patch.object(admin_users_module, "revoke_all_sessions"):
             with self.assertRaises(Exception):
                 admin_users_module.update_admin_user(50, payload, make_request(), db=db, actor=make_actor())
 
@@ -154,7 +149,7 @@ class TestUpdateAdminUserTransaction(unittest.TestCase):
         db = MagicMock()
         payload = UpdateAdminUserRequest(is_active=False)
 
-        with self._get_admin_patch(user), patch.object(admin_users_module, "revoke_all_sessions"), \
+        with self._get_admin_patch(user, db), patch.object(admin_users_module, "revoke_all_sessions"), \
              patch.object(admin_users_module, "write_audit_event", side_effect=RuntimeError("audit failure")):
             with self.assertRaises(RuntimeError):
                 admin_users_module.update_admin_user(50, payload, make_request(), db=db, actor=make_actor())
@@ -169,7 +164,7 @@ class TestUpdateAdminUserTransaction(unittest.TestCase):
         db = MagicMock()
         payload = UpdateAdminUserRequest(is_active=False)  # already False — no-op
 
-        with self._get_admin_patch(user), patch.object(admin_users_module, "revoke_all_sessions") as mock_revoke, \
+        with self._get_admin_patch(user, db), patch.object(admin_users_module, "revoke_all_sessions") as mock_revoke, \
              patch.object(admin_users_module, "write_audit_event") as mock_audit:
             admin_users_module.update_admin_user(50, payload, make_request(), db=db, actor=make_actor())
 
@@ -178,28 +173,30 @@ class TestUpdateAdminUserTransaction(unittest.TestCase):
         db.commit.assert_called_once()  # still commits (e.g. db.add(user)), just nothing audit-worthy happened
 
 
-class TestDeleteAdminUserUnaffected(unittest.TestCase):
-    """delete_admin_user was audited and confirmed to NOT have this bug —
-    its one write_audit_event call already happens after a successful,
-    already-committed db.commit(). This pins that down so a future change
-    can't silently reintroduce the bug there without a test noticing."""
-
-    def test_audit_event_is_written_with_default_commit_after_delete_succeeds(self):
-        user = make_target_admin(admin_role=None)  # no admin_role -> skips the super-admin-count check entirely
+class TestDeleteAdminUserSafety(unittest.TestCase):
+    def test_audit_and_account_cleanup_share_one_commit(self):
+        user = make_target_admin()
         db = MagicMock()
-        db.scalar.return_value = None
+        db.scalar.side_effect = [1, user] + [None] * 100
 
-        with patch.object(admin_users_module, "_get_admin_or_404", return_value=user), \
+        with patch.object(admin_users_module, "stage_student_deletion") as cleanup, \
              patch.object(admin_users_module, "write_audit_event") as mock_audit:
             admin_users_module.delete_admin_user(50, make_request(), db=db, actor=make_actor())
 
-        # db.delete + db.commit must have already happened BEFORE the one
-        # audit call, and that call relies on the SAFE default (commit=True
-        # or simply omitted) since nothing is pending at that point.
-        db.delete.assert_called_once_with(user)
-        self.assertGreaterEqual(db.commit.call_count, 1)
+        cleanup.assert_called_once_with(db, user)
+        db.commit.assert_called_once()
         mock_audit.assert_called_once()
-        self.assertNotEqual(mock_audit.call_args.kwargs.get("commit"), False)
+        self.assertFalse(mock_audit.call_args.kwargs["commit"])
+
+    def test_regular_admin_cannot_delete_super_admin(self):
+        user = make_target_admin(admin_role=make_admin_role(slug=SUPER_ADMIN_SLUG, role_id=1))
+        actor = make_target_admin(id=2)
+        db = MagicMock()
+        db.scalar.return_value = user
+        with self.assertRaises(HTTPException) as raised:
+            admin_users_module.delete_admin_user(50, make_request(), db=db, actor=actor)
+        self.assertEqual(raised.exception.status_code, 403)
+        db.commit.assert_not_called()
 
 
 if __name__ == "__main__":

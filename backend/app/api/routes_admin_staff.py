@@ -1,17 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import delete, or_, select, update
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import require_permission
 from app.core.security import hash_password
+from app.core.student_deletion import stage_student_deletion
 from app.crud.audit import write_audit_event
 from app.crud.session import revoke_all_sessions
 from app.crud.user import generate_staff_code, generate_staff_username
-from app.database import get_db
-from app.models.audit_log import AuthAuditLog, AuthEventType
-from app.models.batch import Batch
-from app.models.chat import Conversation, DirectMessage
-from app.models.session import AuthSession
+from app.database import Base, get_db
+from app.models.audit_log import AuthEventType
 from app.models.staff import StaffProfile
 from app.models.user import RoleEnum, User
 from app.schemas.admin_staff import CreateStaffRequest, StaffAdminOut, UpdateStaffRequest, _clean_permissions
@@ -59,18 +58,23 @@ def create_staff(
         role=RoleEnum.staff,
         must_change_password=True,
     )
-    db.add(user)
-    db.flush()
-
-    db.add(StaffProfile(user_id=user.id, email=payload.email, staff_code=generate_staff_code(db)))
-    db.commit()
+    try:
+        db.add(user)
+        db.flush()
+        db.add(StaffProfile(user_id=user.id, email=payload.email, staff_code=generate_staff_code(db)))
+        ip, ua = _client_meta(request)
+        write_audit_event(
+            db, AuthEventType.trainer_created, ip, ua, user=actor, detail=f"Created trainer {username}",
+            module="trainers", target=username, status="success", commit=False,
+        )
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Trainer login or code already exists. Refresh and retry.")
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Unable to create trainer account. No changes were made.")
     db.refresh(user)
-
-    ip, ua = _client_meta(request)
-    write_audit_event(
-        db, AuthEventType.trainer_created, ip, ua, user=actor, detail=f"Created trainer {username}",
-        module="trainers", target=username, status="success",
-    )
 
     return _staff_out(user)
 
@@ -110,7 +114,7 @@ def update_staff(
         write_audit_event(
             db, AuthEventType.trainer_permissions_changed, ip, ua, user=actor,
             detail=f"Changed permissions for trainer {user.username}", module="trainers", target=user.username,
-            status="success",
+            status="success", commit=False,
         )
 
     if payload.is_active is not None:
@@ -118,7 +122,7 @@ def update_staff(
             write_audit_event(
                 db, AuthEventType.trainer_enabled if payload.is_active else AuthEventType.trainer_disabled,
                 ip, ua, user=actor, detail=f"{'Enabled' if payload.is_active else 'Disabled'} trainer {user.username}",
-                module="trainers", target=user.username, status="success",
+                module="trainers", target=user.username, status="success", commit=False,
             )
         user.is_active = payload.is_active
         if payload.is_active is False:
@@ -133,18 +137,22 @@ def update_staff(
         write_audit_event(
             db, AuthEventType.trainer_password_reset, ip, ua, user=actor,
             detail=f"Reset password for trainer {user.username}", module="trainers", target=user.username,
-            status="success",
+            status="success", commit=False,
         )
 
     if payload.full_name is not None or payload.email is not None:
         write_audit_event(
             db, AuthEventType.trainer_updated, ip, ua, user=actor, detail=f"Edited trainer {user.username}",
-            module="trainers", target=user.username, status="success",
+            module="trainers", target=user.username, status="success", commit=False,
         )
 
     db.add(user)
     db.add(profile)
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Unable to update trainer. No changes were made.")
     db.refresh(user)
 
     return _staff_out(user)
@@ -157,35 +165,44 @@ def delete_staff(
     db: Session = Depends(get_db),
     actor: User = Depends(require_permission("trainers.delete")),
 ):
-    user = _get_staff_or_404(db, staff_id)
-    username = user.username
+    try:
+        user = db.scalar(select(User).where(User.id == staff_id).with_for_update())
+        if user is None or user.role != RoleEnum.staff:
+            raise HTTPException(status_code=404, detail="Trainer not found")
 
-    # Detach (don't delete) audit history so security records survive account
-    # removal — auth_audit_log.user_id is nullable for exactly this reason.
-    db.execute(update(AuthAuditLog).where(AuthAuditLog.user_id == user.id).values(user_id=None))
-    db.execute(delete(AuthSession).where(AuthSession.user_id == user.id))
+        # Keep shared conversations, batches, support and meeting history.
+        # Accounts with related records can be deactivated through PATCH.
+        exclusive_links = {
+            ("staff_profiles", "user_id"), ("auth_sessions", "user_id"),
+            ("auth_audit_log", "user_id"), ("user_google_identities", "user_id"),
+            ("google_login_tickets", "user_id"),
+        }
+        for table in Base.metadata.sorted_tables:
+            for column in table.c:
+                if not any(fk.target_fullname == "users.id" for fk in column.foreign_keys):
+                    continue
+                if (table.name, column.name) in exclusive_links:
+                    continue
+                if db.scalar(select(column).where(column == staff_id).limit(1)) is not None:
+                    raise HTTPException(status_code=409, detail="Trainer has related records. "
+                                        "Deactivate the account to preserve shared history.")
 
-    # Chat rows have no ON DELETE CASCADE to users.id, so any conversation this
-    # account took part in (as either side) must be cleared first or the
-    # user delete below fails on a foreign key violation.
-    convo_ids = db.scalars(
-        select(Conversation.id).where(or_(Conversation.user_a_id == user.id, Conversation.user_b_id == user.id))
-    ).all()
-    if convo_ids:
-        db.execute(delete(DirectMessage).where(DirectMessage.conversation_id.in_(convo_ids)))
-        db.execute(delete(Conversation).where(Conversation.id.in_(convo_ids)))
-
-    # A batch survives its trainer being deleted — unassign rather than
-    # cascade, since batches.trainer_id has no ON DELETE CASCADE and the
-    # batch (with its students) is meant to outlive any one trainer.
-    db.execute(update(Batch).where(Batch.trainer_id == user.id).values(trainer_id=None))
-
-    db.delete(user)  # cascades to staff_profile via the User.staff_profile relationship
-    db.commit()
-
-    ip, ua = _client_meta(request)
-    write_audit_event(
-        db, AuthEventType.trainer_deleted, ip, ua, user=actor, detail=f"Deleted trainer {username}",
-        module="trainers", target=username, status="success",
-    )
+        stage_student_deletion(db, user)  # Shared account cleanup helper; caller commits.
+        ip, ua = _client_meta(request)
+        write_audit_event(
+            db, AuthEventType.trainer_deleted, ip, ua, user=actor,
+            detail=f"Deleted trainer id={staff_id}; exclusive uploads queued for cleanup",
+            module="trainers", target=f"trainer:{staff_id}", status="success", commit=False,
+        )
+        db.commit()
+    except HTTPException:
+        db.rollback()
+        raise
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="A related record prevents trainer deletion. "
+                            "No changes were made; deactivate the account instead.")
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Unable to delete trainer. No changes were made.")
     return None

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -13,6 +13,16 @@ router = APIRouter(tags=["health"])
 @router.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@router.get("/ready")
+def readiness(db: Session = Depends(get_db)):
+    """Deployment readiness: the API can reach its configured database."""
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    return {"status": "ready"}
 
 
 @router.get("/admin/system/health")

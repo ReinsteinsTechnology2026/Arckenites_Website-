@@ -210,8 +210,9 @@ Then open `http://127.0.0.1:5600/`.
 **To test the submission flow without Google**, append a `?endpoint=`
 query parameter pointing at any server that accepts a POST and returns a
 `{"status": "ok"}` JSON body, for example a local stand-in server. This
-override exists only for testing; it does nothing for a real visitor who
-never adds that parameter. A local stand-in cannot generate a real PDF or
+override is accepted only when the page itself runs on `localhost` or
+`127.0.0.1`; public URLs ignore it even if a visitor adds the parameter.
+A local stand-in cannot generate a real PDF or
 send a real email — it only exercises the website's own request/response
 handling, never Apps Script's PDF/email logic itself.
 

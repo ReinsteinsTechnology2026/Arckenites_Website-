@@ -15,6 +15,21 @@ def revoke_all_sessions(db: Session, user_id: int) -> None:
     )
 
 
+def revoke_other_sessions(db: Session, user_id: int, current_session_id) -> None:
+    """End other active sessions after a self-service password change.
+
+    The current session stays usable so the existing onboarding flow can
+    continue to profile completion without another login.
+    """
+    db.execute(
+        update(AuthSession)
+        .where(AuthSession.user_id == user_id,
+               AuthSession.id != current_session_id,
+               AuthSession.revoked_at.is_(None))
+        .values(revoked_at=datetime.now(timezone.utc))
+    )
+
+
 def list_active_sessions(db: Session, user_id: int) -> list[AuthSession]:
     now = datetime.now(timezone.utc)
     return list(

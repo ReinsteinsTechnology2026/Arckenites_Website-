@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     env: str = "development"
 
     seed_admin1_username: str = "admin1@arckenites.com"
-    seed_admin1_password: str = "admin#001"
+    seed_admin1_password: str = ""
 
     # Public site origin used to build links inside outbound emails (the
     # "View on Arckenites Community" button). Never hardcode it in templates.

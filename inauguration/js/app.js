@@ -2,6 +2,14 @@
    Fully standalone: no dependency on the portal's js/api.js or js/auth.js,
    no login, no OTP, no password. The only external call is one POST to the
    configured Google Sheet endpoint. */
+function registrationEndpoint(location, configuredEndpoint) {
+  // The override is for local stand-in servers only. A crafted public URL
+  // must never redirect submitted registration data to another endpoint.
+  const local = ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
+  const override = local ? new URLSearchParams(location.search).get('endpoint') : null;
+  return override || configuredEndpoint || '';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('iaYear').textContent = new Date().getFullYear();
@@ -156,12 +164,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ---------- Registration endpoint ----------
-     A ?endpoint=... query parameter overrides the page's configured Apps
-     Script URL. This exists only so the flow can be tested locally against
-     a stand-in server without editing the page; production visitors never
-     pass this parameter, so they always hit the configured endpoint. */
-  const endpointOverride = new URLSearchParams(window.location.search).get('endpoint');
-  const SHEET_ENDPOINT = endpointOverride || window.INAUGURATION_SHEET_ENDPOINT || '';
+     Local development may override the configured Apps Script URL to use a
+     stand-in server. Public pages always use the configured endpoint. */
+  const SHEET_ENDPOINT = registrationEndpoint(window.location, window.INAUGURATION_SHEET_ENDPOINT);
 
   /* ---------- Modal open/close ---------- */
   const backdrop = document.getElementById('iaModalBackdrop');

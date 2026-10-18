@@ -1,0 +1,5153 @@
+{
+  "basis": "repository-models-only",
+  "commit": "a249de1c664721da55cb11cd52a95a1cf7609d5b",
+  "table_count": 45,
+  "tables": {
+    "admin_roles": {
+      "category": "preserve",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(100)",
+          "primary_key": false
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(100)",
+          "primary_key": false
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "nullable": true,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "is_system",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "community_registrations": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "full_name",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "mobile_number",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(30)",
+          "primary_key": false
+        },
+        {
+          "name": "mobile_normalized",
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(20)",
+          "primary_key": false
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(8)",
+          "nullable": false,
+          "postgresql_type": "community_registration_status_enum",
+          "primary_key": false
+        },
+        {
+          "name": "otp_hash",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "otp_expires_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "otp_attempts",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "otp_send_count",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "otp_window_started_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "verified_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "verification_token_hash",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "verification_token_expires_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "contact_enquiries": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "full_name",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "phone",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(30)",
+          "primary_key": false
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "subject",
+          "type": "VARCHAR(200)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "message",
+          "type": "TEXT",
+          "nullable": false,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "is_read",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "file_cleanup_jobs": {
+      "category": "preserve",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "storage_kind",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(30)",
+          "primary_key": false
+        },
+        {
+          "name": "storage_reference",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "last_attempt_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "lab_vms": {
+      "category": "preserve",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(150)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(150)",
+          "primary_key": false
+        },
+        {
+          "name": "hostname",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "rdp_port",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "operating_system",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(100)",
+          "primary_key": false
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "nullable": true,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "student_rdp_username",
+          "type": "VARCHAR(150)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(150)",
+          "primary_key": false
+        },
+        {
+          "name": "is_active",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "agent_token_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(64)",
+          "primary_key": false
+        },
+        {
+          "name": "agent_last_seen_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "current_agent_password_encrypted",
+          "type": "TEXT",
+          "nullable": true,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "permissions": {
+      "category": "preserve",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "key",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(100)",
+          "primary_key": false
+        },
+        {
+          "name": "module",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(100)",
+          "primary_key": false
+        },
+        {
+          "name": "action",
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(50)",
+          "primary_key": false
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "nullable": true,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "programs": {
+      "category": "preserve",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(80)",
+          "primary_key": false
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "code",
+          "type": "VARCHAR(40)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(40)",
+          "primary_key": false
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "nullable": true,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "category",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(120)",
+          "primary_key": false
+        },
+        {
+          "name": "duration",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(120)",
+          "primary_key": false
+        },
+        {
+          "name": "eligibility",
+          "type": "TEXT",
+          "nullable": true,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "objectives",
+          "type": "TEXT",
+          "nullable": true,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "max_capacity",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "mode",
+          "type": "VARCHAR(7)",
+          "nullable": false,
+          "postgresql_type": "program_mode_enum",
+          "primary_key": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(8)",
+          "nullable": false,
+          "postgresql_type": "program_status_enum",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "admin_role_permissions": {
+      "category": "preserve",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "admin_role_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "permission_key",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(100)",
+          "primary_key": false
+        }
+      ]
+    },
+    "users": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "username",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "password_hash",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "full_name",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "role",
+          "type": "VARCHAR(9)",
+          "nullable": false,
+          "postgresql_type": "role_enum",
+          "primary_key": false
+        },
+        {
+          "name": "admin_role_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "is_active",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "must_change_password",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "photo_path",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "failed_login_count",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "locked_until",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "last_login_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "password_changed_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "admin_profiles": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "auth_audit_log": {
+      "category": "audit-retain",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "username_attempted",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(120)",
+          "primary_key": false
+        },
+        {
+          "name": "event_type",
+          "type": "VARCHAR(34)",
+          "nullable": false,
+          "postgresql_type": "auth_event_type",
+          "primary_key": false
+        },
+        {
+          "name": "ip_address",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(64)",
+          "primary_key": false
+        },
+        {
+          "name": "user_agent",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "detail",
+          "type": "TEXT",
+          "nullable": true,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "module",
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(50)",
+          "primary_key": false
+        },
+        {
+          "name": "target",
+          "type": "VARCHAR(200)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(20)",
+          "primary_key": false
+        },
+        {
+          "name": "actor_role",
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(50)",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "auth_sessions": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "nullable": false,
+          "postgresql_type": "UUID",
+          "primary_key": true
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "issued_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "expires_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "revoked_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "ip_address",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(64)",
+          "primary_key": false
+        },
+        {
+          "name": "user_agent",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "batches": {
+      "category": "manual-review",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "course",
+          "type": "VARCHAR(200)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "batch_type",
+          "type": "VARCHAR(7)",
+          "nullable": false,
+          "postgresql_type": "batch_type_enum",
+          "primary_key": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(9)",
+          "nullable": false,
+          "postgresql_type": "batch_status_enum",
+          "primary_key": false
+        },
+        {
+          "name": "trainer_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "program_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "start_date",
+          "type": "DATE",
+          "nullable": true,
+          "postgresql_type": "DATE",
+          "primary_key": false
+        },
+        {
+          "name": "end_date",
+          "type": "DATE",
+          "nullable": true,
+          "postgresql_type": "DATE",
+          "primary_key": false
+        },
+        {
+          "name": "max_capacity",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "class_days",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(100)",
+          "primary_key": false
+        },
+        {
+          "name": "start_time",
+          "type": "TIME",
+          "nullable": true,
+          "postgresql_type": "TIME WITHOUT TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "end_time",
+          "type": "TIME",
+          "nullable": true,
+          "postgresql_type": "TIME WITHOUT TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "community_posts": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "kind",
+          "type": "VARCHAR(12)",
+          "nullable": false,
+          "postgresql_type": "community_post_kind_enum",
+          "primary_key": false
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "body",
+          "type": "TEXT",
+          "nullable": false,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "visibility",
+          "type": "VARCHAR(12)",
+          "nullable": false,
+          "postgresql_type": "community_post_visibility_enum",
+          "primary_key": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(9)",
+          "nullable": false,
+          "postgresql_type": "community_post_status_enum",
+          "primary_key": false
+        },
+        {
+          "name": "published_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "created_by_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "community_profiles": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "mobile_number",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(30)",
+          "primary_key": false
+        },
+        {
+          "name": "mobile_normalized",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(20)",
+          "primary_key": false
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "email_verified_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "conversations": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "user_a_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "user_b_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "user_a_last_read_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "user_b_last_read_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "google_login_tickets": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "token_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(64)",
+          "primary_key": false
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "expires_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "used_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "interview_schedules": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "student_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "company_name",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "role",
+          "type": "VARCHAR(200)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "interview_date",
+          "type": "DATE",
+          "nullable": false,
+          "postgresql_type": "DATE",
+          "primary_key": false
+        },
+        {
+          "name": "interview_time",
+          "type": "TIME",
+          "nullable": true,
+          "postgresql_type": "TIME WITHOUT TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "mode",
+          "type": "VARCHAR(7)",
+          "nullable": false,
+          "postgresql_type": "interview_mode_enum",
+          "primary_key": false
+        },
+        {
+          "name": "location_or_link",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(500)",
+          "primary_key": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(9)",
+          "nullable": false,
+          "postgresql_type": "interview_status_enum",
+          "primary_key": false
+        },
+        {
+          "name": "notes",
+          "type": "TEXT",
+          "nullable": true,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "lab_access_audit_log": {
+      "category": "audit-retain",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "student_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "admin_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "action",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(30)",
+          "primary_key": false
+        },
+        {
+          "name": "previous_status",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(20)",
+          "primary_key": false
+        },
+        {
+          "name": "new_status",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(20)",
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(500)",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "lab_access_overrides": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "student_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "access_mode",
+          "type": "VARCHAR(13)",
+          "nullable": false,
+          "postgresql_type": "lab_access_mode_enum",
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(500)",
+          "primary_key": false
+        },
+        {
+          "name": "updated_by",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "lab_slot_bookings": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "student_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "slot_date",
+          "type": "DATE",
+          "nullable": false,
+          "postgresql_type": "DATE",
+          "primary_key": false
+        },
+        {
+          "name": "start_time",
+          "type": "TIME",
+          "nullable": false,
+          "postgresql_type": "TIME WITHOUT TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "end_time",
+          "type": "TIME",
+          "nullable": false,
+          "postgresql_type": "TIME WITHOUT TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "lab_vm_access": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "student_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "vm_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(7)",
+          "nullable": false,
+          "postgresql_type": "lab_vm_access_status_enum",
+          "primary_key": false
+        },
+        {
+          "name": "granted_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "expires_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "granted_by",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "revoked_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "revoked_by",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "rdp_password_encrypted",
+          "type": "TEXT",
+          "nullable": true,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "lab_vm_access_audit_log": {
+      "category": "audit-retain",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "student_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "vm_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "action",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(30)",
+          "primary_key": false
+        },
+        {
+          "name": "performed_by",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(500)",
+          "primary_key": false
+        },
+        {
+          "name": "event_metadata",
+          "type": "JSONB",
+          "nullable": true,
+          "postgresql_type": "JSONB",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "leads": {
+      "category": "manual-review",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "full_name",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "phone",
+          "type": "VARCHAR(30)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(30)",
+          "primary_key": false
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "source",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(100)",
+          "primary_key": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(9)",
+          "nullable": false,
+          "postgresql_type": "lead_status_enum",
+          "primary_key": false
+        },
+        {
+          "name": "notes",
+          "type": "TEXT",
+          "nullable": true,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "created_by_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "program_enrollments": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "program_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "student_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(9)",
+          "nullable": false,
+          "postgresql_type": "enrollment_status_enum",
+          "primary_key": false
+        },
+        {
+          "name": "enrolled_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "staff_profiles": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "staff_code",
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(50)",
+          "primary_key": false
+        },
+        {
+          "name": "designation",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(120)",
+          "primary_key": false
+        },
+        {
+          "name": "department",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(120)",
+          "primary_key": false
+        },
+        {
+          "name": "phone",
+          "type": "VARCHAR(30)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(30)",
+          "primary_key": false
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "address",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(500)",
+          "primary_key": false
+        },
+        {
+          "name": "permissions",
+          "type": "JSON",
+          "nullable": true,
+          "postgresql_type": "JSON",
+          "primary_key": false
+        },
+        {
+          "name": "email_notifications_enabled",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "student_profiles": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "student_code",
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(50)",
+          "primary_key": false
+        },
+        {
+          "name": "phone",
+          "type": "VARCHAR(30)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(30)",
+          "primary_key": false
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "address",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(500)",
+          "primary_key": false
+        },
+        {
+          "name": "current_role",
+          "type": "VARCHAR(8)",
+          "nullable": true,
+          "postgresql_type": "current_role_enum",
+          "primary_key": false
+        },
+        {
+          "name": "program",
+          "type": "VARCHAR(22)",
+          "nullable": true,
+          "postgresql_type": "program_enum",
+          "primary_key": false
+        },
+        {
+          "name": "program_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "email_notifications_enabled",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "support_tickets": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "ticket_number",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(20)",
+          "primary_key": false
+        },
+        {
+          "name": "requester_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "subject",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "category",
+          "type": "VARCHAR(16)",
+          "nullable": false,
+          "postgresql_type": "ticket_category_enum",
+          "primary_key": false
+        },
+        {
+          "name": "priority",
+          "type": "VARCHAR(6)",
+          "nullable": false,
+          "postgresql_type": "ticket_priority_enum",
+          "primary_key": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(19)",
+          "nullable": false,
+          "postgresql_type": "ticket_status_enum",
+          "primary_key": false
+        },
+        {
+          "name": "assigned_to",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "requester_last_read_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "admin_last_read_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "resolved_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "closed_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "system_settings": {
+      "category": "preserve",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "institute_name",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "logo_url",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(500)",
+          "primary_key": false
+        },
+        {
+          "name": "contact_email",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "timezone",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(100)",
+          "primary_key": false
+        },
+        {
+          "name": "date_format",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(20)",
+          "primary_key": false
+        },
+        {
+          "name": "session_timeout_minutes",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "max_login_attempts",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "lockout_duration_minutes",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "require_strong_passwords",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "notify_new_account",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "notify_password_reset",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "notify_security_alert",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "maintenance_mode",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_by_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        }
+      ]
+    },
+    "user_google_identities": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "google_sub",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "linked_email",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "linked_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "batch_chat_read_state": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "batch_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "last_read_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "batch_enrollments": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "batch_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "student_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "joined_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "batch_messages": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "batch_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "sender_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "message",
+          "type": "TEXT",
+          "nullable": false,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "class_sessions": {
+      "category": "manual-review",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "batch_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "session_date",
+          "type": "DATE",
+          "nullable": false,
+          "postgresql_type": "DATE",
+          "primary_key": false
+        },
+        {
+          "name": "start_time",
+          "type": "TIME",
+          "nullable": true,
+          "postgresql_type": "TIME WITHOUT TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "end_time",
+          "type": "TIME",
+          "nullable": true,
+          "postgresql_type": "TIME WITHOUT TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "meeting_link",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(500)",
+          "primary_key": false
+        },
+        {
+          "name": "notes",
+          "type": "TEXT",
+          "nullable": true,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "class_videos": {
+      "category": "manual-review",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "batch_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "video_url",
+          "type": "VARCHAR(500)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(500)",
+          "primary_key": false
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "nullable": true,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "community_post_email_deliveries": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "post_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(7)",
+          "nullable": false,
+          "postgresql_type": "community_post_email_status_enum",
+          "primary_key": false
+        },
+        {
+          "name": "claimed_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "attempts",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "next_attempt_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "sent_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "error_code",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(64)",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "direct_messages": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "conversation_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "sender_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "body",
+          "type": "TEXT",
+          "nullable": false,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "meetings": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "meeting_token",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(32)",
+          "primary_key": false
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "nullable": true,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "host_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "batch_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "password_hash",
+          "type": "VARCHAR(200)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "scheduled_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "duration_minutes",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "max_participants",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(9)",
+          "nullable": false,
+          "postgresql_type": "meeting_status_enum",
+          "primary_key": false
+        },
+        {
+          "name": "started_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "ended_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "mic_enabled",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "camera_enabled",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "screen_share_enabled",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "chat_enabled",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "notes_enabled",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "participant_notes_enabled",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "recording_enabled",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "waiting_room_enabled",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "require_approval",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "study_materials": {
+      "category": "manual-review",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "batch_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(200)",
+          "primary_key": false
+        },
+        {
+          "name": "file_url",
+          "type": "VARCHAR(500)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(500)",
+          "primary_key": false
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "nullable": true,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "support_messages": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "ticket_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "sender_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "sender_type",
+          "type": "VARCHAR(7)",
+          "nullable": false,
+          "postgresql_type": "sender_type_enum",
+          "primary_key": false
+        },
+        {
+          "name": "message",
+          "type": "TEXT",
+          "nullable": false,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "is_internal",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "meeting_messages": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "meeting_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "message",
+          "type": "TEXT",
+          "nullable": false,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "is_system",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "postgresql_type": "BOOLEAN",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "meeting_notes": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "meeting_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "content",
+          "type": "TEXT",
+          "nullable": false,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "action_items",
+          "type": "TEXT",
+          "nullable": false,
+          "postgresql_type": "TEXT",
+          "primary_key": false
+        },
+        {
+          "name": "updated_by",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "meeting_participants": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "meeting_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "role",
+          "type": "VARCHAR(11)",
+          "nullable": false,
+          "postgresql_type": "meeting_participant_role_enum",
+          "primary_key": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(8)",
+          "nullable": false,
+          "postgresql_type": "meeting_participant_status_enum",
+          "primary_key": false
+        },
+        {
+          "name": "joined_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "left_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "meeting_recordings": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "meeting_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(10)",
+          "nullable": false,
+          "postgresql_type": "meeting_recording_status_enum",
+          "primary_key": false
+        },
+        {
+          "name": "file_path",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "postgresql_type": "VARCHAR(500)",
+          "primary_key": false
+        },
+        {
+          "name": "duration_seconds",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "file_size_bytes",
+          "type": "INTEGER",
+          "nullable": true,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "started_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        },
+        {
+          "name": "completed_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    },
+    "support_attachments": {
+      "category": "mixed/row-policy",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": true
+        },
+        {
+          "name": "ticket_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "message_id",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "file_name",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "file_type",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(100)",
+          "primary_key": false
+        },
+        {
+          "name": "file_size",
+          "type": "INTEGER",
+          "nullable": false,
+          "postgresql_type": "INTEGER",
+          "primary_key": false
+        },
+        {
+          "name": "storage_reference",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "postgresql_type": "VARCHAR(255)",
+          "primary_key": false
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "postgresql_type": "TIMESTAMP WITH TIME ZONE",
+          "primary_key": false
+        }
+      ]
+    }
+  },
+  "foreign_keys": [
+    {
+      "source_schema": "public",
+      "source_table": "admin_profiles",
+      "source_column": "user_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "admin_role_permissions",
+      "source_column": "admin_role_id",
+      "target_schema": "public",
+      "target_table": "admin_roles",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "admin_role_permissions",
+      "source_column": "permission_key",
+      "target_schema": "public",
+      "target_table": "permissions",
+      "target_column": "key",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "auth_audit_log",
+      "source_column": "user_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "auth_sessions",
+      "source_column": "user_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "batch_chat_read_state",
+      "source_column": "batch_id",
+      "target_schema": "public",
+      "target_table": "batches",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "batch_chat_read_state",
+      "source_column": "user_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "batch_enrollments",
+      "source_column": "batch_id",
+      "target_schema": "public",
+      "target_table": "batches",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "batch_enrollments",
+      "source_column": "student_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "batch_messages",
+      "source_column": "batch_id",
+      "target_schema": "public",
+      "target_table": "batches",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "batch_messages",
+      "source_column": "sender_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "batches",
+      "source_column": "program_id",
+      "target_schema": "public",
+      "target_table": "programs",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "batches",
+      "source_column": "trainer_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "class_sessions",
+      "source_column": "batch_id",
+      "target_schema": "public",
+      "target_table": "batches",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "class_videos",
+      "source_column": "batch_id",
+      "target_schema": "public",
+      "target_table": "batches",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "community_post_email_deliveries",
+      "source_column": "post_id",
+      "target_schema": "public",
+      "target_table": "community_posts",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "CASCADE"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "community_post_email_deliveries",
+      "source_column": "user_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "community_posts",
+      "source_column": "created_by_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "community_profiles",
+      "source_column": "user_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "conversations",
+      "source_column": "user_a_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "conversations",
+      "source_column": "user_b_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "direct_messages",
+      "source_column": "conversation_id",
+      "target_schema": "public",
+      "target_table": "conversations",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "direct_messages",
+      "source_column": "sender_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "google_login_tickets",
+      "source_column": "user_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "interview_schedules",
+      "source_column": "student_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "lab_access_audit_log",
+      "source_column": "admin_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "lab_access_audit_log",
+      "source_column": "student_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "lab_access_overrides",
+      "source_column": "student_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "lab_access_overrides",
+      "source_column": "updated_by",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "lab_slot_bookings",
+      "source_column": "student_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "lab_vm_access",
+      "source_column": "granted_by",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "lab_vm_access",
+      "source_column": "revoked_by",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "lab_vm_access",
+      "source_column": "student_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "lab_vm_access",
+      "source_column": "vm_id",
+      "target_schema": "public",
+      "target_table": "lab_vms",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "lab_vm_access_audit_log",
+      "source_column": "performed_by",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "lab_vm_access_audit_log",
+      "source_column": "student_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "lab_vm_access_audit_log",
+      "source_column": "vm_id",
+      "target_schema": "public",
+      "target_table": "lab_vms",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "leads",
+      "source_column": "created_by_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "meeting_messages",
+      "source_column": "meeting_id",
+      "target_schema": "public",
+      "target_table": "meetings",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "meeting_messages",
+      "source_column": "user_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "meeting_notes",
+      "source_column": "meeting_id",
+      "target_schema": "public",
+      "target_table": "meetings",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "meeting_notes",
+      "source_column": "updated_by",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "meeting_participants",
+      "source_column": "meeting_id",
+      "target_schema": "public",
+      "target_table": "meetings",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "meeting_participants",
+      "source_column": "user_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "meeting_recordings",
+      "source_column": "meeting_id",
+      "target_schema": "public",
+      "target_table": "meetings",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "meetings",
+      "source_column": "batch_id",
+      "target_schema": "public",
+      "target_table": "batches",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "meetings",
+      "source_column": "host_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "program_enrollments",
+      "source_column": "program_id",
+      "target_schema": "public",
+      "target_table": "programs",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "program_enrollments",
+      "source_column": "student_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "staff_profiles",
+      "source_column": "user_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "student_profiles",
+      "source_column": "program_id",
+      "target_schema": "public",
+      "target_table": "programs",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "student_profiles",
+      "source_column": "user_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "study_materials",
+      "source_column": "batch_id",
+      "target_schema": "public",
+      "target_table": "batches",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "support_attachments",
+      "source_column": "message_id",
+      "target_schema": "public",
+      "target_table": "support_messages",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "support_attachments",
+      "source_column": "ticket_id",
+      "target_schema": "public",
+      "target_table": "support_tickets",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "support_messages",
+      "source_column": "sender_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "support_messages",
+      "source_column": "ticket_id",
+      "target_schema": "public",
+      "target_table": "support_tickets",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "support_tickets",
+      "source_column": "assigned_to",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "support_tickets",
+      "source_column": "requester_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "system_settings",
+      "source_column": "updated_by_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "user_google_identities",
+      "source_column": "user_id",
+      "target_schema": "public",
+      "target_table": "users",
+      "target_column": "id",
+      "nullable": false,
+      "ondelete": "NO ACTION"
+    },
+    {
+      "source_schema": "public",
+      "source_table": "users",
+      "source_column": "admin_role_id",
+      "target_schema": "public",
+      "target_table": "admin_roles",
+      "target_column": "id",
+      "nullable": true,
+      "ondelete": "NO ACTION"
+    }
+  ],
+  "model_indexes": [
+    {
+      "table": "admin_role_permissions",
+      "name": "ix_admin_role_permissions_admin_role_id",
+      "unique": false,
+      "columns": [
+        "admin_role_id"
+      ]
+    },
+    {
+      "table": "admin_role_permissions",
+      "name": "ix_admin_role_permissions_permission_key",
+      "unique": false,
+      "columns": [
+        "permission_key"
+      ]
+    },
+    {
+      "table": "admin_roles",
+      "name": "ix_admin_roles_slug",
+      "unique": true,
+      "columns": [
+        "slug"
+      ]
+    },
+    {
+      "table": "auth_sessions",
+      "name": "ix_auth_sessions_user_id",
+      "unique": false,
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "batch_chat_read_state",
+      "name": "ix_batch_chat_read_state_batch_id",
+      "unique": false,
+      "columns": [
+        "batch_id"
+      ]
+    },
+    {
+      "table": "batch_chat_read_state",
+      "name": "ix_batch_chat_read_state_user_id",
+      "unique": false,
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "batch_enrollments",
+      "name": "ix_batch_enrollments_batch_id",
+      "unique": false,
+      "columns": [
+        "batch_id"
+      ]
+    },
+    {
+      "table": "batch_enrollments",
+      "name": "ix_batch_enrollments_student_id",
+      "unique": false,
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "batch_messages",
+      "name": "ix_batch_messages_batch_id",
+      "unique": false,
+      "columns": [
+        "batch_id"
+      ]
+    },
+    {
+      "table": "batches",
+      "name": "ix_batches_program_id",
+      "unique": false,
+      "columns": [
+        "program_id"
+      ]
+    },
+    {
+      "table": "class_sessions",
+      "name": "ix_class_sessions_batch_id",
+      "unique": false,
+      "columns": [
+        "batch_id"
+      ]
+    },
+    {
+      "table": "class_sessions",
+      "name": "ix_class_sessions_session_date",
+      "unique": false,
+      "columns": [
+        "session_date"
+      ]
+    },
+    {
+      "table": "class_videos",
+      "name": "ix_class_videos_batch_id",
+      "unique": false,
+      "columns": [
+        "batch_id"
+      ]
+    },
+    {
+      "table": "community_post_email_deliveries",
+      "name": "ix_community_post_deliveries_due",
+      "unique": false,
+      "columns": [
+        "status",
+        "next_attempt_at"
+      ]
+    },
+    {
+      "table": "community_post_email_deliveries",
+      "name": "ix_community_post_deliveries_status",
+      "unique": false,
+      "columns": [
+        "status"
+      ]
+    },
+    {
+      "table": "community_posts",
+      "name": "ix_community_posts_status_published_at",
+      "unique": false,
+      "columns": [
+        "status",
+        "published_at"
+      ]
+    },
+    {
+      "table": "community_profiles",
+      "name": "uq_community_profiles_email_lower",
+      "unique": true,
+      "columns": []
+    },
+    {
+      "table": "community_profiles",
+      "name": "uq_community_profiles_mobile_normalized",
+      "unique": true,
+      "columns": [
+        "mobile_normalized"
+      ]
+    },
+    {
+      "table": "community_registrations",
+      "name": "ix_community_registrations_email",
+      "unique": true,
+      "columns": [
+        "email"
+      ]
+    },
+    {
+      "table": "contact_enquiries",
+      "name": "ix_contact_enquiries_created_at",
+      "unique": false,
+      "columns": [
+        "created_at"
+      ]
+    },
+    {
+      "table": "direct_messages",
+      "name": "ix_direct_messages_conversation_id",
+      "unique": false,
+      "columns": [
+        "conversation_id"
+      ]
+    },
+    {
+      "table": "interview_schedules",
+      "name": "ix_interview_schedules_interview_date",
+      "unique": false,
+      "columns": [
+        "interview_date"
+      ]
+    },
+    {
+      "table": "interview_schedules",
+      "name": "ix_interview_schedules_student_id",
+      "unique": false,
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "lab_access_audit_log",
+      "name": "ix_lab_access_audit_log_student_id",
+      "unique": false,
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "lab_access_overrides",
+      "name": "ix_lab_access_overrides_student_id",
+      "unique": true,
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "lab_slot_bookings",
+      "name": "ix_lab_slot_bookings_slot_date",
+      "unique": false,
+      "columns": [
+        "slot_date"
+      ]
+    },
+    {
+      "table": "lab_slot_bookings",
+      "name": "ix_lab_slot_bookings_student_id",
+      "unique": false,
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "lab_vm_access",
+      "name": "ix_lab_vm_access_expires_at",
+      "unique": false,
+      "columns": [
+        "expires_at"
+      ]
+    },
+    {
+      "table": "lab_vm_access",
+      "name": "ix_lab_vm_access_status",
+      "unique": false,
+      "columns": [
+        "status"
+      ]
+    },
+    {
+      "table": "lab_vm_access",
+      "name": "ix_lab_vm_access_student_id",
+      "unique": false,
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "lab_vm_access",
+      "name": "ix_lab_vm_access_vm_id",
+      "unique": false,
+      "columns": [
+        "vm_id"
+      ]
+    },
+    {
+      "table": "lab_vm_access",
+      "name": "uq_one_active_lab_vm_access_per_student",
+      "unique": true,
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "lab_vm_access_audit_log",
+      "name": "ix_lab_vm_access_audit_log_created_at",
+      "unique": false,
+      "columns": [
+        "created_at"
+      ]
+    },
+    {
+      "table": "lab_vm_access_audit_log",
+      "name": "ix_lab_vm_access_audit_log_student_id",
+      "unique": false,
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "lab_vm_access_audit_log",
+      "name": "ix_lab_vm_access_audit_log_vm_id",
+      "unique": false,
+      "columns": [
+        "vm_id"
+      ]
+    },
+    {
+      "table": "lab_vms",
+      "name": "ix_lab_vms_agent_token_hash",
+      "unique": true,
+      "columns": [
+        "agent_token_hash"
+      ]
+    },
+    {
+      "table": "leads",
+      "name": "ix_leads_status",
+      "unique": false,
+      "columns": [
+        "status"
+      ]
+    },
+    {
+      "table": "meeting_messages",
+      "name": "ix_meeting_messages_meeting_id",
+      "unique": false,
+      "columns": [
+        "meeting_id"
+      ]
+    },
+    {
+      "table": "meeting_notes",
+      "name": "ix_meeting_notes_meeting_id",
+      "unique": true,
+      "columns": [
+        "meeting_id"
+      ]
+    },
+    {
+      "table": "meeting_participants",
+      "name": "ix_meeting_participants_meeting_id",
+      "unique": false,
+      "columns": [
+        "meeting_id"
+      ]
+    },
+    {
+      "table": "meeting_participants",
+      "name": "ix_meeting_participants_user_id",
+      "unique": false,
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "meeting_recordings",
+      "name": "ix_meeting_recordings_meeting_id",
+      "unique": false,
+      "columns": [
+        "meeting_id"
+      ]
+    },
+    {
+      "table": "meetings",
+      "name": "ix_meetings_batch_id",
+      "unique": false,
+      "columns": [
+        "batch_id"
+      ]
+    },
+    {
+      "table": "meetings",
+      "name": "ix_meetings_host_id",
+      "unique": false,
+      "columns": [
+        "host_id"
+      ]
+    },
+    {
+      "table": "meetings",
+      "name": "ix_meetings_meeting_token",
+      "unique": true,
+      "columns": [
+        "meeting_token"
+      ]
+    },
+    {
+      "table": "permissions",
+      "name": "ix_permissions_key",
+      "unique": true,
+      "columns": [
+        "key"
+      ]
+    },
+    {
+      "table": "program_enrollments",
+      "name": "ix_program_enrollments_program_id",
+      "unique": false,
+      "columns": [
+        "program_id"
+      ]
+    },
+    {
+      "table": "program_enrollments",
+      "name": "ix_program_enrollments_student_id",
+      "unique": false,
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "programs",
+      "name": "ix_programs_slug",
+      "unique": true,
+      "columns": [
+        "slug"
+      ]
+    },
+    {
+      "table": "study_materials",
+      "name": "ix_study_materials_batch_id",
+      "unique": false,
+      "columns": [
+        "batch_id"
+      ]
+    },
+    {
+      "table": "support_attachments",
+      "name": "ix_support_attachments_message_id",
+      "unique": false,
+      "columns": [
+        "message_id"
+      ]
+    },
+    {
+      "table": "support_attachments",
+      "name": "ix_support_attachments_ticket_id",
+      "unique": false,
+      "columns": [
+        "ticket_id"
+      ]
+    },
+    {
+      "table": "support_messages",
+      "name": "ix_support_messages_ticket_id",
+      "unique": false,
+      "columns": [
+        "ticket_id"
+      ]
+    },
+    {
+      "table": "support_tickets",
+      "name": "ix_support_tickets_requester_id",
+      "unique": false,
+      "columns": [
+        "requester_id"
+      ]
+    },
+    {
+      "table": "support_tickets",
+      "name": "ix_support_tickets_status",
+      "unique": false,
+      "columns": [
+        "status"
+      ]
+    },
+    {
+      "table": "support_tickets",
+      "name": "ix_support_tickets_ticket_number",
+      "unique": true,
+      "columns": [
+        "ticket_number"
+      ]
+    },
+    {
+      "table": "users",
+      "name": "ix_users_username",
+      "unique": true,
+      "columns": [
+        "username"
+      ]
+    },
+    {
+      "table": "users",
+      "name": "uq_users_email_login_normalized",
+      "unique": true,
+      "columns": [
+        "username"
+      ]
+    }
+  ],
+  "model_constraints": [
+    {
+      "table": "admin_profiles",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "admin_profiles",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "admin_profiles",
+      "name": null,
+      "kind": "UniqueConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "admin_role_permissions",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "admin_role_id"
+      ]
+    },
+    {
+      "table": "admin_role_permissions",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "permission_key"
+      ]
+    },
+    {
+      "table": "admin_role_permissions",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "admin_role_permissions",
+      "name": "uq_admin_role_permission",
+      "kind": "UniqueConstraint",
+      "columns": [
+        "admin_role_id",
+        "permission_key"
+      ]
+    },
+    {
+      "table": "admin_roles",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "auth_audit_log",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "auth_audit_log",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "auth_sessions",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "auth_sessions",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "batch_chat_read_state",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "batch_chat_read_state",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "batch_id"
+      ]
+    },
+    {
+      "table": "batch_chat_read_state",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "batch_chat_read_state",
+      "name": null,
+      "kind": "UniqueConstraint",
+      "columns": [
+        "batch_id",
+        "user_id"
+      ]
+    },
+    {
+      "table": "batch_enrollments",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "batch_id"
+      ]
+    },
+    {
+      "table": "batch_enrollments",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "batch_enrollments",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "batch_enrollments",
+      "name": null,
+      "kind": "UniqueConstraint",
+      "columns": [
+        "batch_id",
+        "student_id"
+      ]
+    },
+    {
+      "table": "batch_messages",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "sender_id"
+      ]
+    },
+    {
+      "table": "batch_messages",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "batch_id"
+      ]
+    },
+    {
+      "table": "batch_messages",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "batches",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "trainer_id"
+      ]
+    },
+    {
+      "table": "batches",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "program_id"
+      ]
+    },
+    {
+      "table": "batches",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "class_sessions",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "batch_id"
+      ]
+    },
+    {
+      "table": "class_sessions",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "class_videos",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "batch_id"
+      ]
+    },
+    {
+      "table": "class_videos",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "community_post_email_deliveries",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "post_id"
+      ]
+    },
+    {
+      "table": "community_post_email_deliveries",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "community_post_email_deliveries",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "community_post_email_deliveries",
+      "name": "uq_community_post_delivery_post_user",
+      "kind": "UniqueConstraint",
+      "columns": [
+        "post_id",
+        "user_id"
+      ]
+    },
+    {
+      "table": "community_posts",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "created_by_id"
+      ]
+    },
+    {
+      "table": "community_posts",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "community_profiles",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "community_profiles",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "community_profiles",
+      "name": null,
+      "kind": "UniqueConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "community_registrations",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "contact_enquiries",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "conversations",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "user_a_id"
+      ]
+    },
+    {
+      "table": "conversations",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "user_b_id"
+      ]
+    },
+    {
+      "table": "conversations",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "conversations",
+      "name": null,
+      "kind": "UniqueConstraint",
+      "columns": [
+        "user_a_id",
+        "user_b_id"
+      ]
+    },
+    {
+      "table": "direct_messages",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "conversation_id"
+      ]
+    },
+    {
+      "table": "direct_messages",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "sender_id"
+      ]
+    },
+    {
+      "table": "direct_messages",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "file_cleanup_jobs",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "google_login_tickets",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "google_login_tickets",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "google_login_tickets",
+      "name": null,
+      "kind": "UniqueConstraint",
+      "columns": [
+        "token_hash"
+      ]
+    },
+    {
+      "table": "interview_schedules",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "interview_schedules",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "lab_access_audit_log",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "lab_access_audit_log",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "admin_id"
+      ]
+    },
+    {
+      "table": "lab_access_audit_log",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "lab_access_overrides",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "updated_by"
+      ]
+    },
+    {
+      "table": "lab_access_overrides",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "lab_access_overrides",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "lab_slot_bookings",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "lab_slot_bookings",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "lab_slot_bookings",
+      "name": "uq_lab_booking_student_slot",
+      "kind": "UniqueConstraint",
+      "columns": [
+        "student_id",
+        "slot_date",
+        "start_time"
+      ]
+    },
+    {
+      "table": "lab_vm_access",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "granted_by"
+      ]
+    },
+    {
+      "table": "lab_vm_access",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "vm_id"
+      ]
+    },
+    {
+      "table": "lab_vm_access",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "revoked_by"
+      ]
+    },
+    {
+      "table": "lab_vm_access",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "lab_vm_access",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "lab_vm_access_audit_log",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "performed_by"
+      ]
+    },
+    {
+      "table": "lab_vm_access_audit_log",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "vm_id"
+      ]
+    },
+    {
+      "table": "lab_vm_access_audit_log",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "lab_vm_access_audit_log",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "lab_vms",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "leads",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "created_by_id"
+      ]
+    },
+    {
+      "table": "leads",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "meeting_messages",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "meeting_id"
+      ]
+    },
+    {
+      "table": "meeting_messages",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "meeting_messages",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "meeting_notes",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "meeting_id"
+      ]
+    },
+    {
+      "table": "meeting_notes",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "updated_by"
+      ]
+    },
+    {
+      "table": "meeting_notes",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "meeting_participants",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "meeting_id"
+      ]
+    },
+    {
+      "table": "meeting_participants",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "meeting_participants",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "meeting_recordings",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "meeting_id"
+      ]
+    },
+    {
+      "table": "meeting_recordings",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "meetings",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "host_id"
+      ]
+    },
+    {
+      "table": "meetings",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "batch_id"
+      ]
+    },
+    {
+      "table": "meetings",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "permissions",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "program_enrollments",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "program_id"
+      ]
+    },
+    {
+      "table": "program_enrollments",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "student_id"
+      ]
+    },
+    {
+      "table": "program_enrollments",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "program_enrollments",
+      "name": null,
+      "kind": "UniqueConstraint",
+      "columns": [
+        "program_id",
+        "student_id"
+      ]
+    },
+    {
+      "table": "programs",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "programs",
+      "name": null,
+      "kind": "UniqueConstraint",
+      "columns": [
+        "code"
+      ]
+    },
+    {
+      "table": "staff_profiles",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "staff_profiles",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "staff_profiles",
+      "name": null,
+      "kind": "UniqueConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "staff_profiles",
+      "name": null,
+      "kind": "UniqueConstraint",
+      "columns": [
+        "staff_code"
+      ]
+    },
+    {
+      "table": "student_profiles",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "program_id"
+      ]
+    },
+    {
+      "table": "student_profiles",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "student_profiles",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "student_profiles",
+      "name": null,
+      "kind": "UniqueConstraint",
+      "columns": [
+        "student_code"
+      ]
+    },
+    {
+      "table": "student_profiles",
+      "name": null,
+      "kind": "UniqueConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "study_materials",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "batch_id"
+      ]
+    },
+    {
+      "table": "study_materials",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "support_attachments",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "ticket_id"
+      ]
+    },
+    {
+      "table": "support_attachments",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "message_id"
+      ]
+    },
+    {
+      "table": "support_attachments",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "support_messages",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "ticket_id"
+      ]
+    },
+    {
+      "table": "support_messages",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "sender_id"
+      ]
+    },
+    {
+      "table": "support_messages",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "support_tickets",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "assigned_to"
+      ]
+    },
+    {
+      "table": "support_tickets",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "requester_id"
+      ]
+    },
+    {
+      "table": "support_tickets",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "system_settings",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "updated_by_id"
+      ]
+    },
+    {
+      "table": "system_settings",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "user_google_identities",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "user_google_identities",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    },
+    {
+      "table": "user_google_identities",
+      "name": null,
+      "kind": "UniqueConstraint",
+      "columns": [
+        "user_id"
+      ]
+    },
+    {
+      "table": "user_google_identities",
+      "name": null,
+      "kind": "UniqueConstraint",
+      "columns": [
+        "google_sub"
+      ]
+    },
+    {
+      "table": "users",
+      "name": null,
+      "kind": "ForeignKeyConstraint",
+      "columns": [
+        "admin_role_id"
+      ]
+    },
+    {
+      "table": "users",
+      "name": null,
+      "kind": "PrimaryKeyConstraint",
+      "columns": [
+        "id"
+      ]
+    }
+  ],
+  "production_schema_verified": false,
+  "execution_enabled": false,
+  "unclassified_model_tables": []
+}

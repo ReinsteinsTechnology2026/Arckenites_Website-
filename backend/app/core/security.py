@@ -8,6 +8,13 @@ import jwt
 from app.config import settings
 
 JWT_ALGORITHM = "HS256"
+MAX_BCRYPT_PASSWORD_BYTES = 72
+
+
+def validate_bcrypt_password_bytes(password: str) -> str:
+    if len(password.encode("utf-8")) > MAX_BCRYPT_PASSWORD_BYTES:
+        raise ValueError("Password must be at most 72 UTF-8 bytes.")
+    return password
 
 
 def validate_password_strength(password: str) -> str | None:
@@ -29,10 +36,13 @@ def validate_password_strength(password: str) -> str | None:
 
 
 def hash_password(plain_password: str) -> str:
+    validate_bcrypt_password_bytes(plain_password)
     return bcrypt.hashpw(plain_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, password_hash: str) -> bool:
+    if len(plain_password.encode("utf-8")) > MAX_BCRYPT_PASSWORD_BYTES:
+        return False
     return bcrypt.checkpw(plain_password.encode("utf-8"), password_hash.encode("utf-8"))
 
 

@@ -1,3 +1,7 @@
+const escapeDashboardHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+}[char]));
+
 document.addEventListener('DOMContentLoaded', async () => {
 
   const user = await ArckAuth.requireRole('admin');
@@ -142,8 +146,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     tbody.innerHTML = data.items.map((item) => `
       <tr>
-        <td>${item.actor_name}</td>
-        <td><span class="admin-activity-badge ${BADGE_CLASS[item.event_type] || 'is-muted'}" title="${item.message}">${EVENT_LABELS[item.event_type] || item.event_type}</span></td>
+        <td>${escapeDashboardHtml(item.actor_name)}</td>
+        <td><span class="admin-activity-badge ${BADGE_CLASS[item.event_type] || 'is-muted'}" title="${escapeDashboardHtml(item.message)}">${escapeDashboardHtml(EVENT_LABELS[item.event_type] || item.event_type)}</span></td>
         <td title="${new Date(item.created_at).toLocaleString()}">${relativeTime(item.created_at)}</td>
       </tr>
     `).join('');
@@ -158,7 +162,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const loadSystemHealth = ArckAPI.request('/admin/system/health').then((health) => {
     const badge = (v) => v === 'healthy'
       ? '<span class="admin-activity-badge is-success">Healthy</span>'
-      : `<span class="admin-activity-badge is-danger">${v}</span>`;
+      : `<span class="admin-activity-badge is-danger">${escapeDashboardHtml(v)}</span>`;
     document.getElementById('dashboardSystemHealth').innerHTML = `
       <span>Database ${badge(health.database)}</span>
       <span>Authentication ${badge(health.authentication)}</span>
@@ -175,7 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   notifList.innerHTML = securityItems.length
     ? securityItems.map((i) => `
         <div class="admin-notif-item">
-          <p>${i.message}</p>
+          <p>${escapeDashboardHtml(i.message)}</p>
           <time>${relativeTime(i.created_at)}</time>
         </div>
       `).join('')

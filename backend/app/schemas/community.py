@@ -91,6 +91,12 @@ class SetCommunityPasswordRequest(BaseModel):
     new_password: str = Field(min_length=1, max_length=200)
     confirm_password: str = Field(min_length=1, max_length=200)
 
+    @field_validator("new_password", "confirm_password")
+    @classmethod
+    def check_password_bytes(cls, value: str) -> str:
+        from app.core.security import validate_bcrypt_password_bytes
+        return validate_bcrypt_password_bytes(value)
+
 
 class UpdateCommunityMemberRequest(BaseModel):
     is_active: bool

@@ -4,6 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.core.security import validate_bcrypt_password_bytes
 from app.models.student import PROGRAM_LABELS, ProgramEnum
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -147,6 +148,11 @@ class UpdateStudentRequest(BaseModel):
     program: str | None = None
     program_id: int | None = Field(default=None, gt=0)
     reset_temp_password: str | None = Field(default=None, min_length=8, max_length=128)
+
+    @field_validator("reset_temp_password")
+    @classmethod
+    def check_reset_password_bytes(cls, value: str | None) -> str | None:
+        return validate_bcrypt_password_bytes(value) if value is not None else None
 
     @field_validator("program")
     @classmethod

@@ -7,12 +7,76 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
-    runs-on: self-hosted
-
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: arckenites_qa
+          POSTGRES_PASSWORD: arckenites_qa_ci_only
+          POSTGRES_DB: arckenites_qa_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U arckenites_qa -d arckenites_qa_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://arckenites_qa:arckenites_qa_ci_only@127.0.0.1:5432/arckenites_qa_ci
+      JWT_SECRET: isolated-ci-secret-never-used-in-production
+      ENV: test
+      SEED_ADMIN1_USERNAME: admin1@arckenites.com
+      SEED_ADMIN1_PASSWORD: IsolatedCiBootstrapPassword-2026
+      ARCK_ENABLE_POSTGRES_INTEGRATION: '1'
+      ARCK_QA_DATABASE_MARKER: arckenites-ci-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-      - name: Deploy application
-        # Run a copy of the script, never the file in the repository. The
-        # script runs `git reset --hard`, which rewrites /opt/arckenites/deploy.sh
-        # while bash is still reading it. The copy is not part of that reset.
-        run: cp /opt/arckenites/deploy.sh /tmp/deploy.sh && bash /tmp/deploy.sh
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Static checks
+        run: |
+          bash -n deploy.sh
+          find arckenites-orange/js inauguration/js -name '*.js' -print0 | xargs -0 -n1 node --check
+          node backend/tests/admin_program_ui.test.cjs
+          node backend/tests/admin_dashboard_security.test.cjs
+          node backend/tests/inauguration_endpoint.test.cjs
+          node backend/tests/public_newsletter.test.cjs
+          python -m compileall -q backend/app backend/tests
+      - name: Python dependencies
+        working-directory: backend
+        run: python -m pip install -r requirements.txt
+      - name: Disposable PostgreSQL migrations and recovery
+        working-directory: backend
+        run: |
+          python -m alembic upgrade head
+          python -m alembic downgrade -1
+          python -m alembic upgrade head
+          python -m alembic current
+          python seed.py
+      - name: Mark the disposable QA database
+        working-directory: backend
+        env:
+          ARCK_QA_PREPARE: '1'
+        run: python tests/prepare_postgres_qa.py
+      - name: Full Python suite, including PostgreSQL integration
+        working-directory: backend
+        run: python -m unittest discover -s tests -q
+
+  deploy:
+    needs: quality
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy tested commit
+        env:
+          ARCK_EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          cp deploy.sh "$RUNNER_TEMP/arckenites-deploy.sh"
+          bash "$RUNNER_TEMP/arckenites-deploy.sh"

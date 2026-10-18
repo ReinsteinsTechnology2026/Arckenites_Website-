@@ -94,15 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   counters.forEach((c) => counterObserver.observe(c));
 
-  /* ---------- Newsletter form (demo submit) ---------- */
-  const newsletterForm = document.getElementById('newsletterForm');
-  newsletterForm?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const input = newsletterForm.querySelector('input');
-    input.value = '';
-    input.placeholder = "Thanks! You're subscribed 🎉";
-  });
-
   /* ---------- Our Programs data + render ---------- */
   const courses = [
     { icon: 'fa-solid fa-certificate', title: 'Official Certification Program', desc: 'Globally recognized certifications backed by industry-aligned assessments.', link: 'certification-program.html' },

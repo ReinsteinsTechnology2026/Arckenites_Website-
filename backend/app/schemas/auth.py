@@ -2,6 +2,8 @@ import re
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.core.security import validate_bcrypt_password_bytes
+
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
@@ -67,6 +69,11 @@ class UpdateNotificationPreferenceRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
     current_password: str = Field(min_length=1, max_length=128)
     new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def check_password_bytes(cls, value: str) -> str:
+        return validate_bcrypt_password_bytes(value)
 
 
 class UpdateMyProfileRequest(BaseModel):

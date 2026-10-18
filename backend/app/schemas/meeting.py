@@ -1,6 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from app.core.security import validate_bcrypt_password_bytes
 
 
 class CreateMeetingRequest(BaseModel):
@@ -10,6 +12,11 @@ class CreateMeetingRequest(BaseModel):
     scheduled_at: datetime
     duration_minutes: int = Field(default=60, ge=5, le=480)
     password: str | None = Field(default=None, min_length=4, max_length=100)
+
+    @field_validator("password")
+    @classmethod
+    def check_password_bytes(cls, value: str | None) -> str | None:
+        return validate_bcrypt_password_bytes(value) if value is not None else None
     max_participants: int | None = Field(default=None, ge=1, le=500)
 
     mic_enabled: bool = True
@@ -33,6 +40,11 @@ class UpdateMeetingRequest(BaseModel):
     duration_minutes: int | None = Field(default=None, ge=5, le=480)
     password: str | None = Field(default=None, min_length=4, max_length=100)
     clear_password: bool = False
+
+    @field_validator("password")
+    @classmethod
+    def check_password_bytes(cls, value: str | None) -> str | None:
+        return validate_bcrypt_password_bytes(value) if value is not None else None
     max_participants: int | None = None
 
     mic_enabled: bool | None = None

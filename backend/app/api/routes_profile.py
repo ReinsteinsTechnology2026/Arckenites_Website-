@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user_flexible, require_role
-from app.core.uploads import delete_profile_photo, get_profile_photo_path, save_profile_photo
+from app.core.uploads import MAX_PHOTO_SIZE_BYTES, delete_profile_photo, get_profile_photo_path, read_upload_limited, save_profile_photo
 from app.crud.profile import to_public_profile
 from app.database import get_db
 from app.models.user import User
@@ -22,7 +22,7 @@ async def upload_my_photo(
     db: Session = Depends(get_db),
     user: User = Depends(require_role(*PHOTO_ROLES)),
 ):
-    contents = await file.read()
+    contents = await read_upload_limited(file, MAX_PHOTO_SIZE_BYTES)
     storage_reference = save_profile_photo(file, contents)
     old_reference = user.photo_path
 

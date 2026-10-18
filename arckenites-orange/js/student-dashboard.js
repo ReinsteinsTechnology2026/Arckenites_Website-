@@ -36,8 +36,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const user = await ArckAuth.requireRole('student');
   if (!user) return; // requireRole already redirected
 
-  if (user.program !== 'institutional') {
-    // Plain layout: no sidebar yet for this student's program.
+  if (!user.program_name && !user.program) {
+    // Accounts awaiting program assignment receive the small welcome layout.
     document.getElementById('simpleLayout').style.display = 'block';
     document.getElementById('simpleWelcome').textContent = `Welcome, ${user.full_name}`;
     document.getElementById('simpleProgram').textContent = `Program: ${user.program_name || PROGRAM_LABELS[user.program] || 'Not assigned yet'}`;
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  /* ---------- Sidebar layout (Institutional Program) ---------- */
+  /* ---------- Sidebar layout for assigned programs ---------- */
   document.getElementById('sidebarLayout').style.display = 'flex';
   document.getElementById('studentLogoutBtn').addEventListener('click', () => ArckAuth.logout());
 

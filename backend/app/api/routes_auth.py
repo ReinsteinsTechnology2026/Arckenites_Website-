@@ -14,13 +14,14 @@ from app.core.rate_limit import (
 from app.core.security import create_access_token, hash_password, validate_password_strength, verify_password
 from app.crud.audit import write_audit_event
 from app.crud.permissions import get_effective_permissions
+from app.crud.session import revoke_other_sessions
 from app.crud.system_settings import get_settings
 from app.crud.user import get_by_username
 from app.database import get_db
 from app.models.audit_log import AuthEventType
 from app.models.session import AuthSession
 from app.models.user import RoleEnum, User
-from app.schemas.auth import ChangePasswordRequest, LoginRequest, LoginResponse, MeResponse, UserOut
+from app.schemas.auth import AdminRoleSummary, ChangePasswordRequest, LoginRequest, LoginResponse, MeResponse, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -40,7 +41,7 @@ def _user_out(db: Session, user: User) -> UserOut:
     out = UserOut.model_validate(user)
     out.permissions = get_effective_permissions(db, user)
     if user.admin_role is not None:
-        out.admin_role = {"id": user.admin_role.id, "name": user.admin_role.name, "slug": user.admin_role.slug}
+        out.admin_role = AdminRoleSummary.model_validate(user.admin_role)
     return out
 
 
@@ -128,9 +129,13 @@ def change_password(
     user.must_change_password = False
     user.password_changed_at = datetime.now(timezone.utc)
     db.add(user)
-    db.commit()
-
-    write_audit_event(db, AuthEventType.password_change, ip, ua, user=user)
+    try:
+        revoke_other_sessions(db, user.id, user._current_session.id)
+        write_audit_event(db, AuthEventType.password_change, ip, ua, user=user, commit=False)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Could not change password. Please try again.")
     return None
 
 

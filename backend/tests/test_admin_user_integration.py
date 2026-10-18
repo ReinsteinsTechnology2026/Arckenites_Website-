@@ -10,7 +10,10 @@ production. SKIPPED ENTIRELY (not failed) if unreachable.
 """
 
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+from threading import Event, Lock
 from datetime import datetime, timezone
+from unittest.mock import patch
 
 from fastapi import HTTPException
 from sqlalchemy import delete as sa_delete
@@ -18,7 +21,8 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
-from app.api.routes_admin_users import update_admin_user
+from app.api import routes_admin_users as admin_users_module
+from app.api.routes_admin_users import _count_active_super_admins, delete_admin_user, update_admin_user
 from app.core.security import hash_password
 from app.crud.user import generate_admin_username
 from app.database import engine
@@ -28,9 +32,12 @@ from app.models.audit_log import AuthAuditLog
 from app.models.session import AuthSession
 from app.models.user import RoleEnum, User
 from app.schemas.admin_users import UpdateAdminUserRequest
+from postgres_safety import isolated_postgres_enabled
 
 
 def _db_reachable() -> bool:
+    if not isolated_postgres_enabled():
+        return False
     try:
         with engine.connect() as conn:
             conn.execute(select(1))
@@ -184,6 +191,87 @@ class TestAdminUserUpdateIntegration(unittest.TestCase):
 
         audit_rows = self.db.scalars(select(AuthAuditLog).where(AuthAuditLog.target == target.username)).all()
         self.assertEqual(len(audit_rows), 1)
+
+    def _race_last_two_super_admins(self, operation: str) -> None:
+        # These tests run only on an explicitly marked, disposable QA DB.
+        self.assertEqual(_count_active_super_admins(self.db), 1)
+        first = self._make_target_admin(f"race{operation}a")
+        second = self._make_target_admin(f"race{operation}b")
+        super_role = self.db.scalar(select(AdminRole).where(AdminRole.slug == "super_admin"))
+        support_role = self.db.scalar(select(AdminRole).where(AdminRole.slug == "support_admin"))
+        support_role_id = support_role.id
+        first.admin_role_id = second.admin_role_id = super_role.id
+        self.actor.is_active = False
+        self.db.commit()
+        first_id, second_id = first.id, second.id
+        self.db.rollback()
+
+        # Hold the shared row until BOTH requests have reached the lock. This
+        # makes contention reproducible instead of relying on thread timing.
+        reached = Event()
+        arrival_lock = Lock()
+        arrivals = 0
+        original_lock = admin_users_module._lock_super_admin_role
+
+        def observed_lock(session):
+            nonlocal arrivals
+            with arrival_lock:
+                arrivals += 1
+                if arrivals == 2:
+                    reached.set()
+            return original_lock(session)
+
+        def attempt(target_id, actor_id):
+            with Session(bind=engine) as session:
+                actor = session.get(User, actor_id)
+                try:
+                    if operation == "delete":
+                        delete_admin_user(target_id, make_request(), db=session, actor=actor)
+                    else:
+                        payload = (UpdateAdminUserRequest(is_active=False) if operation == "disable" else
+                                   UpdateAdminUserRequest(admin_role_id=support_role_id))
+                        update_admin_user(target_id, payload, make_request(), db=session, actor=actor)
+                    return target_id, "success"
+                except HTTPException as error:
+                    return target_id, f"blocked:{error.status_code}"
+
+        try:
+            with Session(bind=engine) as controller:
+                controller.scalar(select(AdminRole.id).where(AdminRole.slug == "super_admin").with_for_update())
+                try:
+                    with patch.object(admin_users_module, "_lock_super_admin_role", side_effect=observed_lock):
+                        with ThreadPoolExecutor(max_workers=2) as pool:
+                            futures = [pool.submit(attempt, first_id, second_id),
+                                       pool.submit(attempt, second_id, first_id)]
+                            self.assertTrue(reached.wait(20), "both requests must reach the shared role lock")
+                            controller.commit()
+                            results = [future.result(timeout=30) for future in futures]
+                finally:
+                    controller.rollback()
+            self.assertCountEqual([result for _, result in results], ["success", "blocked:400"])
+            blocked_id = next(target_id for target_id, result in results if result == "blocked:400")
+            self.db.expire_all()
+            blocked = self.db.get(User, blocked_id)
+            self.assertIsNotNone(blocked, "a rejected request cannot partially delete its target")
+            self.assertTrue(blocked.is_active, "a rejected request cannot partially deactivate its target")
+            self.assertEqual(blocked.admin_role.slug, "super_admin")
+            self.assertEqual(_count_active_super_admins(self.db), 1)
+        finally:
+            self.db.rollback()
+            seed_admin = self.db.get(User, self.actor.id)
+            seed_admin.is_active = True
+            self.db.execute(sa_delete(AuthAuditLog).where(
+                AuthAuditLog.target.in_([f"admin:{first_id}", f"admin:{second_id}"])))
+            self.db.commit()
+
+    def test_concurrent_deactivation_preserves_one_active_super_admin(self):
+        self._race_last_two_super_admins("disable")
+
+    def test_concurrent_deletion_preserves_one_active_super_admin(self):
+        self._race_last_two_super_admins("delete")
+
+    def test_concurrent_role_change_preserves_one_active_super_admin(self):
+        self._race_last_two_super_admins("role")
 
 
 if __name__ == "__main__":

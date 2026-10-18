@@ -44,6 +44,7 @@ BACKEND_DIR="${ARCK_BACKEND_DIR:-$APP_DIR/backend}"
 VENV="$BACKEND_DIR/venv/bin"
 SERVICE="${ARCK_SERVICE:-arckenites-backend}"
 HEALTH_URL="${ARCK_HEALTH_URL:-http://127.0.0.1:8000/api/health}"
+READY_URL="${ARCK_READY_URL:-http://127.0.0.1:8000/api/ready}"
 SITE_URL="${ARCK_SITE_URL:-https://arckenites.com}"
 
 # Where we are, so the failure handler knows what has and has not changed.
@@ -81,7 +82,9 @@ on_error() {
         code)
             log "Restoring the previously deployed code. No database change had been made."
             git -C "$APP_DIR" reset --hard "$OLD_APP_SHA" || log "Could not restore application code."
-            git -C "$FRONTEND_DIR" reset --hard "$OLD_FRONTEND_SHA" || log "Could not restore frontend code."
+            if [[ "${FRONTEND_SEPARATE:-false}" == true ]]; then
+                git -C "$FRONTEND_DIR" reset --hard "$OLD_FRONTEND_SHA" || log "Could not restore frontend code."
+            fi
             if (cd "$BACKEND_DIR" && "$VENV/pip" install -r requirements.txt); then
                 sudo -n systemctl start "$SERVICE" || log "Could not start $SERVICE. Check it manually."
             else
@@ -113,9 +116,26 @@ git fetch origin main
 NEW_APP_SHA="$(git rev-parse origin/main)"
 OLD_APP_SHA="$(git rev-parse HEAD)"
 
-git -C "$FRONTEND_DIR" fetch origin main
-NEW_FRONTEND_SHA="$(git -C "$FRONTEND_DIR" rev-parse origin/main)"
-OLD_FRONTEND_SHA="$(git -C "$FRONTEND_DIR" rev-parse HEAD)"
+# Only deploy the commit which passed the workflow's quality job. A later
+# push to main must not be deployed under the earlier run's green result.
+if [[ ! "${ARCK_EXPECTED_SHA:-}" =~ ^[0-9a-f]{40}$ ]] || [[ "$NEW_APP_SHA" != "$ARCK_EXPECTED_SHA" ]]; then
+    log "Expected tested commit does not match origin/main; refusing deployment."
+    exit 1
+fi
+
+APP_GIT_ROOT="$(git -C "$APP_DIR" rev-parse --show-toplevel)"
+FRONTEND_GIT_ROOT="$(git -C "$FRONTEND_DIR" rev-parse --show-toplevel)"
+FRONTEND_SEPARATE=false
+if [[ "$FRONTEND_GIT_ROOT" != "$APP_GIT_ROOT" ]]; then
+    FRONTEND_SEPARATE=true
+    git -C "$FRONTEND_DIR" fetch origin main
+    NEW_FRONTEND_SHA="$(git -C "$FRONTEND_DIR" rev-parse origin/main)"
+    OLD_FRONTEND_SHA="$(git -C "$FRONTEND_DIR" rev-parse HEAD)"
+    if [[ "$NEW_FRONTEND_SHA" != "$ARCK_EXPECTED_SHA" ]]; then
+        log "Separate frontend checkout differs from the tested commit; refusing deployment."
+        exit 1
+    fi
+fi
 log "Deploying application $NEW_APP_SHA (currently $OLD_APP_SHA)"
 
 PHASE="stopping"
@@ -127,7 +147,9 @@ PHASE="code"
 log "Updating application code..."
 git -C "$APP_DIR" reset --hard "$NEW_APP_SHA"
 log "Updating frontend code..."
-git -C "$FRONTEND_DIR" reset --hard "$NEW_FRONTEND_SHA"
+if [[ "$FRONTEND_SEPARATE" == true ]]; then
+    git -C "$FRONTEND_DIR" reset --hard "$NEW_FRONTEND_SHA"
+fi
 
 log "Installing backend dependencies..."
 (cd "$BACKEND_DIR" && "$VENV/pip" install -r requirements.txt)
@@ -154,6 +176,14 @@ if ! wait_for_health; then
     exit 1
 fi
 log "Backend is healthy."
+
+log "Checking database readiness..."
+if ! curl -fsS "$READY_URL"; then
+    log "ERROR: backend cannot reach the database. Service is left running for inspection."
+    exit 1
+fi
+echo
+log "Database is reachable."
 
 log "Checking frontend..."
 curl -fsS -o /dev/null "$SITE_URL/"

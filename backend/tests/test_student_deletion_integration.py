@@ -30,23 +30,27 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
-from app.api.routes_admin_students import _student_has_related_records, delete_student, update_student
+from app.api.routes_admin_students import _student_has_related_records, delete_student, permanently_delete_student, update_student
 from app.api.routes_auth import login
 from app.core.security import hash_password
 from app.crud.user import generate_student_code, generate_username
 from app.database import engine
-from app.models.audit_log import AuthAuditLog
+from app.models.audit_log import AuthAuditLog, AuthEventType
 from app.models.batch import Batch, BatchEnrollment, BatchStatusEnum, BatchTypeEnum
 from app.models.session import AuthSession
+from app.models.chat import Conversation, DirectMessage
 from app.models.student import ProgramEnum, StudentProfile
-from app.models.support import SupportTicket, TicketCategoryEnum, TicketPriorityEnum, TicketStatusEnum
+from app.models.support import SupportMessage, SupportTicket, SenderTypeEnum, TicketCategoryEnum, TicketPriorityEnum, TicketStatusEnum
 from app.models.user import RoleEnum, User
-from app.schemas.admin_students import UpdateStudentRequest
+from app.schemas.admin_students import PermanentDeleteStudentRequest, UpdateStudentRequest
+from postgres_safety import isolated_postgres_enabled
 
 USERNAME_PREFIX = "integtest."
 
 
 def _db_reachable() -> bool:
+    if not isolated_postgres_enabled():
+        return False
     try:
         with engine.connect() as conn:
             conn.execute(select(1))
@@ -133,6 +137,62 @@ class TestStudentDeletionIntegration(unittest.TestCase):
         self._created_user_ids.remove(student.id)  # already gone — nothing to clean up
 
     # ---------- deactivation path: student status + session revocation + audit, atomically ----------
+    def test_permanent_delete_detaches_shared_history_on_postgresql(self):
+        student = self._make_student("permanentshared")
+        uid = student.id
+        ticket = SupportTicket(
+            requester_id=uid, ticket_number=f"TKT-QA-{uid}", subject="Shared QA history",
+            status=TicketStatusEnum.open, priority=TicketPriorityEnum.medium, category=TicketCategoryEnum.other,
+        )
+        conversation = Conversation(user_a_id=min(self.actor.id, uid), user_b_id=max(self.actor.id, uid))
+        self.db.add_all([ticket, conversation])
+        self.db.flush()
+        self.db.add_all([
+            SupportMessage(ticket_id=ticket.id, sender_id=uid, sender_type=SenderTypeEnum.student,
+                           message="Student contribution"),
+            SupportMessage(ticket_id=ticket.id, sender_id=self.actor.id, sender_type=SenderTypeEnum.admin,
+                           message="Admin contribution"),
+            DirectMessage(conversation_id=conversation.id, sender_id=uid, body="Student chat"),
+            DirectMessage(conversation_id=conversation.id, sender_id=self.actor.id, body="Admin chat"),
+            AuthSession(id=uuid.uuid4(), user_id=uid,
+                        expires_at=datetime.now(timezone.utc).replace(year=2099),
+                        ip_address="127.0.0.1", user_agent="qa"),
+        ])
+        self.db.commit()
+        ticket_id, conversation_id = ticket.id, conversation.id
+        try:
+            result = permanently_delete_student(
+                uid, PermanentDeleteStudentRequest(confirm_username=student.username,
+                                                    confirmation="PERMANENTLY DELETE"),
+                make_request(), db=self.db, actor=self.actor,
+            )
+            self.assertEqual(result.action, "permanently_deleted")
+            self.assertIsNone(self.db.get(User, uid))
+            self._created_user_ids.remove(uid)
+            self.db.expire_all()
+            self.assertIsNone(self.db.get(SupportTicket, ticket_id).requester_id)
+            messages = self.db.scalars(select(SupportMessage).where(SupportMessage.ticket_id == ticket_id)).all()
+            self.assertEqual(len(messages), 2)
+            self.assertEqual({m.sender_id for m in messages}, {None, self.actor.id})
+            self.assertIsNotNone(self.db.get(Conversation, conversation_id))
+            chats = self.db.scalars(select(DirectMessage).where(DirectMessage.conversation_id == conversation_id)).all()
+            self.assertEqual(len(chats), 2)
+            self.assertEqual({m.sender_id for m in chats}, {None, self.actor.id})
+            self.assertIsNone(self.db.scalar(select(AuthSession).where(AuthSession.user_id == uid)))
+            audit = self.db.scalar(select(AuthAuditLog).where(
+                AuthAuditLog.event_type == AuthEventType.student_deleted,
+                AuthAuditLog.target == f"student:{uid}"))
+            self.assertIsNotNone(audit)
+            self.assertEqual(audit.user_id, self.actor.id)
+        finally:
+            self.db.rollback()
+            self.db.execute(sa_delete(DirectMessage).where(DirectMessage.conversation_id == conversation_id))
+            self.db.execute(sa_delete(Conversation).where(Conversation.id == conversation_id))
+            self.db.execute(sa_delete(SupportMessage).where(SupportMessage.ticket_id == ticket_id))
+            self.db.execute(sa_delete(SupportTicket).where(SupportTicket.id == ticket_id))
+            self.db.execute(sa_delete(AuthAuditLog).where(AuthAuditLog.target == f"student:{uid}"))
+            self.db.commit()
+
     def test_deactivation_commits_status_sessions_and_audit_together(self):
         student = self._make_student("withticket")
         self.db.add(SupportTicket(
