@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let state;
   const message = (value, error = false) => {
     const el = root.querySelector('#mfaMessage');
-    el.textContent = value;
+    el.textContent = typeof value === 'string' ? value : 'Something went wrong. Please try again.';
     el.style.color = error ? '#c74343' : '';
   };
   const codes = (list) => {
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         <button type="button" class="btn btn-primary-outline mt-2" data-mfa-action="begin">Generate QR code</button>
         <div id="mfaQrPanel" style="display:none; margin-top:16px;">
           <img id="mfaQr" alt="Authenticator setup QR code" style="max-width:220px;">
-          <input type="text" class="form-control mt-2" id="mfaSetupCode" placeholder="Six-digit authenticator code" autocomplete="one-time-code">
+          <input type="text" class="form-control mt-2" id="mfaSetupCode" placeholder="Six-digit authenticator code" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]{6}" aria-describedby="mfaMessage">
           <button type="button" class="btn btn-accent mt-2" data-mfa-action="confirm">Confirm MFA setup</button>
         </div>
       </div>
@@ -72,6 +72,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     render();
   };
   try { await load(); } catch (_) { root.textContent = 'Could not load MFA settings.'; return; }
+  // Authenticator apps show codes as "123 456"; keep only digits, at most six.
+  root.addEventListener('input', (event) => {
+    if (event.target.id !== 'mfaSetupCode') return;
+    const digits = event.target.value.replace(/\D/g, '').slice(0, 6);
+    if (event.target.value !== digits) event.target.value = digits;
+  });
   root.addEventListener('click', async (event) => {
     const button = event.target.closest('[data-mfa-action]');
     if (!button) return;
@@ -89,7 +95,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (action === 'disable' && !window.confirm('Disable MFA and sign out every device?')) return;
     if (action === 'policy' && !window.confirm(state.required_by_policy
       ? 'Turn off the organization MFA requirement?' : 'Require MFA for every interactive user?')) return;
+    const idleLabel = button.textContent;
     button.disabled = true;
+    button.textContent = 'Working…';
     try {
       if (action === 'begin') {
         const password = root.querySelector('#mfaSetupPassword').value;
@@ -99,10 +107,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         root.querySelector('#mfaQrPanel').style.display = 'block';
         message('Scan the QR code, then enter the current code.');
       } else if (action === 'confirm') {
-        const code = root.querySelector('#mfaSetupCode').value.trim();
+        const code = root.querySelector('#mfaSetupCode').value.replace(/\s+/g, '');
+        if (!/^[0-9]{6}$/.test(code)) {
+          message('Enter the six-digit code from your authenticator app.', true);
+          return;
+        }
         const result = await ArckAPI.request('/auth/mfa/setup/confirm', {method: 'POST', body: {code}});
         await load();
         codes(result.recovery_codes);
+        message('MFA is now enabled. Save your recovery codes below; they will not be shown again.');
       } else if (action === 'disable') {
         const password = root.querySelector('#mfaDisablePassword').value;
         const code = root.querySelector('#mfaDisableCode').value.trim();
@@ -124,9 +137,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         message('Organization MFA policy updated. Existing password-only sessions are revoked when enabled.');
       }
     } catch (err) {
-      message(err.detail || 'MFA action failed. Try again.', true);
+      const fallback = action === 'confirm' ? 'MFA setup could not be completed. Please try again.'
+        : action === 'begin' ? 'The QR code could not be generated. Please try again.'
+        : 'MFA action failed. Try again.';
+      message(ArckAPI.errorMessage(err, fallback), true);
     } finally {
-      if (button.isConnected) button.disabled = false;
+      if (button.isConnected) { button.disabled = false; button.textContent = idleLabel; }
     }
   });
 });

@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('mfaEnrollmentImage').src = setup.qr_code;
         document.getElementById('mfaEnrollmentQr').style.display = 'block';
       } catch (err) {
-        mfaError.textContent = err.detail || 'Could not start MFA setup. Sign in again.';
+        mfaError.textContent = ArckAPI.errorMessage(err, 'Could not start MFA setup. Sign in again.');
         mfaError.style.display = 'block';
       }
     }
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const result = await ArckAPI.request(enrollmentRequired
         ? '/auth/mfa/enrollment/confirm' : '/auth/mfa/challenge/verify', {
-        method: 'POST', auth: false, body: {challenge: mfaChallenge, code: mfaCode.value.trim()},
+        method: 'POST', auth: false, body: {challenge: mfaChallenge, code: mfaCode.value.replace(/\s+/g, '')},
       });
       mfaChallenge = null;
       mfaCode.value = '';
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ArckAuth.redirectToRoleEntryPoint(result.user);
       }
     } catch (err) {
-      mfaError.textContent = err.detail || 'Verification failed. Sign in again if the challenge expired.';
+      mfaError.textContent = ArckAPI.errorMessage(err, 'Verification failed. Sign in again if the challenge expired.');
       mfaError.style.display = 'block';
       mfaCode.value = '';
     } finally {

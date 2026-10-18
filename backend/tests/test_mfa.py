@@ -326,6 +326,74 @@ class MfaHttpTests(unittest.TestCase):
         self.assertTrue(response.json().get("challenge"))
         self.assertEqual(self.client.get("/api/auth/mfa/status", headers=headers).json()["enabled"], True)
 
+    def _confirm(self, headers, code):
+        return self.client.post("/api/auth/mfa/setup/confirm", json={"code": code}, headers=headers)
+
+    def _enabled(self, role="student"):
+        with QaSession(self.engine) as db:
+            row = db.get(MfaCredential, self.ids[role])
+            return bool(row and row.enabled_at)
+
+    def test_failed_confirmations_never_enable_mfa(self):
+        headers = self._headers("student")
+        self.assertEqual(self._start().status_code, 200)
+        invalid = self._confirm(headers, "000000")
+        self.assertEqual(invalid.status_code, 400, invalid.text)
+        self.assertIsInstance(invalid.json()["detail"], str)
+        for bad in ("123 456", "12345", "abcdef", "1234567", ""):
+            response = self._confirm(headers, bad)
+            self.assertEqual(response.status_code, 422, (bad, response.text))
+            self.assertIsInstance(response.json()["detail"], list)  # the shape the UI must render safely
+            self.assertNotIn(bad or "x-never", "".join(str(e.get("input", "")) for e in response.json()["detail"]) or "-")
+        self.assertEqual(self.client.post("/api/auth/mfa/setup/confirm", json={}, headers=headers).status_code, 422)
+        self.assertFalse(self._enabled())
+        with QaSession(self.engine) as db:
+            self.assertEqual(db.scalars(select(MfaRecoveryCode)).all(), [])
+
+    def test_confirm_requires_authentication(self):
+        self.assertEqual(self.client.post("/api/auth/mfa/setup/confirm", json={"code": "123456"}).status_code, 401)
+        self.assertEqual(self.client.post("/api/auth/mfa/setup/confirm", json={"code": "123456"},
+                                          headers={"Authorization": "Bearer not-a-token"}).status_code, 401)
+
+    def test_expired_pending_setup_is_rejected_and_stays_disabled(self):
+        headers = self._headers("student")
+        self.assertEqual(self._start().status_code, 200)
+        with QaSession(self.engine) as db:
+            row = db.get(MfaCredential, self.ids["student"])
+            secret = decrypt_secret(row.pending_ciphertext)
+            row.pending_expires_at = datetime.now(timezone.utc) - timedelta(minutes=1)
+            db.commit()
+        code = totp_for_step(secret, int(datetime.now(timezone.utc).timestamp() // 30))
+        response = self._confirm(headers, code)
+        self.assertEqual(response.status_code, 400, response.text)
+        self.assertIn("expired", response.json()["detail"])
+        self.assertFalse(self._enabled())
+
+    def test_confirm_database_failure_returns_safe_503_and_leaves_mfa_disabled(self):
+        from sqlalchemy.exc import OperationalError
+        headers = self._headers("student")
+        self.assertEqual(self._start().status_code, 200)
+        with QaSession(self.engine) as db:
+            secret = decrypt_secret(db.get(MfaCredential, self.ids["student"]).pending_ciphertext)
+        code = totp_for_step(secret, int(datetime.now(timezone.utc).timestamp() // 30))
+        failure = OperationalError("UPDATE secret-bearing statement", {"code": code}, Exception("db down"))
+        with patch("app.api.routes_mfa.replace_recovery_codes", side_effect=failure), \
+                self.assertLogs("mfa", level="ERROR") as logs:
+            response = self._confirm(headers, code)
+        self.assertEqual(response.status_code, 503, response.text)
+        self.assertIsInstance(response.json()["detail"], str)
+        joined = response.text + "".join(logs.output)
+        self.assertNotIn(code, joined)
+        self.assertNotIn("secret-bearing", joined)
+        self.assertFalse(self._enabled())
+        # The same pending setup still succeeds once the database recovers.
+        ok = self._confirm(headers, code)
+        self.assertEqual(ok.status_code, 200, ok.text)
+        self.assertEqual(len(ok.json()["recovery_codes"]), 8)
+        self.assertTrue(self._enabled())
+        status = self.client.get("/api/auth/mfa/status", headers=headers)
+        self.assertNotIn("recovery_codes", status.json())
+
     def test_database_failure_gives_safe_503_and_rolls_back(self):
         from sqlalchemy.exc import OperationalError
         failure = OperationalError("INSERT secret-bearing statement", {"password": PASSWORD}, Exception("db down"))

@@ -178,12 +178,18 @@ def setup_start(request: Request, payload: PasswordInput, response: Response,
 @limiter.limit("10/minute")
 def setup_confirm(request: Request, payload: ConfirmSetupInput, response: Response,
                   db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    codes = _confirm_setup(db, user, payload.code)
-    current = user._current_session
-    current.mfa_verified = True
-    revoke_other_sessions(db, user.id, current.id)
-    _audit(db, request, user, "Personal MFA enabled")
-    db.commit()
+    try:
+        codes = _confirm_setup(db, user, payload.code)
+        current = user._current_session
+        current.mfa_verified = True
+        revoke_other_sessions(db, user.id, current.id)
+        _audit(db, request, user, "Personal MFA enabled")
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        # Failure class only; SQL parameters could contain secrets.
+        logging.getLogger("mfa").error("MFA confirmation database failure type=%s", type(exc).__name__)
+        raise HTTPException(503, "MFA setup could not be completed right now. MFA was not enabled; please try again.")
     response.headers["Cache-Control"] = "no-store"
     return {"enabled": True, "recovery_codes": codes}
 

@@ -89,7 +89,7 @@ const ArckAPI = {
     }
 
     if (!res.ok) {
-      const err = new ApiError(res.status, (data && data.detail) || 'Something went wrong.');
+      const err = new ApiError(res.status, (data && (data.detail || data.message)) || 'Something went wrong.');
       // Optional machine-readable code and supporting text some endpoints add
       // (e.g. duplicate-registration responses). Additive only; never secrets.
       err.code = data && data.code;
@@ -98,6 +98,33 @@ const ArckAPI = {
     }
 
     return data;
+  },
+
+  // Turns any thrown error (ApiError, network failure, FastAPI 422 detail array,
+  // unexpected shapes) into safe, readable text. Never returns an object, and
+  // never includes anything beyond what the API deliberately sent as a message.
+  errorMessage(err, fallback = 'Something went wrong. Please try again.') {
+    const FIELD_MESSAGES = {
+      code: 'Enter the six-digit code from your authenticator app.',
+      password: 'Enter your current password.',
+    };
+    const text = (value) => (typeof value === 'string' && value.trim() ? value.trim() : '');
+    const detail = err && err.detail;
+    const direct = text(detail);
+    if (direct) return direct === 'Something went wrong.' ? fallback : direct;
+    if (Array.isArray(detail)) {
+      for (const item of detail) {
+        const loc = item && Array.isArray(item.loc) ? item.loc : [];
+        const field = String(loc[loc.length - 1] ?? '');
+        if (FIELD_MESSAGES[field]) return FIELD_MESSAGES[field];
+        if (text(item)) return text(item);
+      }
+      return 'Please check the information you entered and try again.';
+    }
+    if (detail && typeof detail === 'object') {
+      return text(detail.message) || text(detail.detail) || fallback;
+    }
+    return fallback;
   },
 
   async approvedProgramOptions() {
