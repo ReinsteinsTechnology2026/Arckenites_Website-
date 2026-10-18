@@ -308,6 +308,24 @@ class MfaHttpTests(unittest.TestCase):
                     self.assertNotIn(bad_key, response.text + "".join(logs.output))
                 self.assertEqual(self._pending_rows(), [])
 
+    def test_existing_mfa_data_needs_its_original_key_and_is_never_rewritten(self):
+        headers, _codes = self._setup("student")
+        with QaSession(self.engine) as db:
+            stored = db.get(MfaCredential, self.ids["student"]).secret_ciphertext
+        # A different (valid) key cannot read it: fail closed, no access, data untouched.
+        with patch.object(settings, "mfa_encryption_key", Fernet.generate_key().decode()):
+            self.assertEqual(self._login("student").json().get("access_token"), None)
+            wrong = self.client.post("/api/auth/mfa/challenge/verify", json={
+                "challenge": self._login("student").json()["challenge"], "code": "000000"})
+            self.assertNotIn("access_token", wrong.text)
+        with QaSession(self.engine) as db:
+            self.assertEqual(db.get(MfaCredential, self.ids["student"]).secret_ciphertext, stored)
+        # The original key still works: a challenge is issued, and the data is readable.
+        response = self._login("student")
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertTrue(response.json().get("challenge"))
+        self.assertEqual(self.client.get("/api/auth/mfa/status", headers=headers).json()["enabled"], True)
+
     def test_database_failure_gives_safe_503_and_rolls_back(self):
         from sqlalchemy.exc import OperationalError
         failure = OperationalError("INSERT secret-bearing statement", {"password": PASSWORD}, Exception("db down"))
