@@ -7,7 +7,7 @@ Legacy rows stay available to historical read paths.
 from dataclasses import dataclass
 
 from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.program import Program, ProgramStatusEnum
@@ -17,11 +17,16 @@ APPROVED_PROGRAM_NAMES = (
     "Freshers Job Hack Program",
     "Certificational Program",
 )
-_LABELS = {name.lower(): name for name in APPROVED_PROGRAM_NAMES}
+def normalize_program_name(name: str) -> str:
+    """Compare labels case insensitively after collapsing Unicode whitespace."""
+    return " ".join(name.split()).casefold()
+
+
+_LABELS = {normalize_program_name(name): name for name in APPROVED_PROGRAM_NAMES}
 
 
 def approved_name(name: str) -> str | None:
-    return _LABELS.get(name.strip().lower())
+    return _LABELS.get(normalize_program_name(name))
 
 
 @dataclass
@@ -56,9 +61,7 @@ class ApprovedCatalog:
 
 
 def resolve_approved_catalog(db: Session) -> ApprovedCatalog:
-    rows = db.scalars(select(Program).where(
-        func.lower(func.trim(Program.name)).in_(_LABELS),
-    ).order_by(Program.id)).all()
+    rows = db.scalars(select(Program).order_by(Program.id)).all()
     matches = {name: [] for name in APPROVED_PROGRAM_NAMES}
     for row in rows:
         label = approved_name(row.name)

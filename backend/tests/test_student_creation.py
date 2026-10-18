@@ -160,6 +160,16 @@ class StudentCreationTests(unittest.TestCase):
         self.assertEqual(response.status_code, 201, response.text)
         self.assertEqual(response.json()["username"], "candidate03@example.com")
 
+    def test_each_approved_program_creates_one_real_enrollment(self):
+        for index, program_id in enumerate((self.institutional_id, self.program_id, self.certificational_id)):
+            with self.subTest(program_id=program_id):
+                response = self._create(email=f"approved{index}@example.com", program_id=program_id)
+                self.assertEqual(response.status_code, 201, response.text)
+                with ProvisioningTestSession(self.engine) as db:
+                    enrollment = db.scalar(select(ProgramEnrollment).where(
+                        ProgramEnrollment.student_id == response.json()["id"]))
+                    self.assertEqual(enrollment.program_id, program_id)
+
     def test_trainer_update_failure_rolls_back_status_password_and_sessions(self):
         with ProvisioningTestSession(self.engine) as db:
             db.add(StaffProfile(user_id=self.trainer_id, staff_code="AK-STF-0001"))
@@ -307,7 +317,7 @@ class StudentCreationTests(unittest.TestCase):
         self.send.reset_mock()
         response = self._create(email=" ARUN@example.com ")
         self.assertEqual(response.status_code, 409)
-        self.assertIn("email already exists", response.json()["detail"])
+        self.assertIn("student account already uses this email", response.json()["detail"])
         self.send.assert_not_called()
 
     def test_legacy_student_contact_email_cannot_create_second_account(self):
@@ -320,6 +330,32 @@ class StudentCreationTests(unittest.TestCase):
             db.get(User, self.trainer_id).username = "Existing.Trainer@Example.com"
             db.commit()
         self.assertEqual(self._create(email="existing.trainer@example.com").status_code, 409)
+        self.send.assert_not_called()
+
+    def test_other_role_contact_email_cannot_be_reused(self):
+        with ProvisioningTestSession(self.engine) as db:
+            db.add(AdminProfile(user_id=self.admin_id, email=" Existing.Admin@Example.com "))
+            db.add(StaffProfile(user_id=self.trainer_id, email="existing.trainer@example.com"))
+            db.commit()
+        for email in ("existing.admin@example.com", "existing.trainer@example.com"):
+            response = self._create(email=email)
+            self.assertEqual(response.status_code, 409)
+            self.assertIn("already a portal login", response.json()["detail"])
+        self.send.assert_not_called()
+
+    def test_incomplete_existing_student_identity_is_not_recreated(self):
+        with ProvisioningTestSession(self.engine) as db:
+            existing = User(username="incomplete@example.com", full_name="Incomplete Student",
+                            role=RoleEnum.student, password_hash=hash_password(PASSWORD))
+            db.add(existing)
+            db.commit()
+            existing_id = existing.id
+        response = self._create(email=" INCOMPLETE@example.com ")
+        self.assertEqual(response.status_code, 409)
+        self.assertIn("student account already uses this email", response.json()["detail"])
+        with ProvisioningTestSession(self.engine) as db:
+            accounts = db.scalars(select(User).where(func.lower(User.username) == "incomplete@example.com")).all()
+            self.assertEqual([account.id for account in accounts], [existing_id])
         self.send.assert_not_called()
 
     def test_missing_and_invalid_fields_do_not_echo_password_or_send_email(self):

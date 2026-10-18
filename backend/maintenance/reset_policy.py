@@ -33,8 +33,8 @@ def preview(rows, foreign_keys):
     """Build deterministic per-row *proposals*, with explicit blockers.
 
     Mandatory config and audit rows are never proposed for deletion. Super Admin
-    users are protected; other admins require individual review. Only ordinary student/staff/community accounts with no
-    admin role/profile mismatch are candidates. A retained parent pulls its
+    users are protected; other admins and ordinary student/staff/community
+    accounts with consistent roles and profiles are candidates. A retained parent pulls its
     dependent content into the retained set. Unknown identities are held.
     """
     actions = {table: {} for table in rows}
@@ -55,7 +55,9 @@ def preview(rows, foreign_keys):
     for uid, row in users.items():
         if uid in protected:
             continue
-        if row.get("role") in ("student", "staff", "community") and row.get("admin_role_id") is None and uid not in mismatched:
+        if row.get("role") == "admin" and role_slugs.get(row.get("admin_role_id")) not in (None, SUPER_ADMIN_SLUG) and uid in admin_profile_ids and uid not in mismatched:
+            candidates.add(uid)
+        elif row.get("role") in ("student", "staff", "community") and row.get("admin_role_id") is None and uid not in mismatched:
             candidates.add(uid)
         else:
             blockers.append(f"Review account role/profile classification: user ID {uid}")
@@ -185,11 +187,11 @@ def preview(rows, foreign_keys):
                           "retain": counts["retain"], "manual": counts["manual"],
                           "detach_links": sum(d["table"] == table for d in detach)}
     return {
-        "policy": "draft-protect-super-admin-review-other-admins-and-shared-history-v1",
+        "policy": "draft-protect-super-admin-clear-other-accounts-preserve-shared-history-v2",
         "execution_enabled": False,
         "protected_admin_ids": sorted(protected), "super_admin_ids": sorted(super_ids),
         "protected_super_admin_count": len(super_ids),
-        "admin_ids_requiring_individual_review": sorted(admin_ids - protected),
+        "admin_ids_requiring_individual_review": sorted(admin_ids - protected - candidates),
         "candidate_user_ids": sorted(candidates), "counts": summary,
         "proposed_actions": actions, "proposed_detach_links": sorted(detach, key=lambda d: (d["table"], d["id"], d["column"])),
         "blockers": sorted(set(blockers)),

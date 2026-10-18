@@ -85,7 +85,7 @@ class ApprovedProgramTests(unittest.TestCase):
 
     def test_names_ignore_outer_spaces_and_case_but_labels_are_canonical(self):
         with fixtures.ProvisioningTestSession(self.engine) as db:
-            db.get(Program, self.portal.program_id).name = "  FRESHERS JOB HACK PROGRAM  "
+            db.get(Program, self.portal.program_id).name = "  FRESHERS   JOB HACK PROGRAM  "
             db.commit()
         self.assertEqual([p["name"] for p in self.options().json()], list(APPROVED_PROGRAM_NAMES))
 
@@ -95,7 +95,7 @@ class ApprovedProgramTests(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200, response.text)
         with fixtures.ProvisioningTestSession(self.engine) as db:
-            self.assertEqual(db.get(Program, self.portal.program_id).name, "  FRESHERS JOB HACK PROGRAM  ")
+            self.assertEqual(db.get(Program, self.portal.program_id).name, "  FRESHERS   JOB HACK PROGRAM  ")
 
     def test_missing_program_is_reported_without_creation_or_alias_guessing(self):
         with fixtures.ProvisioningTestSession(self.engine) as db:
@@ -129,14 +129,16 @@ class ApprovedProgramTests(unittest.TestCase):
         self.assertNotIn(self.portal.program_id, {p["id"] for p in data["options"]})
         self.assertEqual(self.portal._create().status_code, 400)
 
-    def test_admin_catalog_and_stats_exclude_other_programs(self):
+    def test_admin_catalog_lists_history_and_stats_without_widening_student_options(self):
         response = self.client.get("/api/admin/programs", headers=self.headers)
         self.assertEqual(response.status_code, 200, response.text)
-        self.assertEqual([p["name"] for p in response.json()], list(APPROVED_PROGRAM_NAMES))
+        self.assertEqual({p["name"] for p in response.json()}, set(APPROVED_PROGRAM_NAMES) |
+                         {"Corporate Training Program", "Official Certification Program", "Inactive"})
         stats = self.client.get("/api/admin/programs/stats", headers=self.headers).json()
-        self.assertEqual(stats["total_programs"], 3)
-        self.assertEqual(stats["active_programs"], 3)
-        self.assertEqual(stats["total_enrolled_students"], 0)  # Legacy enrollment is retained, not counted here.
+        self.assertEqual(stats["total_programs"], 6)
+        self.assertEqual(stats["active_programs"], 5)
+        self.assertEqual(stats["total_enrolled_students"], 1)
+        self.assertEqual([p["name"] for p in self.options().json()], list(APPROVED_PROGRAM_NAMES))
         self.assert_history_unchanged()
 
     def test_student_creation_rejects_unapproved_id_without_sending_email(self):
@@ -178,14 +180,17 @@ class ApprovedProgramTests(unittest.TestCase):
         self.assertTrue(response.json()["is_approved"])
         self.assertTrue(response.json()["allows_new_enrollments"])
 
-    def test_program_creation_cannot_add_a_fourth_or_duplicate_program(self):
+    def test_general_program_creation_is_explicit_and_never_becomes_student_option(self):
         with fixtures.ProvisioningTestSession(self.engine) as db:
             count = db.scalar(select(func.count()).select_from(Program))
-        for name in ("Institutional Program", "New Unapproved Program"):
-            response = self.client.post("/api/admin/programs", json={"name": name}, headers=self.headers)
-            self.assertEqual(response.status_code, 403)
+        response = self.client.post("/api/admin/programs", json={"name": "New General Program"}, headers=self.headers)
+        self.assertEqual(response.status_code, 201, response.text)
+        self.assertNotIn(response.json()["id"], {p["id"] for p in self.options().json()})
+        for name in ("Institutional Program", "  new   GENERAL program "):
+            duplicate = self.client.post("/api/admin/programs", json={"name": name}, headers=self.headers)
+            self.assertEqual(duplicate.status_code, 409, duplicate.text)
         with fixtures.ProvisioningTestSession(self.engine) as db:
-            self.assertEqual(db.scalar(select(func.count()).select_from(Program)), count)
+            self.assertEqual(db.scalar(select(func.count()).select_from(Program)), count + 1)
 
     def test_approved_program_cannot_be_renamed_to_other_identity(self):
         for name in ("New Program", "Institutional Program"):
@@ -196,7 +201,7 @@ class ApprovedProgramTests(unittest.TestCase):
 
     def test_legacy_program_cannot_be_renamed_to_an_approved_name(self):
         response = self.client.patch(f"/api/admin/programs/{self.legacy_id}", json={"name": "Freshers Job Hack Program"}, headers=self.headers)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 409)
         self.assert_history_unchanged()
 
     def test_approved_program_metadata_remains_editable(self):

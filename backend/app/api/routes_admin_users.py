@@ -9,7 +9,7 @@ from app.core.deps import require_permission
 from app.core.security import hash_password
 from app.core.student_deletion import stage_student_deletion
 from app.crud.audit import write_audit_event
-from app.crud.permissions import is_super_admin
+from app.crud.permissions import get_effective_permissions, is_super_admin
 from app.crud.session import revoke_all_sessions
 from app.crud.user import generate_admin_username, get_by_username
 from app.database import Base, get_db
@@ -84,6 +84,16 @@ def _get_role_or_400(db: Session, admin_role_id: int) -> AdminRole:
     return role
 
 
+def _require_delegable_role(db: Session, actor: User, role: AdminRole | None) -> None:
+    if is_super_admin(actor) or role is None:
+        return
+    if role.slug in RESTRICTED_ROLE_SLUGS:
+        raise HTTPException(status_code=403, detail="Only a Super Admin can manage this role.")
+    grants = {row.permission_key for row in role.granted_permissions}
+    if not grants.issubset(set(get_effective_permissions(db, actor))):
+        raise HTTPException(status_code=403, detail="This role has permissions outside your delegation scope.")
+
+
 @router.get("", response_model=list[AdminUserOut])
 def list_admin_users(
     db: Session = Depends(get_db),
@@ -111,6 +121,7 @@ def create_admin_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Only a Super Admin can create a {role.name} account.",
         )
+    _require_delegable_role(db, actor, role)
 
     username = generate_admin_username(db, payload.full_name)
     user = User(
@@ -157,6 +168,7 @@ def update_admin_user(
         raise HTTPException(status_code=404, detail="Admin account not found")
     if is_super_admin(user) and not is_super_admin(actor):
         raise HTTPException(status_code=403, detail="Only a Super Admin can manage a Super Admin account.")
+    _require_delegable_role(db, actor, user.admin_role)
     profile = user.admin_profile
     ip, ua = _client_meta(request)
     actor_role_snapshot = actor.admin_role.slug if actor.admin_role else actor.role.value
@@ -171,6 +183,7 @@ def update_admin_user(
 
     if payload.admin_role_id is not None and payload.admin_role_id != user.admin_role_id:
         new_role = _get_role_or_400(db, payload.admin_role_id)
+        _require_delegable_role(db, actor, new_role)
         old_role = user.admin_role
 
         # Only a Super Admin actor may assign or remove a restricted role
@@ -285,6 +298,7 @@ def revoke_admin_sessions(
     user = _get_admin_or_404(db, admin_id)
     if is_super_admin(user) and not is_super_admin(actor):
         raise HTTPException(status_code=403, detail="Only a Super Admin can manage a Super Admin account.")
+    _require_delegable_role(db, actor, user.admin_role)
     try:
         revoke_all_sessions(db, user.id)
         ip, ua = _client_meta(request)
@@ -320,6 +334,7 @@ def delete_admin_user(
                 raise HTTPException(status_code=403, detail="Only a Super Admin can delete a Super Admin account.")
             if _count_active_super_admins(db, exclude_user_id=user.id) < 1:
                 raise HTTPException(status_code=400, detail="Cannot delete the last Super Admin.")
+        _require_delegable_role(db, actor, user.admin_role)
 
         # No admin deletion may erase another user's conversation or silently
         # detach a business record. Deactivate accounts with shared history.

@@ -20,6 +20,7 @@ from app.crud.session import revoke_all_sessions
 from app.crud.system_settings import get_settings
 from app.crud.user import generate_student_code
 from app.database import get_db
+from app.models.admin_profile import AdminProfile
 from app.models.audit_log import AuthAuditLog, AuthEventType
 from app.models.batch import BatchEnrollment
 from app.models.batch_chat import BatchChatReadState, BatchMessage
@@ -34,6 +35,7 @@ from app.models.lab_vm import LabVmAccess, LabVmAccessAuditLog
 from app.models.meeting import MeetingMessage, MeetingParticipant
 from app.models.program import EnrollmentStatusEnum, Program, ProgramEnrollment
 from app.models.session import AuthSession
+from app.models.staff import StaffProfile
 from app.models.student import PROGRAM_LABELS, ProgramEnum, StudentProfile
 from app.models.support import SupportMessage, SupportTicket
 from app.models.user import RoleEnum, User
@@ -83,16 +85,27 @@ router = APIRouter(prefix="/admin", tags=["admin-students"])
 logger = logging.getLogger("students")
 
 
-def _email_in_use(db: Session, email: str) -> bool:
-    # Include old students whose generated login is different from their
-    # known contact email. Never guess or rename existing accounts.
-    return (
-        db.scalar(select(User.id).where(func.lower(func.trim(User.username)) == email).limit(1)) is not None
-        or db.scalar(select(StudentProfile.id).where(func.lower(func.trim(StudentProfile.email)) == email).limit(1)) is not None
-    )
+def _email_conflict(db: Session, email: str) -> str | None:
+    """Classify a normalized identity collision without changing the account."""
+    normalized = email.strip().lower()
+    user = db.scalar(select(User).where(func.lower(func.trim(User.username)) == normalized).limit(1))
+    if user is not None:
+        return "student" if user.role == RoleEnum.student else "portal_login"
+    profile = db.scalar(select(StudentProfile).where(
+        func.lower(func.trim(StudentProfile.email)) == normalized,
+    ).limit(1))
+    if profile is not None:
+        return "student"
+    for model in (AdminProfile, StaffProfile, CommunityProfile):
+        if db.scalar(select(model.user_id).where(func.lower(func.trim(model.email)) == normalized).limit(1)) is not None:
+            return "portal_login"
+    return None
 
 
-_DUPLICATE_EMAIL = "A student account with this email already exists, or the email is already used as another portal login."
+def _email_conflict_response(conflict: str) -> HTTPException:
+    if conflict == "student":
+        return HTTPException(409, "A student account already uses this email. Find that student in the database and manage the existing account or enrollment.")
+    return HTTPException(409, "This email is already a portal login. Review the existing account before creating a student; no account was changed.")
 
 
 @router.get("/students/program-options", response_model=list[StudentProgramOption] | StudentProgramOptionsOut)
@@ -164,8 +177,9 @@ def create_student(
         # transaction across workers to avoid assigning the same code.
         if db.get_bind().dialect.name == "postgresql":
             db.execute(text("SELECT pg_advisory_xact_lock(19041701)"))
-        if _email_in_use(db, payload.email):
-            raise HTTPException(status_code=409, detail=_DUPLICATE_EMAIL)
+        conflict = _email_conflict(db, payload.email)
+        if conflict:
+            raise _email_conflict_response(conflict)
         program = require_approved_program(db, payload.program_id)
         user = User(
             username=payload.email, password_hash=hash_password(payload.temp_password),
@@ -193,10 +207,13 @@ def create_student(
         raise
     except IntegrityError as exc:
         db.rollback()
-        if _email_in_use(db, payload.email):
-            raise HTTPException(status_code=409, detail=_DUPLICATE_EMAIL)
-        logger.error("Student creation constraint failure error_type=%s", type(exc).__name__)
-        raise HTTPException(status_code=409, detail="Unable to create student. Please refresh and try again.")
+        conflict = _email_conflict(db, payload.email)
+        if conflict:
+            raise _email_conflict_response(conflict)
+        constraint = getattr(getattr(exc.orig, "diag", None), "constraint_name", None)
+        logger.error("Student creation constraint failure sqlstate=%s constraint=%s",
+                     getattr(exc.orig, "sqlstate", None), constraint)
+        raise HTTPException(status_code=409, detail="A database constraint prevented student creation. No account was created. Refresh and retry; contact an administrator if it continues.")
     except Exception as exc:
         db.rollback()
         # Do not log SQL parameters or return database internals.

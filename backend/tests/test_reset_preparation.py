@@ -52,6 +52,7 @@ class ResetPreparationTests(unittest.TestCase):
                 {"id": 106, "username": "fixture.community", "full_name": "Fixture", "role": RoleEnum.community, "admin_role_id": None, "password_hash": "fixture", "is_active": True},
             ])
             conn.execute(AdminProfile.__table__.insert(), {"user_id": 101})
+            conn.execute(AdminProfile.__table__.insert(), {"user_id": 103})
             conn.execute(StudentProfile.__table__.insert(), {"user_id": 105, "student_code": "FIXTURE-1"})
         self.metadata = source_inventory()
 
@@ -76,13 +77,13 @@ class ResetPreparationTests(unittest.TestCase):
         self.assertFalse(self.metadata["production_schema_verified"])
         self.assertEqual(set(self.metadata["tables"]) | {"alembic_version"}, ALL_TABLES)
 
-    def test_super_admin_accounts_protected_other_admins_individually_held(self):
+    def test_super_admin_accounts_protected_other_admins_candidate(self):
         plan = preview(self.rows(), self.metadata["foreign_keys"])
         self.assertEqual(plan["super_admin_ids"], [101, 102])
         self.assertEqual(plan["protected_admin_ids"], [101, 102])
-        self.assertEqual(plan["admin_ids_requiring_individual_review"], [103])
-        self.assertEqual(plan["candidate_user_ids"], [104, 105, 106])
-        self.assertEqual(plan["proposed_actions"]["users"][103], "manual")
+        self.assertEqual(plan["admin_ids_requiring_individual_review"], [])
+        self.assertEqual(plan["candidate_user_ids"], [103, 104, 105, 106])
+        self.assertEqual(plan["proposed_actions"]["users"][103], "candidate_delete")
         self.assertEqual(plan["proposed_actions"]["users"][102], "retain")
         self.assertFalse(plan["execution_enabled"])
 

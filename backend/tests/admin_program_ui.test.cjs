@@ -52,6 +52,7 @@ function environment(script, {batch = false, catalogFailure = false, superAdmin 
   const student = {id: 42, full_name: 'Existing Student', username: 'legacy.student', email: 'legacy@example.com',
     program: 'corporate_training', program_id: 507, program_name: legacyProgram.name,
     is_active: true, must_change_password: false, created_at: '2026-10-17T00:00:00Z'};
+  let students = [student];
   const batchRecord = {id: 9, name: 'Existing Batch', program: legacyProgram, trainer: null, students: [],
     batch_type: 'offline', status: 'active', student_count: 0};
   const api = {
@@ -62,13 +63,19 @@ function environment(script, {batch = false, catalogFailure = false, superAdmin 
     },
     async request(url, options = {}) {
       calls.push({url, ...options});
-      if (url === '/admin/students' && !options.method) return [student];
-      if (url === '/admin/students/42' && options.method === 'PATCH') return {...student, ...options.body};
+      if (url === '/admin/students' && !options.method) return students;
+      if (url === '/admin/students/42' && options.method === 'PATCH') {
+        students = students.map(s => ({...s, ...options.body}));
+        return students[0];
+      }
       if (url === '/admin/students/42/permanent-delete' || (url === '/admin/students/42' && options.method === 'DELETE')) {
         if (failDeletion) throw {detail: 'Deletion failed; no changes were made.'};
-        return url.endsWith('permanent-delete')
-          ? {action: 'permanently_deleted', detail: 'Permanently deleted.'}
-          : {action: 'deactivated', student: {...student, is_active: false}, detail: 'Deactivated with history retained.'};
+        if (url.endsWith('permanent-delete')) {
+          students = [];
+          return {action: 'permanently_deleted', detail: 'Permanently deleted.'};
+        }
+        students = students.map(s => ({...s, is_active: false}));
+        return {action: 'deactivated', student: students[0], detail: 'Deactivated with history retained.'};
       }
       if (url === '/admin/staff') return [];
       if (url === '/admin/batches/9' && !options.method) return batchRecord;
@@ -101,12 +108,12 @@ async function studentHistoryTest() {
   assert.deepEqual(select.options.map(o => o.value), ['', '101', '201', '301']);
   assert.match(select.options[0].textContent, /Keep current program: Corporate Training Program/);
   await app.get('editStudentForm').listeners.submit(submit);
-  const unchanged = app.calls.at(-1).body;
+  const unchanged = app.calls.filter(c => c.url === '/admin/students/42' && c.method === 'PATCH').at(-1).body;
   assert.ok(!('program_id' in unchanged));
   assert.ok(!('program' in unchanged));
   select.value = '201';
   await app.get('editStudentForm').listeners.submit(submit);
-  assert.equal(app.calls.at(-1).body.program_id, 201);
+  assert.equal(app.calls.filter(c => c.url === '/admin/students/42' && c.method === 'PATCH').at(-1).body.program_id, 201);
 }
 
 async function batchHistoryTest(catalogFailure) {
@@ -139,7 +146,7 @@ async function deletionRoutingTest() {
     const action = app.get('studentsTableBody').innerHTML.match(/class="table-action-btn is-danger" data-action="([^"]+)"/)[1];
     assert.equal(action, superAdmin ? 'permanent-delete' : 'delete');
     await app.get('studentsTableBody').listeners.click({target: {closest() {return {dataset: {id: '42', action}};}}});
-    const request = app.calls.at(-1);
+    const request = app.calls.find(c => c.url === (superAdmin ? '/admin/students/42/permanent-delete' : '/admin/students/42'));
     assert.equal(request.url, superAdmin ? '/admin/students/42/permanent-delete' : '/admin/students/42');
     assert.equal(request.method, superAdmin ? 'POST' : 'DELETE');
     if (superAdmin) {

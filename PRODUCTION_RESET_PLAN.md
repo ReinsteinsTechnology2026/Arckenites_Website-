@@ -18,10 +18,16 @@ production DB credential or SSH session was supplied/used. The production
 collector below has not been run. Its target and output locations must be
 independently verified by the operator; this report supplies no real DB endpoint.
 
-The user selected: **protect Super Admin; individually review other admins**.
-Other administrators are neither automatically protected forever nor eligible
-for automatic deletion. They remain held until their IDs, responsibilities,
-shared ownership and explicit retain/remove decisions are reviewed.
+**18 October scope update:** Preserve every Super Admin account. Clear all
+other Admin, Student, Trainer/Staff and Community accounts as part of a fresh
+start. The user explicitly confirmed that Trainer/Staff and Community accounts
+are in scope too. A non-Super-Admin account becomes a
+candidate only when its role, linked role record and profile are consistent.
+Inconsistent accounts and shared or nonnullable references remain blockers.
+This scope update does **not** authorize an unverified production deletion.
+The preparation-policy source and its existing fixture expectations were updated
+for this decision. The historical test results in section 9 predate this update;
+the updated policy has not been executed or tested in this turn.
 
 Deliverables:
 
@@ -60,7 +66,7 @@ still requires explicit bounded child operations. Do not rely on cascades or ORM
 |---|---|---|
 | Protected configuration | `admin_roles`, `permissions`, `admin_role_permissions`, `programs`, `system_settings` | Preserve all rows/IDs/values; never bootstrap or seed |
 | Migration state | `alembic_version` | Preserve, no migration during reset |
-| Mixed identity | `users`, `student_profiles`, `staff_profiles`, `admin_profiles`, `community_profiles` | Protect Super Admin by role+slug; review other admins and inconsistent profiles; ordinary operational users are candidates |
+| Mixed identity | `users`, `student_profiles`, `staff_profiles`, `admin_profiles`, `community_profiles` | Protect Super Admin by role+slug; consistent non-Super-Admin accounts are candidates; hold inconsistent profiles |
 | Mixed authentication | `auth_sessions`, `user_google_identities`, `google_login_tickets` | Preserve protected/held users' links and sessions; remove only eligible account-owned records |
 | Training memberships | `program_enrollments`, `batch_enrollments`, `interview_schedules` | Eligible user-owned rows only; preserve catalog and any held-user association |
 | Training containers/resources | `batches`, `class_sessions`, `study_materials`, `class_videos` | Manual ownership approval: no reliable creator/owner is recorded for resources; trainer assignment alone is not ownership |
@@ -167,9 +173,10 @@ output is checked into this task.
    configuration, and machine inventory/agent credentials. Never print or copy
    values into source control. Recover secrets via the approved secret vault.
 
-### Held pending individual decisions
+### Held pending dependency and scope decisions
 
-- Every non-Super administrator, its profiles, sessions and identity links.
+- A non-Super administrator with missing or inconsistent role/profile data; the
+  other consistent Admin accounts are candidates under the updated request.
 - Any nonadmin with an admin role/profile or role/profile inconsistencies.
 - Rows with NULL/deleted/unknown authors where operational ownership cannot be
   established; already-detached history is not automatically disposable.
@@ -181,9 +188,9 @@ output is checked into this task.
 
 ## 4. Proposed operational deletion and shared-data policy
 
-Let **S** be mandatory Super Admin IDs, **H** individually held/review IDs, and
-**O** ordinary verified student/staff/community account IDs without admin role
-or profile ambiguity. Preview candidates are not approval. Require `S ∩ O = ∅`
+Let **S** be mandatory Super Admin IDs, **H** held/review IDs, and
+**O** verified non-Super Admin, Student, Trainer/Staff and Community account
+IDs. Preview candidates are not approval. Require `S ∩ O = ∅`
 and `H ∩ O = ∅`; unknown roles are held, never swept into O by negation.
 
 - Eligible profiles, enrollments, interviews, bookings, overrides, grants,
@@ -502,7 +509,7 @@ The local `alembic heads` command reported `d7f9b3c5e2a1`; live `alembic current
 remains unavailable.
 Preview functions issue reads only, preserve the
 fixture rows, identify multiple Super Admins by slug at role ID 17 (not hardcoded
-ID 1), hold other admins, reject inconsistent profiles, preserve shared threads,
+ID 1), reject inconsistent profiles, preserve shared threads,
 flag settings/audit FK conflicts and cleanup/VM/media holds, refuse ambiguous
 targets, prevent report overwrite/live evidence in Git, and refuse execution
 before any connection. No reset-execution or PostgreSQL restore test was run.
@@ -524,7 +531,7 @@ SQLite preparation tests are not proof that a production reset is safe.
 Before execution can be considered, resolve:
 
 1. Production schema/inventory and independent endpoint verification.
-2. Every other administrator's retain/remove decision; operational anomalies.
+2. Review inconsistent role/profile records and operational anomalies.
 3. Ownership/retention of batches, resources, leads, recordings, already-detached
    history and mixed records. Keep security retention separate from “empty portal”.
 4. Approved encrypted off-host backups, secret recovery and successful isolated

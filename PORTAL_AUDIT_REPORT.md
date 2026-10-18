@@ -1,14 +1,19 @@
 # Arckenites portal audit and repair report
 
-**18 October 2026; source commit `a249de1c664721da55cb11cd52a95a1cf7609d5b`; final QA on the uncommitted working tree.**
+**18 October 2026; current source commit `88a19bd` with uncommitted follow-up repairs.**
+
+Sections 1–15 document the earlier audit of the `a249de1` working tree. Those
+repairs were subsequently committed before this follow-up. Section 16 records
+the current Admin/student/catalog task and supersedes earlier working-tree
+status statements and program-management boundaries where they differ.
 
 ## 1. Executive summary
 
 This is a local source and isolated-test audit. It does not establish that the
 live portal is production-ready. The highest-risk confirmed local defects in
 admin rendering, Super Admin account protection, shared-history deletion,
-password handling and transaction boundaries were repaired in the working
-tree. All changes are uncommitted. No production database, server or email
+password handling and transaction boundaries were repaired in the earlier
+audit. The current follow-up changes are uncommitted. No production database, server or email
 provider was accessed for this repair task. No reset, push or deployment ran.
 
 Evidence labels used here:
@@ -311,3 +316,123 @@ executed on GitHub.
 4. Inspect production systemd/runner/Caddy/Jitsi settings read-only with authorized access; diagnose the Uvicorn listener conflict and design a tested CI gate.
 5. Obtain a verified DB/uploads backup and isolated restore before considering any separately authorized production reset.
 6. Approve and schedule code deployment separately. Pushing `main` triggers deployment.
+
+## 16. Admin dashboard, provisioning and catalog follow-up (18 October 2026)
+
+**VERIFIED LOCALLY:** This follow-up started from clean commit `88a19bd`.
+The older migration `a7b3f9d1e6c4` inserts nine legacy programs, including
+Institutional Program. It does not insert Freshers Job Hack Program or
+Certificational Program. The options endpoint resolves real rows by normalized
+name and refuses missing, inactive or ambiguous rows. Its previous message is
+therefore consistent with the migration seed; it is not evidence of the live
+catalog contents. Name comparison now collapses internal/outer whitespace
+and uses Unicode case folding, while displayed approved names remain
+canonical. Approved identity repair is separate from general catalog creation.
+
+**VERIFIED IN ISOLATED TEST ENVIRONMENT:** The explicitly marked PostgreSQL
+14 QA database contained nine active legacy rows: Institutional Program was
+ID 3 and the other approved names were absent. The guarded, explicit
+`tests/repair_approved_programs_qa.py` rehearsal inserted only the two
+missing records. The resulting active IDs were Institutional 3, Freshers 10,
+Certificational 11. A second run kept those IDs, and a run without the QA
+marker refused before any catalog write. These are QA IDs, **not production
+IDs**. No automatic production seed or migration was added.
+
+**NOT VERIFIED:** The exact duplicate-email incident cannot be classified as
+an existing student, another account type, an incomplete student, or a
+different uniqueness conflict without authorized read-only identity data and
+the request/response trace. Source shows that the earlier 409 text came from
+a normalized `users.username` or legacy student contact-email match, or from
+the same check after a concurrent uniqueness error. The user-facing wording
+did not identify the matching record. The new check distinguishes an existing
+student from another portal login/contact email, including Admin, trainer and
+Community profiles. It leaves the existing account untouched. An unrelated
+database constraint now has a separate safe response and logs only SQLSTATE
+and constraint name, never the password or SQL parameters.
+
+**VERIFIED LOCALLY:** General Admin program listing, metadata edits,
+activation and deactivation are available through existing permission gates.
+Explicit `programs.create` calls can add general programs with unique
+normalized names; approved names are reserved for a reviewed catalog repair.
+A new general program does not enter the three-option provisioning list.
+PostgreSQL API writes serialize normalized-name checks with an advisory
+transaction lock. Student creation still commits user, profile, enrollment
+and audit together before attempting credential email. The student form now
+reloads options when opened, disables submission if options fail to load,
+refreshes the table after create/edit and labels password-reset accounts
+accurately. Backend account creation requires `admin_users.create` and checks
+that a non-Super-Admin caller cannot delegate permissions beyond their own;
+role creation/editing applies the same scope rule. The user selected RBAC
+only: no Admin account quota or approval step is required.
+
+**VERIFIED IN ISOLATED TEST ENVIRONMENT:** Synthetic tests cover approved
+options and enrollments, normalization, missing/inactive/ambiguous catalog
+rows, reserved names, duplicate identities and contact emails, incomplete
+student accounts, RBAC delegation, transaction rollback, and failed email
+delivery. PostgreSQL concurrency tests create only one student identity and
+enrollment for two simultaneous submissions, and one general program for
+two simultaneous normalized-name submissions. The full-suite result and
+final static checks are recorded below after completion.
+
+**BLOCKED — ACCESS REQUIRED:** To classify the reported real email, an
+authorized operator must inspect matching normalized `users.username`,
+`student_profiles.email`, `admin_profiles.email`, `staff_profiles.email`
+and `community_profiles.email` through read-only access, then review the
+matching account/profile/enrollment state and the browser request's status.
+Do not copy the personal address into fixtures or logs. To repair production
+catalog rows, first read all candidate names/slugs/statuses and dependencies;
+resolve ambiguity or inactivity explicitly. If a canonical approved row is
+truly absent, obtain separate approval for a single transactional insert
+using a reviewed slug, then verify the resulting actual ID and options API.
+Do not infer production IDs from QA or rename Official Certification Program.
+
+**NOT VERIFIED:** No staging or production browser, database, email provider,
+or deployment was used. The current database schema has only active/inactive
+program statuses; archival semantics and permanent program deletion need a
+separate retention policy and dependency review. No migration was added.
+The normalized program-name uniqueness guarantee covers writes through this
+API; a direct SQL writer can still introduce duplicates, which the options
+resolver then rejects as ambiguous. No production account, catalog row,
+program ID, or enrollment was changed. No commit, push, deployment or reset
+was performed for this follow-up.
+
+### Follow-up verification and changed files
+
+The first complete Python run on marked `arckenites_qa_final` passed **213
+tests, 0 failures, 0 skips** in 243.440 seconds. The second complete run,
+started after the last source edit, passed **213 tests, 0 failures, 0 skips**
+in 280.122 seconds. These results include the marked PostgreSQL integration
+tests; they do not establish staging or production behavior.
+Both used, from `backend/`:
+
+```powershell
+$env:DATABASE_URL='postgresql+psycopg://arckenites_qa@127.0.0.1:55432/arckenites_qa_final'
+$env:JWT_SECRET='isolated-qa-only'
+$env:ENV='test'
+$env:ARCK_ENABLE_POSTGRES_INTEGRATION='1'
+$env:ARCK_QA_DATABASE_MARKER='arckenites-local-qa-20261018'
+.\.venv\Scripts\python.exe -m unittest discover -s tests -q
+```
+
+The explicit QA repair additionally required `ARCK_QA_PROGRAM_REPAIR=1` and
+ran `python -m tests.repair_approved_programs_qa` from `backend/`; a missing
+QA marker refused the write. The API options resolver was read against the
+marked QA database after repair and returned IDs 3, 10, 11 with no catalog
+notice. Direct PostgreSQL concurrency cases for student creation and general
+program creation each passed. Four Node regressions, 43 JavaScript syntax
+checks, Python compilation, `git diff --check`, and synthetic Chromium student
+dashboard smoke passed. The Windows checkout has CRLF line endings for
+`deploy.sh`; an LF-normalized temporary copy passed `bash -n`, matching the
+repository's LF index content. The temporary copy was removed.
+
+Changed tracked files: `arckenites-orange/admin-programs.html`,
+`admin-students.html`, `js/admin-programs.js`, `js/admin-students.js`,
+`backend/app/api/routes_admin_programs.py`, `routes_admin_roles.py`,
+`routes_admin_students.py`, `routes_admin_users.py`,
+`backend/app/core/approved_programs.py`, `backend/tests/admin_program_ui.test.cjs`,
+`test_approved_programs.py`, `test_student_creation.py`, and this report.
+New QA-only files: `backend/tests/repair_approved_programs_qa.py`,
+`test_admin_creation_delegation.py`, `test_program_catalog_integration.py`,
+and `test_student_creation_integration.py`. The reset preparation files
+were unchanged. No generated or secret file was added to the working tree;
+the supplied real address appears in no test fixture or code change.

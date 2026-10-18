@@ -1,9 +1,12 @@
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import require_permission
-from app.core.approved_programs import approved_name, require_approved_program, resolve_approved_catalog
+from app.core.approved_programs import approved_name, normalize_program_name, require_approved_program, resolve_approved_catalog
 from app.crud.audit import write_audit_event
 from app.database import get_db
 from app.models.audit_log import AuthEventType
@@ -48,6 +51,19 @@ def _get_program_or_404(db: Session, program_id: int) -> Program:
     return program
 
 
+def _lock_catalog(db: Session) -> None:
+    # Serialize API catalog writes, including normalized-name checks.
+    if db.get_bind().dialect.name == "postgresql":
+        db.execute(text("SELECT pg_advisory_xact_lock(19041702)"))
+
+
+def _name_taken(db: Session, name: str, exclude_id: int | None = None) -> bool:
+    normalized = normalize_program_name(name)
+    return any(normalize_program_name(row.name) == normalized for row in
+               db.scalars(select(Program).where(Program.id != exclude_id) if exclude_id is not None
+                          else select(Program)).all())
+
+
 def _active_batch_count(db: Session, program_id: int) -> int:
     return db.scalar(
         select(func.count()).select_from(Batch)
@@ -76,16 +92,16 @@ def _list_item(db: Session, program: Program) -> ProgramListItemOut:
 @router.get("/stats", response_model=ProgramStatsOut)
 def program_stats(db: Session = Depends(get_db), _actor: User = Depends(require_permission("programs.view"))):
     catalog = resolve_approved_catalog(db)
-    approved_ids = [p.id for p in catalog.programs]
-    total_programs = len(approved_ids)
-    active_programs = len(catalog.active)
+    programs = db.scalars(select(Program)).all()
+    total_programs = len(programs)
+    active_programs = sum(p.status == ProgramStatusEnum.active for p in programs)
     total_enrolled_students = db.scalar(
         select(func.count(func.distinct(ProgramEnrollment.student_id)))
-        .where(ProgramEnrollment.status.in_(_ENROLLED_STATES), ProgramEnrollment.program_id.in_(approved_ids))
+        .where(ProgramEnrollment.status.in_(_ENROLLED_STATES))
     ) or 0
     programs_with_upcoming_batches = db.scalar(
         select(func.count(func.distinct(Batch.program_id)))
-        .where(Batch.program_id.in_(approved_ids), Batch.status == BatchStatusEnum.upcoming)
+        .where(Batch.status == BatchStatusEnum.upcoming)
     ) or 0
 
     return ProgramStatsOut(
@@ -99,7 +115,7 @@ def program_stats(db: Session = Depends(get_db), _actor: User = Depends(require_
 
 @router.get("", response_model=list[ProgramListItemOut])
 def list_programs(db: Session = Depends(get_db), _actor: User = Depends(require_permission("programs.view"))):
-    programs = resolve_approved_catalog(db).programs
+    programs = db.scalars(select(Program).order_by(Program.name, Program.id)).all()
     return [_list_item(db, p) for p in programs]
 
 
@@ -110,11 +126,48 @@ def create_program(
     db: Session = Depends(get_db),
     actor: User = Depends(require_permission("programs.create")),
 ):
-    raise HTTPException(
-        status_code=403,
-        detail="The admin catalog is restricted to three existing approved programs. "
-               "Program creation is disabled. Missing canonical records must be reviewed explicitly; no duplicate will be created.",
-    )
+    name = " ".join(payload.name.split())
+    if not name:
+        raise HTTPException(400, "Program name is required.")
+    # Approved identity repair needs a separate reviewed catalog operation.
+    # Creating a general program must never silently make it provisionable.
+    if approved_name(name):
+        raise HTTPException(409, "This name is reserved for an approved student program. Review its canonical catalog record before repair.")
+    try:
+        _lock_catalog(db)
+        if _name_taken(db, name):
+            raise HTTPException(409, "A program with this name already exists.")
+        base = re.sub(r"[^a-z0-9]+", "_", name.casefold()).strip("_")[:64]
+        if not base:
+            raise HTTPException(400, "Program name must include Latin letters or digits for its identifier.")
+        slug = base
+        suffix = 2
+        while db.scalar(select(Program.id).where(Program.slug == slug)) is not None:
+            slug = f"{base[:60]}_{suffix}"
+            suffix += 1
+        program = Program(slug=slug, name=name, code=payload.code,
+                          description=payload.description, category=payload.category,
+                          duration=payload.duration, eligibility=payload.eligibility,
+                          objectives=payload.objectives, max_capacity=payload.max_capacity,
+                          mode=ProgramModeEnum(payload.mode), status=ProgramStatusEnum(payload.status))
+        db.add(program)
+        db.flush()
+        ip, ua = _client_meta(request)
+        write_audit_event(db, AuthEventType.program_created, ip, ua, user=actor,
+                          detail=f"Created program id={program.id}", module="programs",
+                          target=f"program:{program.id}", status="success", commit=False)
+        db.commit()
+    except HTTPException:
+        db.rollback()
+        raise
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "Program name, code, or identifier conflicts with an existing record.")
+    except Exception:
+        db.rollback()
+        raise HTTPException(500, "Program creation failed. No changes were made.")
+    db.refresh(program)
+    return _list_item(db, program)
 
 
 @router.get("/{program_id}", response_model=ProgramDetailOut)
@@ -194,9 +247,21 @@ def update_program(
     db: Session = Depends(get_db),
     actor: User = Depends(require_permission("programs.edit")),
 ):
-    program = require_approved_program(db, program_id, active=False)
-    if payload.name is not None and approved_name(payload.name) != approved_name(program.name):
-        raise HTTPException(status_code=400, detail="Approved program identities cannot be renamed. Existing student assignments must be preserved.")
+    _lock_catalog(db)
+    program = _get_program_or_404(db, program_id)
+    if payload.name is not None:
+        name = " ".join(payload.name.split())
+        if not name:
+            raise HTTPException(400, "Program name is required.")
+        if approved_name(program.name):
+            if approved_name(name) != approved_name(program.name):
+                raise HTTPException(400, "Approved program identities cannot be renamed.")
+        elif approved_name(name):
+            raise HTTPException(409, "Approved program names require a separately reviewed catalog repair.")
+        elif _name_taken(db, name, exclude_id=program.id):
+            raise HTTPException(409, "A program with this name already exists.")
+        else:
+            program.name = name
 
     if payload.code is not None and payload.code != program.code:
         existing = db.scalar(select(Program).where(Program.code == payload.code, Program.id != program_id))
@@ -223,14 +288,20 @@ def update_program(
     if payload.status is not None:
         program.status = ProgramStatusEnum(payload.status)
 
-    db.add(program)
-    db.commit()
-
-    ip, ua = _client_meta(request)
-    write_audit_event(
-        db, AuthEventType.program_updated, ip, ua, user=actor, detail=f"Updated program {program.name}",
-        module="programs", target=program.name, status="success",
-    )
+    try:
+        db.add(program)
+        ip, ua = _client_meta(request)
+        write_audit_event(
+            db, AuthEventType.program_updated, ip, ua, user=actor, detail=f"Updated program id={program.id}",
+            module="programs", target=f"program:{program.id}", status="success", commit=False,
+        )
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "Program name or code conflicts with an existing record.")
+    except Exception:
+        db.rollback()
+        raise HTTPException(500, "Program update failed. No changes were made.")
 
     return get_program(program_id, db, actor)
 

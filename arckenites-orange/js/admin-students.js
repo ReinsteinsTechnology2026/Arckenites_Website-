@@ -114,23 +114,29 @@ document.addEventListener('DOMContentLoaded', async () => {
       select.appendChild(opt);
     });
   };
-  if (ArckAuth.hasPermission('students.create') || ArckAuth.hasPermission('students.edit')) {
+  const loadProgramOptions = async () => {
+    const catalogNotice = document.getElementById('studentProgramCatalogNotice');
+    newProgramSelect.replaceChildren(new Option('Select a program', ''));
+    programOptions = [];
+    submitBtn.disabled = true;
     try {
       const catalog = await ArckAPI.approvedProgramOptions();
       programOptions = catalog.options;
-      const catalogNotice = document.getElementById('studentProgramCatalogNotice');
       catalogNotice.textContent = catalog.detail || '';
       catalogNotice.style.display = catalog.detail ? 'flex' : 'none';
       populateProgramSelect(newProgramSelect);
-    } catch (_) {
-      errorBox.textContent = 'Could not load programs. Refresh the page before creating a student.';
+      submitBtn.disabled = !programOptions.length;
+      errorBox.style.display = 'none';
+    } catch (err) {
+      errorBox.textContent = typeof err.detail === 'string' ? err.detail : 'Could not load programs. Refresh the page before creating a student.';
       errorBox.style.display = 'block';
     }
-  }
+  };
   const submitBtn = document.getElementById('addStudentSubmitBtn');
   const notice = document.getElementById('newStudentNotice');
+  if (ArckAuth.hasPermission('students.create') || ArckAuth.hasPermission('students.edit')) await loadProgramOptions();
 
-  const openAddPanel = () => { closeEditPanel(); closeResendPanel(); addPanel.style.display = 'block'; nameInput.focus(); };
+  const openAddPanel = () => { closeEditPanel(); closeResendPanel(); addPanel.style.display = 'block'; loadProgramOptions(); nameInput.focus(); };
   const closeAddPanel = () => {
     addPanel.style.display = 'none';
     form.reset();
@@ -153,7 +159,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const statusBadge = (student) => {
     if (!student.is_active) return '<span class="admin-activity-badge is-danger">Inactive</span>';
-    if (student.must_change_password) return '<span class="admin-activity-badge is-info">Awaiting First Login</span>';
+    if (student.must_change_password) return '<span class="admin-activity-badge is-info">Password Change Required</span>';
     return '<span class="admin-activity-badge is-success">Active</span>';
   };
 
@@ -194,9 +200,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       : `<tr><td colspan="${tableColspan}" class="admin-panel-empty">No students yet. Click "Add New Student" to create the first one.</td></tr>`;
   };
 
+  let students = [];
   const loadStudents = async () => {
     try {
       const list = await ArckAPI.request('/admin/students');
+      students = list;
       renderStudents(list);
       return list;
     } catch (err) {
@@ -206,7 +214,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
-  let students = await loadStudents();
+  await loadStudents();
 
   /* ---------- Create student ---------- */
   form.addEventListener('submit', async (e) => {
@@ -233,8 +241,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         timeoutMs: 60000,
         body: { full_name: nameInput.value.trim(), email: emailInput.value, temp_password: passwordInput.value, program_id: Number(newProgramSelect.value) },
       });
-      students = [created, ...students];
-      renderStudents(students);
+      await loadStudents();
       closeAddPanel();
 
       notice.textContent = created.detail;
@@ -303,8 +310,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
       const updated = await ArckAPI.request(`/admin/students/${editIdInput.value}`, { method: 'PATCH', body });
-      students = students.map((s) => (s.id === updated.id ? updated : s));
-      renderStudents(students);
+      await loadStudents();
       closeEditPanel();
     } catch (err) {
       editErrorBox.textContent = err.detail || 'Could not update student.';
@@ -377,10 +383,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const result = await ArckAPI.request(`/admin/students/${id}/permanent-delete`, {
           method: 'POST', body: { confirm_username: login, confirmation: 'PERMANENTLY DELETE' },
         });
-        students = students.filter((s) => s.id !== id);
         if (editIdInput.value === String(id)) closeEditPanel();
         if (resendStudentId === id) closeResendPanel();
-        renderStudents(students);
+        await loadStudents();
         notice.textContent = result.detail;
         notice.style.display = 'flex';
       } catch (err) {
@@ -432,14 +437,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         const result = await ArckAPI.request(`/admin/students/${id}`, { method: 'DELETE' });
         if (result && result.action === 'deactivated' && result.student) {
-          students = students.map((s) => (s.id === id ? result.student : s));
           if (editIdInput.value === String(id)) closeEditPanel();
-          renderStudents(students);
+          await loadStudents();
           window.alert(result.detail || 'Student had related records, so the account was deactivated instead of deleted.');
         } else {
-          students = students.filter((s) => s.id !== id);
           if (editIdInput.value === String(id)) closeEditPanel();
-          renderStudents(students);
+          await loadStudents();
         }
       } catch (err) {
         window.alert(err.detail || 'Could not delete student.');

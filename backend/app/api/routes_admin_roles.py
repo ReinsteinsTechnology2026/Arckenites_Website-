@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import require_permission
 from app.crud.audit import write_audit_event
-from app.crud.permissions import PERMISSION_CATALOG, PERMISSION_KEYS
+from app.crud.permissions import PERMISSION_CATALOG, PERMISSION_KEYS, get_effective_permissions, is_super_admin
 from app.database import get_db
 from app.models.admin_role import SUPER_ADMIN_SLUG, AdminRole, AdminRolePermission
 from app.models.audit_log import AuthEventType
@@ -105,6 +105,8 @@ def create_role(
     invalid = [k for k in payload.permission_keys if k not in PERMISSION_KEYS]
     if invalid:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unknown permission key(s): {', '.join(invalid)}")
+    if not is_super_admin(actor) and not set(payload.permission_keys).issubset(set(get_effective_permissions(db, actor))):
+        raise HTTPException(status_code=403, detail="You cannot grant permissions outside your delegation scope.")
 
     role = AdminRole(name=payload.name, slug=slug, description=payload.description, is_system=False)
     db.add(role)
@@ -147,6 +149,12 @@ def update_role(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Super Admin always has full access and cannot be modified.",
         )
+    if not is_super_admin(actor):
+        owned = set(get_effective_permissions(db, actor))
+        existing = set(db.scalars(select(AdminRolePermission.permission_key).where(
+            AdminRolePermission.admin_role_id == role.id)).all())
+        if not existing.issubset(owned) or (payload.permission_keys is not None and not set(payload.permission_keys).issubset(owned)):
+            raise HTTPException(status_code=403, detail="You cannot edit a role outside your delegation scope.")
     if role.is_system and (payload.name is not None or payload.description is not None):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This role's name cannot be changed.")
 
