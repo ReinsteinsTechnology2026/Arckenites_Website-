@@ -196,6 +196,15 @@
                 <option value="">Select a program</option>
               </select>
             </div>
+            <div id="newStudentDomainField" style="display:none;">
+              <label class="form-label" for="newStudentDomain">Domain</label>
+              <select class="form-select" id="newStudentDomain" disabled>
+                <option value="">Select a domain</option>
+                <option>Cloud</option><option>Networking</option><option>Cybersecurity</option>
+                <option>Data Science</option><option>AI &amp; ML</option><option>IoT</option>
+                <option>Quantum Computing</option><option>Software Engineering</option><option>BLM</option>
+              </select>
+            </div>
           </div>
           <div class="login-error" id="addStudentError" style="display:none;"></div>
           <div class="admin-form-actions">
@@ -222,6 +231,15 @@
               <label class="form-label">Program</label>
               <select class="form-select" id="editStudentProgram">
                 <option value="">Not selected yet</option>
+              </select>
+            </div>
+            <div id="editStudentDomainField" style="display:none;">
+              <label class="form-label" for="editStudentDomain">Domain</label>
+              <select class="form-select" id="editStudentDomain" disabled>
+                <option value="">Select a domain</option>
+                <option>Cloud</option><option>Networking</option><option>Cybersecurity</option>
+                <option>Data Science</option><option>AI &amp; ML</option><option>IoT</option>
+                <option>Quantum Computing</option><option>Software Engineering</option><option>BLM</option>
               </select>
             </div>
             <div>
@@ -314,7 +332,7 @@
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=7"></script>
 <script src="js/theme.js?v=1"></script>
-<script src="js/admin-students.js?v=5"></script>
+<script src="js/admin-students.js?v=6"></script>
 <script src="js/chat.js?v=1"></script>
 
 </body>

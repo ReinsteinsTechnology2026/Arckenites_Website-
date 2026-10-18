@@ -219,6 +219,7 @@ class ApprovedCatalogApiPostgresTests(unittest.TestCase):
                 response = client.post("/api/admin/students", headers=headers, json={
                     "full_name": "Catalog QA Student", "email": email,
                     "temp_password": "CatalogQaPassword123", "program_id": row["id"],
+                    **({"domain": "Cloud"} if row["name"] == "Institutional Program" else {}),
                 })
                 self.assertEqual(response.status_code, 201, response.text)
                 with Session(bind=engine) as db:

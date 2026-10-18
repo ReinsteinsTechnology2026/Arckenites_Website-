@@ -13,10 +13,11 @@ from starlette.requests import Request
 
 from app.api.routes_admin_students import create_student
 from app.database import engine
+from app.models.admin_role import AdminRole, SUPER_ADMIN_SLUG
 from app.models.audit_log import AuthAuditLog
 from app.models.program import Program, ProgramEnrollment
 from app.models.student import StudentProfile
-from app.models.user import User
+from app.models.user import RoleEnum, User
 from app.schemas.admin_students import CreateStudentRequest, CredentialEmailOut
 from tests.postgres_safety import isolated_postgres_enabled
 
@@ -25,10 +26,15 @@ from tests.postgres_safety import isolated_postgres_enabled
 class StudentCreationPostgresTests(unittest.TestCase):
     def test_parallel_requests_create_one_identity_and_one_enrollment(self):
         with Session(bind=engine) as db:
-            actor = db.scalar(select(User).where(User.username == "admin1@arckenites.com"))
+            role = db.scalar(select(AdminRole).where(AdminRole.slug == SUPER_ADMIN_SLUG))
             program = db.scalar(select(Program).where(Program.name == "Institutional Program"))
-            self.assertIsNotNone(actor)
+            self.assertIsNotNone(role)
             self.assertIsNotNone(program)
+            actor = User(username=f"student-race-qa-{uuid4().hex}@example.test",
+                         password_hash="unused", full_name="Student Race QA", role=RoleEnum.admin,
+                         admin_role_id=role.id, is_active=False)
+            db.add(actor)
+            db.commit()
             actor_id, program_id = actor.id, program.id
         email = f"qa-{uuid4().hex[:18]}@example.test"
         barrier = Barrier(2)
@@ -39,7 +45,8 @@ class StudentCreationPostgresTests(unittest.TestCase):
             with Session(bind=engine, autoflush=False) as db:
                 actor = db.get(User, actor_id)
                 payload = CreateStudentRequest(full_name="Synthetic Student", email=email,
-                                               temp_password="SyntheticPassword123", program_id=program_id)
+                                               temp_password="SyntheticPassword123", program_id=program_id,
+                                               domain="Cloud")
                 barrier.wait(timeout=10)
                 try:
                     created = create_student(payload, Request(scope), db=db, actor=actor)

@@ -11,7 +11,8 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import require_permission, require_role, require_super_admin
 from app.core.student_deletion import stage_student_deletion
-from app.core.approved_programs import APPROVED_PROGRAM_NAMES, require_approved_program, resolve_approved_catalog
+from app.core.approved_programs import APPROVED_PROGRAM_NAMES, approved_name, require_approved_program, resolve_approved_catalog
+from app.core.institutional_domains import INSTITUTIONAL_PROGRAM_NAME
 from app.core.security import hash_password, validate_password_strength, verify_password
 from app.core.student_credentials import send_student_credentials
 from app.crud.audit import write_audit_event
@@ -181,6 +182,11 @@ def create_student(
         if conflict:
             raise _email_conflict_response(conflict)
         program = require_approved_program(db, payload.program_id)
+        if approved_name(program.name) == INSTITUTIONAL_PROGRAM_NAME:
+            if payload.domain is None:
+                raise HTTPException(400, "Domain is required for Institutional Program students.")
+        elif payload.domain is not None:
+            raise HTTPException(400, "Domain is only available for Institutional Program students.")
         user = User(
             username=payload.email, password_hash=hash_password(payload.temp_password),
             full_name=payload.full_name, role=RoleEnum.student,
@@ -193,7 +199,8 @@ def create_student(
         legacy_program = ProgramEnum._value2member_map_.get(program.slug)
         db.add(StudentProfile(user_id=user.id, email=payload.email, program=legacy_program, program_id=program.id,
                               student_code=generate_student_code(db)))
-        db.add(ProgramEnrollment(program_id=program.id, student_id=user.id, status=EnrollmentStatusEnum.active))
+        db.add(ProgramEnrollment(program_id=program.id, student_id=user.id,
+                                 status=EnrollmentStatusEnum.active, domain=payload.domain))
         ip, ua = _client_meta(request)
         write_audit_event(
             db, AuthEventType.student_created, ip, ua, user=actor,
@@ -289,7 +296,7 @@ def export_students(
     ws.title = "Students"
     headers = [
         "Username", "Full Name", "Mobile Number", "Email", "Current Role",
-        "Program", "Status", "Awaiting First Login", "Created At",
+        "Program", "Domain", "Status", "Awaiting First Login", "Created At",
     ]
     ws.append(headers)
 
@@ -304,6 +311,7 @@ def export_students(
             (profile.email if profile else None) or (u.username if "@" in u.username else ""),
             current_role,
             program_label,
+            u.domain or "",
             "Active" if u.is_active else "Inactive",
             "Yes" if u.must_change_password else "No",
             u.created_at.strftime("%Y-%m-%d %H:%M") if u.created_at else "",
@@ -343,6 +351,8 @@ def update_student(
 
     if payload.full_name is not None:
         user.full_name = payload.full_name
+    target_program = user.assigned_program
+    changed_assignment = False
     if payload.program_id is not None or payload.program is not None:
         program_query = (Program.id == payload.program_id if payload.program_id is not None
                          else Program.slug == payload.program)
@@ -355,17 +365,40 @@ def update_student(
         unchanged = (assigned.id == user.program_id or (
             profile.program_id is None and profile.program is not None and assigned.slug == profile.program.value
         ))
-        if not unchanged:
-            assigned = require_approved_program(db, assigned.id)
-            profile.program_id = assigned.id
-            profile.program = ProgramEnum._value2member_map_.get(assigned.slug)
+        changed_assignment = not unchanged
+        target_program = assigned if unchanged else require_approved_program(db, assigned.id)
+
+    domain_sent = "domain" in payload.model_fields_set
+    institutional = bool(target_program and approved_name(target_program.name) == INSTITUTIONAL_PROGRAM_NAME)
+    if institutional and (changed_assignment or domain_sent) and payload.domain is None:
+        raise HTTPException(400, "Domain is required for Institutional Program students.")
+    if not institutional and payload.domain is not None:
+        raise HTTPException(400, "Domain is only available for Institutional Program students.")
+
+    enrollment = None
+    if changed_assignment:
+        assigned = target_program
+        profile.program_id = assigned.id
+        profile.program = ProgramEnum._value2member_map_.get(assigned.slug)
+        enrollment = db.scalar(select(ProgramEnrollment).where(
+            ProgramEnrollment.student_id == user.id, ProgramEnrollment.program_id == assigned.id,
+        ))
+        if enrollment is None:
+            enrollment = ProgramEnrollment(student_id=user.id, program_id=assigned.id,
+                                           status=EnrollmentStatusEnum.active)
+            db.add(enrollment)
+        elif enrollment.status in (EnrollmentStatusEnum.withdrawn, EnrollmentStatusEnum.rejected, EnrollmentStatusEnum.pending):
+            enrollment.status = EnrollmentStatusEnum.active
+    if institutional and payload.domain is not None:
+        if enrollment is None:
             enrollment = db.scalar(select(ProgramEnrollment).where(
-                ProgramEnrollment.student_id == user.id, ProgramEnrollment.program_id == assigned.id,
+                ProgramEnrollment.student_id == user.id, ProgramEnrollment.program_id == target_program.id,
             ))
-            if enrollment is None:
-                db.add(ProgramEnrollment(student_id=user.id, program_id=assigned.id, status=EnrollmentStatusEnum.active))
-            elif enrollment.status in (EnrollmentStatusEnum.withdrawn, EnrollmentStatusEnum.rejected, EnrollmentStatusEnum.pending):
-                enrollment.status = EnrollmentStatusEnum.active
+        if enrollment is None:
+            enrollment = ProgramEnrollment(student_id=user.id, program_id=target_program.id,
+                                           status=EnrollmentStatusEnum.active)
+            db.add(enrollment)
+        enrollment.domain = payload.domain
     if payload.is_active is not None:
         if payload.is_active != user.is_active:
             write_audit_event(
@@ -392,7 +425,7 @@ def update_student(
             status="success", commit=False,
         )
 
-    if payload.full_name is not None or payload.program is not None or payload.program_id is not None:
+    if payload.full_name is not None or payload.program is not None or payload.program_id is not None or domain_sent:
         write_audit_event(
             db, AuthEventType.student_updated, ip, ua, user=actor, detail=f"Edited student {user.username}",
             module="students", target=user.username, status="success", commit=False,

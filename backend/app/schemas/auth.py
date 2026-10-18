@@ -42,6 +42,7 @@ class UserOut(BaseModel):
     department: str | None = None
     program: str | None = None
     program_name: str | None = None
+    domain: str | None = None
     profile_completed: bool = True
     email_notifications_enabled: bool = True
     # Populated explicitly by the route (not bare from_attributes) since it

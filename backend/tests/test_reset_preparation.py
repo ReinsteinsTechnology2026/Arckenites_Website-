@@ -72,7 +72,8 @@ class ResetPreparationTests(unittest.TestCase):
         self.assertEqual(self.metadata["table_count"], 45)
         self.assertEqual(len(self.metadata["foreign_keys"]), 62)
         self.assertEqual(len(self.metadata["model_indexes"]), 58)
-        self.assertEqual(len(self.metadata["model_constraints"]), 124)
+        # The Institutional enrollment domain adds one check constraint.
+        self.assertEqual(len(self.metadata["model_constraints"]), 125)
         self.assertEqual(self.metadata["unclassified_model_tables"], [])
         self.assertFalse(self.metadata["production_schema_verified"])
         self.assertEqual(set(self.metadata["tables"]) | {"alembic_version"}, ALL_TABLES)

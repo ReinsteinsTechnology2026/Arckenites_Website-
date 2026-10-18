@@ -23,8 +23,13 @@ function environment(script, {batch = false, catalogFailure = false, superAdmin 
     constructor(id = '') {
       this.id = id;
       this.rawValue = '';
-      this.isSelect = ['newStudentProgram', 'editStudentProgram', 'editBatchProgram'].includes(id);
-      this.options = this.isSelect ? [new Option('Select a program', '')] : [];
+      this.isSelect = ['newStudentProgram', 'editStudentProgram', 'editBatchProgram',
+        'newStudentDomain', 'editStudentDomain'].includes(id);
+      this.options = this.isSelect ? [new Option('Select an option', '')] : [];
+      if (id.endsWith('Domain')) this.options.push(...[
+        'Cloud', 'Networking', 'Cybersecurity', 'Data Science', 'AI & ML', 'IoT',
+        'Quantum Computing', 'Software Engineering', 'BLM',
+      ].map(value => new Option(value, value)));
       this.style = {display: 'none'};
       this.listeners = {};
       this.validity = {valid: true};
@@ -64,6 +69,7 @@ function environment(script, {batch = false, catalogFailure = false, superAdmin 
     async request(url, options = {}) {
       calls.push({url, ...options});
       if (url === '/admin/students' && !options.method) return students;
+      if (url === '/admin/students' && options.method === 'POST') return {detail: 'Created'};
       if (url === '/admin/students/42' && options.method === 'PATCH') {
         students = students.map(s => ({...s, ...options.body}));
         return students[0];
@@ -114,6 +120,44 @@ async function studentHistoryTest() {
   select.value = '201';
   await app.get('editStudentForm').listeners.submit(submit);
   assert.equal(app.calls.filter(c => c.url === '/admin/students/42' && c.method === 'PATCH').at(-1).body.program_id, 201);
+}
+
+async function institutionalDomainTest() {
+  const app = environment('arckenites-orange/js/admin-students.js');
+  await app.boot();
+  const program = app.get('newStudentProgram');
+  const domain = app.get('newStudentDomain');
+  const field = app.get('newStudentDomainField');
+  assert.deepEqual(domain.options.slice(1).map(option => option.value), [
+    'Cloud', 'Networking', 'Cybersecurity', 'Data Science', 'AI & ML', 'IoT',
+    'Quantum Computing', 'Software Engineering', 'BLM',
+  ]);
+  app.get('newStudentName').value = 'Domain Student';
+  app.get('newStudentEmail').value = 'domain@example.test';
+  app.get('newStudentPassword').value = 'DomainPassword123';
+  program.value = '101';
+  program.listeners.change();
+  assert.equal(domain.required, true);
+  assert.equal(domain.disabled, false);
+  assert.equal(field.style.display, '');
+  await app.get('addStudentForm').listeners.submit(submit);
+  assert.match(app.get('addStudentError').textContent, /select a domain/i);
+  assert.equal(app.calls.filter(call => call.method === 'POST').length, 0);
+  domain.value = 'Cloud';
+  program.value = '201';
+  program.listeners.change();
+  assert.equal(domain.value, '');
+  assert.equal(domain.disabled, true);
+  assert.equal(field.style.display, 'none');
+  program.value = '101';
+  program.listeners.change();
+  assert.equal(domain.value, '');
+  assert.equal(domain.required, true);
+  await app.get('addStudentForm').listeners.submit(submit);
+  assert.equal(app.calls.filter(call => call.method === 'POST').length, 0);
+  domain.value = 'AI & ML';
+  await app.get('addStudentForm').listeners.submit(submit);
+  assert.equal(app.calls.find(call => call.method === 'POST').body.domain, 'AI & ML');
 }
 
 async function batchHistoryTest(catalogFailure) {
@@ -177,6 +221,7 @@ async function deletionRoutingTest() {
 
 (async () => {
   await studentHistoryTest();
+  await institutionalDomainTest();
   await batchHistoryTest(false);
   await batchHistoryTest(true);
   await deletionRoutingTest();

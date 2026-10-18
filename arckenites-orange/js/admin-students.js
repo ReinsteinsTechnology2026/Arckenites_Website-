@@ -103,9 +103,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   const emailInput = document.getElementById('newStudentEmail');
   const passwordInput = document.getElementById('newStudentPassword');
   const newProgramSelect = document.getElementById('newStudentProgram');
+  const newDomainField = document.getElementById('newStudentDomainField');
+  const newDomainSelect = document.getElementById('newStudentDomain');
   const errorBox = document.getElementById('addStudentError');
 
   let programOptions = [];
+  const isInstitutionalOption = (value, fallbackName = '') => {
+    const selected = programOptions.find((program) => String(program.id) === String(value));
+    return (selected?.name || fallbackName) === 'Institutional Program';
+  };
+  const syncNewDomain = () => {
+    const required = isInstitutionalOption(newProgramSelect.value);
+    newDomainSelect.value = '';
+    newDomainField.style.display = required ? '' : 'none';
+    newDomainSelect.disabled = !required;
+    newDomainSelect.required = required;
+  };
+  newProgramSelect.addEventListener('change', syncNewDomain);
   const populateProgramSelect = (select) => {
     programOptions.forEach((program) => {
       const opt = document.createElement('option');
@@ -117,6 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const loadProgramOptions = async () => {
     const catalogNotice = document.getElementById('studentProgramCatalogNotice');
     newProgramSelect.replaceChildren(new Option('Select a program', ''));
+    syncNewDomain();
     programOptions = [];
     submitBtn.disabled = true;
     try {
@@ -140,6 +155,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const closeAddPanel = () => {
     addPanel.style.display = 'none';
     form.reset();
+    syncNewDomain();
     errorBox.style.display = 'none';
   };
 
@@ -164,7 +180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   const programBadge = (student) => (student.program_name || student.program)
-    ? `<span class="admin-activity-badge is-muted">${escapeHtml(student.program_name || PROGRAM_LABELS[student.program] || student.program)}</span>`
+    ? `<span class="admin-activity-badge is-muted">${escapeHtml(student.program_name || PROGRAM_LABELS[student.program] || student.program)}${student.domain ? ` · ${escapeHtml(student.domain)}` : ''}</span>`
     : '<span class="admin-activity-badge is-pending">Not selected yet</span>';
 
   const canDeleteStudents = ArckAuth.hasPermission('students.delete');
@@ -227,7 +243,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       : !passwordInput.value ? 'Temporary password is required.'
       : passwordInput.value.length < 8 ? 'Temporary password must contain at least 8 characters.'
       : new TextEncoder().encode(passwordInput.value).length > 72 ? 'Temporary password must be at most 72 UTF-8 bytes.'
-      : !newProgramSelect.value ? 'Please select a program.' : '';
+      : !newProgramSelect.value ? 'Please select a program.'
+      : isInstitutionalOption(newProgramSelect.value) && !newDomainSelect.value ? 'Please select a domain.' : '';
     if (validationError) {
       errorBox.textContent = validationError;
       errorBox.style.display = 'block';
@@ -239,7 +256,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const created = await ArckAPI.request('/admin/students', {
         method: 'POST',
         timeoutMs: 60000,
-        body: { full_name: nameInput.value.trim(), email: emailInput.value, temp_password: passwordInput.value, program_id: Number(newProgramSelect.value) },
+        body: { full_name: nameInput.value.trim(), email: emailInput.value,
+          temp_password: passwordInput.value, program_id: Number(newProgramSelect.value),
+          ...(isInstitutionalOption(newProgramSelect.value) ? { domain: newDomainSelect.value } : {}) },
       });
       await loadStudents();
       closeAddPanel();
@@ -261,6 +280,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const editNameInput = document.getElementById('editStudentName');
   const editLoginInput = document.getElementById('editStudentLogin');
   const editProgramSelect = document.getElementById('editStudentProgram');
+  const editDomainField = document.getElementById('editStudentDomainField');
+  const editDomainSelect = document.getElementById('editStudentDomain');
   const editActiveSelect = document.getElementById('editStudentActive');
   const editResetPasswordInput = document.getElementById('editStudentResetPassword');
   const editErrorBox = document.getElementById('editStudentError');
@@ -268,10 +289,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cancelEditBtn = document.getElementById('cancelEditStudentBtn');
 
   let editOriginalProgramId = '';
+  let editOriginalDomain = '';
+  let editCurrentProgramLabel = '';
+  let editProgramChangedEver = false;
+  const syncEditDomain = () => {
+    const required = isInstitutionalOption(editProgramSelect.value, editProgramSelect.value ? '' : editCurrentProgramLabel);
+    editDomainField.style.display = required ? '' : 'none';
+    editDomainSelect.disabled = !required;
+    editDomainSelect.required = required && editProgramChangedEver;
+  };
+  editProgramSelect.addEventListener('change', () => {
+    editProgramChangedEver = true;
+    editDomainSelect.value = '';
+    syncEditDomain();
+  });
 
   const closeEditPanel = () => {
     editPanel.style.display = 'none';
     editForm.reset();
+    editDomainSelect.value = '';
+    editDomainField.style.display = 'none';
+    editDomainSelect.disabled = true;
     editErrorBox.style.display = 'none';
   };
   const openEditPanel = (student) => {
@@ -281,6 +319,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     editNameInput.value = student.full_name;
     editLoginInput.value = student.username;
     const currentProgramLabel = student.program_name || PROGRAM_LABELS[student.program] || student.program || '';
+    editCurrentProgramLabel = currentProgramLabel;
     editProgramSelect.replaceChildren(new Option(`Keep current program${currentProgramLabel ? ': ' + currentProgramLabel : ''}`, ''));
     populateProgramSelect(editProgramSelect);
     const existing = programOptions.find((p) => p.id === student.program_id || (!student.program_id && p.slug === student.program));
@@ -288,6 +327,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Historical/inactive assignments are shown as the unchanged placeholder,
     // never added back to the selectable approved options.
     editOriginalProgramId = editProgramSelect.value;
+    editOriginalDomain = student.domain || '';
+    editProgramChangedEver = false;
+    editDomainSelect.value = editOriginalDomain;
+    syncEditDomain();
     editActiveSelect.value = String(student.is_active);
     editResetPasswordInput.value = '';
     editErrorBox.style.display = 'none';
@@ -306,6 +349,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       is_active: editActiveSelect.value === 'true',
     };
     if (editProgramSelect.value && editProgramSelect.value !== editOriginalProgramId) body.program_id = Number(editProgramSelect.value);
+    const editingInstitutional = isInstitutionalOption(editProgramSelect.value,
+      editProgramSelect.value ? '' : editCurrentProgramLabel);
+    const domainChanged = editDomainSelect.value !== editOriginalDomain;
+    if (editingInstitutional && (editProgramChangedEver || body.program_id || domainChanged)) {
+      if (!editDomainSelect.value) {
+        editErrorBox.textContent = 'Please select a domain.';
+        editErrorBox.style.display = 'block';
+        editSubmitBtn.disabled = false;
+        return;
+      }
+      body.domain = editDomainSelect.value;
+    }
     if (editResetPasswordInput.value) body.reset_temp_password = editResetPasswordInput.value;
 
     try {

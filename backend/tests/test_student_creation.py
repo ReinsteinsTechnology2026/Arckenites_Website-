@@ -122,8 +122,11 @@ class StudentCreationTests(unittest.TestCase):
         return {"Authorization": f"Bearer {token}"}
 
     def _payload(self, **overrides):
-        return {"full_name": "  Arun Kumar  ", "email": " Arun@Example.COM ",
-                "temp_password": PASSWORD, "program_id": self.program_id, **overrides}
+        payload = {"full_name": "  Arun Kumar  ", "email": " Arun@Example.COM ",
+                   "temp_password": PASSWORD, "program_id": self.program_id, **overrides}
+        if payload["program_id"] == self.institutional_id and "domain" not in payload:
+            payload["domain"] = "Cloud"
+        return payload
 
     def _create(self, **overrides):
         return self.client.post("/api/admin/students", json=self._payload(**overrides), headers=self.headers)
@@ -539,7 +542,7 @@ class StudentCreationTests(unittest.TestCase):
         created = self._create().json()
         auth = self._headers(created["id"], "student")
         response = self.client.patch(f"/api/admin/students/{created['id']}", headers=self.headers,
-                                     json={"program_id": self.institutional_id})
+                                     json={"program_id": self.institutional_id, "domain": "Cloud"})
         self.assertEqual(response.status_code, 200, response.text)
         self.assertEqual(response.json()["program_name"], "Institutional Program")
         self.assertEqual(response.json()["program"], "institutional")

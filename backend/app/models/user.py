@@ -98,6 +98,20 @@ class User(Base):
         return program.name if program else None
 
     @property
+    def domain(self) -> str | None:
+        """Domain of the current Institutional assignment, never a past one."""
+        if self.role != RoleEnum.student:
+            return None
+        program = self.assigned_program
+        if program is None:
+            return None
+        from app.core.approved_programs import approved_name
+        if approved_name(program.name) != "Institutional Program":
+            return None
+        enrollment = next((row for row in self.program_enrollments if row.program_id == program.id), None)
+        return enrollment.domain if enrollment else None
+
+    @property
     def program(self) -> str | None:
         """Lets UserOut/MeResponse (from_attributes=True) surface the student's
         chosen program without every caller having to reach into student_profile."""

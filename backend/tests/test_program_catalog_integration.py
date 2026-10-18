@@ -12,8 +12,9 @@ from starlette.requests import Request
 
 from app.api.routes_admin_programs import create_program
 from app.database import engine
+from app.models.admin_role import AdminRole, SUPER_ADMIN_SLUG
 from app.models.program import Program
-from app.models.user import User
+from app.models.user import RoleEnum, User
 from app.schemas.admin_programs import CreateProgramRequest
 from tests.postgres_safety import isolated_postgres_enabled
 
@@ -22,8 +23,13 @@ from tests.postgres_safety import isolated_postgres_enabled
 class ProgramCatalogPostgresTests(unittest.TestCase):
     def test_parallel_creation_attempts_are_all_rejected_and_write_nothing(self):
         with Session(bind=engine) as db:
-            actor = db.scalar(select(User).where(User.username == "admin1@arckenites.com"))
-            self.assertIsNotNone(actor)
+            role = db.scalar(select(AdminRole).where(AdminRole.slug == SUPER_ADMIN_SLUG))
+            self.assertIsNotNone(role)
+            actor = User(username=f"catalog-reject-qa-{uuid4().hex}@example.test",
+                         password_hash="unused", full_name="Catalog Reject QA", role=RoleEnum.admin,
+                         admin_role_id=role.id, is_active=False)
+            db.add(actor)
+            db.commit()
             actor_id = actor.id
             before = db.scalar(select(func.count()).select_from(Program))
         label = f"QA Catalog {uuid4().hex[:12]}"

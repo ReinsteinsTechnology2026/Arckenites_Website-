@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import CheckConstraint, DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -85,9 +85,17 @@ class ProgramEnrollment(Base):
     """
 
     __tablename__ = "program_enrollments"
-    __table_args__ = (UniqueConstraint("program_id", "student_id"),)
+    __table_args__ = (
+        UniqueConstraint("program_id", "student_id"),
+        CheckConstraint(
+            "domain IS NULL OR domain IN ('Cloud', 'Networking', 'Cybersecurity', "
+            "'Data Science', 'AI & ML', 'IoT', 'Quantum Computing', 'Software Engineering', 'BLM')",
+            name="ck_program_enrollments_domain",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    domain: Mapped[str | None] = mapped_column(String(40), nullable=True)
     program_id: Mapped[int] = mapped_column(ForeignKey("programs.id"), nullable=False, index=True)
     student_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
 

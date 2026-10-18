@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator
 
 from app.core.security import validate_bcrypt_password_bytes
+from app.core.institutional_domains import INSTITUTIONAL_DOMAINS
 from app.models.student import PROGRAM_LABELS, ProgramEnum
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -19,6 +20,14 @@ class CreateStudentRequest(BaseModel):
     email: str = Field(min_length=3, max_length=255)
     temp_password: str = Field(min_length=8, max_length=128, repr=False)
     program_id: int = Field(gt=0)
+    domain: str | None = None
+
+    @field_validator("domain")
+    @classmethod
+    def validate_domain(cls, value: str | None) -> str | None:
+        if value is not None and value not in INSTITUTIONAL_DOMAINS:
+            raise ValueError("Domain must be one of: " + ", ".join(INSTITUTIONAL_DOMAINS))
+        return value
 
     @field_validator("full_name", mode="before")
     @classmethod
@@ -86,6 +95,7 @@ class StudentAdminOut(BaseModel):
     program: str | None
     program_id: int | None = None
     program_name: str | None = None
+    domain: str | None = None
     phone: str | None = None
     email: str | None = None
     is_active: bool
@@ -147,6 +157,7 @@ class UpdateStudentRequest(BaseModel):
     is_active: bool | None = None
     program: str | None = None
     program_id: int | None = Field(default=None, gt=0)
+    domain: str | None = None
     reset_temp_password: str | None = Field(default=None, min_length=8, max_length=128)
 
     @field_validator("reset_temp_password")
@@ -158,6 +169,11 @@ class UpdateStudentRequest(BaseModel):
     @classmethod
     def validate_program(cls, value: str | None) -> str | None:
         return value if value is None else _validate_program_value(value)
+
+    @field_validator("domain")
+    @classmethod
+    def validate_domain(cls, value: str | None) -> str | None:
+        return CreateStudentRequest.validate_domain(value)
 
 
 class PermanentDeleteStudentRequest(BaseModel):
