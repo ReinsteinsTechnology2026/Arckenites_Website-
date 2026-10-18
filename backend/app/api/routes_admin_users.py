@@ -342,6 +342,8 @@ def delete_admin_user(
             ("admin_profiles", "user_id"), ("auth_sessions", "user_id"),
             ("auth_audit_log", "user_id"), ("user_google_identities", "user_id"),
             ("google_login_tickets", "user_id"),
+            ("mfa_credentials", "user_id"), ("mfa_recovery_codes", "user_id"),
+            ("mfa_challenges", "user_id"),
         }
         for table in Base.metadata.sorted_tables:
             for column in table.c:

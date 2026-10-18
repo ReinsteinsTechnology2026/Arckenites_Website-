@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // request takes, before this correction lands.
   if (!ArckAuth.hasPermission('settings.edit')) {
     document.querySelectorAll('[data-save-tab]').forEach((btn) => { btn.disabled = true; btn.title = 'You do not have permission to edit settings.'; });
-    document.querySelectorAll('#settingsTabs ~ div input, #settingsTabs ~ div select').forEach((el) => { el.disabled = true; });
+    document.querySelectorAll('input[id^="setting"], select[id^="setting"]').forEach((el) => { el.disabled = true; });
   }
 
   await loadSettings();

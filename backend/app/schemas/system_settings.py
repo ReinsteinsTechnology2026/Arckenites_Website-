@@ -42,6 +42,7 @@ class SystemSettingsOut(BaseModel):
     max_login_attempts: int
     lockout_duration_minutes: int
     require_strong_passwords: bool
+    mfa_required: bool
 
     notify_new_account: bool
     notify_password_reset: bool

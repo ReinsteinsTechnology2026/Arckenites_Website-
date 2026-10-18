@@ -210,7 +210,8 @@ def collect_postgres(connection, expected, max_rows=100000):
                 if relation["schema"] != "public" or relation["name"] not in model["tables"]:
                     continue
                 table = relation["name"]
-                projected = {"id"} | {f["source_column"] for f in model["foreign_keys"] if f["source_table"] == table}
+                primary_key = next(col["name"] for col in model["tables"][table]["columns"] if col["primary_key"])
+                projected = {primary_key} | {f["source_column"] for f in model["foreign_keys"] if f["source_table"] == table}
                 if table == "users":
                     projected |= {"role", "admin_role_id", "is_active"}
                 if table == "admin_roles":
@@ -221,11 +222,14 @@ def collect_postgres(connection, expected, max_rows=100000):
                     raise ValueError("Projection size exceeds reviewed limit; prepare staged maintenance design")
                 read_rows += count
                 # No names, addresses, message bodies, passwords, tokens or file paths.
-                projections[table] = query(sql.SQL("SELECT {} FROM {} ORDER BY id").format(
-                    sql.SQL(",").join(sql.Identifier(c) for c in sorted(projected)), qualified))
+                selected = [sql.Identifier(c) for c in sorted(projected)]
+                if primary_key != "id":
+                    selected.append(sql.SQL("{} AS id").format(sql.Identifier(primary_key)))
+                projections[table] = query(sql.SQL("SELECT {} FROM {} ORDER BY {}").format(
+                    sql.SQL(",").join(selected), qualified, sql.Identifier(primary_key)))
             revision = query('SELECT version_num FROM public.alembic_version') if "alembic_version" in actual_public else []
             plan = preview(projections, foreign_keys)
-            if [r["version_num"] for r in revision] != ["d7f9b3c5e2a1"]:
+            if [r["version_num"] for r in revision] != ["a9d4e7f1c2b6"]:
                 blockers.append("Production migration revision differs from reviewed source head")
             plan["blockers"] = sorted(set(plan["blockers"] + blockers))
             return {"basis": "read-only-postgresql-snapshot", "collected_at_utc": datetime.now(timezone.utc).isoformat(),

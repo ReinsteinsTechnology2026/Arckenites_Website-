@@ -4,7 +4,9 @@ from datetime import datetime
 from pydantic import BaseModel, Field, field_validator
 
 from app.core.security import validate_bcrypt_password_bytes
+from app.core.email_identity import normalize_login_email
 from app.models.staff import PERMISSION_KEYS
+from app.schemas.admin_students import CredentialEmailOut, ResendStudentCredentialsRequest
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
@@ -18,12 +20,15 @@ def _clean_permissions(value: dict | None) -> dict:
 
 
 class CreateStaffRequest(BaseModel):
-    """No username field — it's auto-generated (name@arckenites.com) the
-    same way a student's is, so every trainer's login id follows the same
-    naming rule regardless of which admin creates the account."""
+    """New trainers sign in with their normalized, administrator-supplied email."""
     full_name: str = Field(min_length=1, max_length=200)
-    email: str | None = None
+    email: str = Field(min_length=3, max_length=255)
     temp_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("full_name", mode="before")
+    @classmethod
+    def strip_name(cls, value: str) -> str:
+        return value.strip() if isinstance(value, str) else value
 
     @field_validator("temp_password")
     @classmethod
@@ -32,13 +37,8 @@ class CreateStaffRequest(BaseModel):
 
     @field_validator("email")
     @classmethod
-    def validate_email(cls, value: str | None) -> str | None:
-        if value is None or value.strip() == "":
-            return None
-        value = value.strip()
-        if not _EMAIL_RE.match(value):
-            raise ValueError("Enter a valid email address.")
-        return value
+    def validate_email(cls, value: str) -> str:
+        return normalize_login_email(value)
 
 
 class UpdateStaffRequest(BaseModel):
@@ -79,3 +79,11 @@ class StaffAdminOut(BaseModel):
     permissions: dict[str, bool] = Field(default_factory=dict)
 
     model_config = {"from_attributes": True}
+
+
+class StaffCreatedOut(StaffAdminOut, CredentialEmailOut):
+    pass
+
+
+class ResendStaffCredentialsRequest(ResendStudentCredentialsRequest):
+    pass

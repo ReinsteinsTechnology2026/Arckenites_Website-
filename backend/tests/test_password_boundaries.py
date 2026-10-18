@@ -21,7 +21,8 @@ class PasswordBoundaryTests(unittest.TestCase):
     def test_account_and_meeting_schemas_reject_overlong_utf8_passwords(self):
         password = "é" * 37  # 74 UTF-8 bytes but only 37 characters.
         cases = [
-            (CreateStaffRequest, {"full_name": "Trainer", "temp_password": password}),
+            (CreateStaffRequest, {"full_name": "Trainer", "email": "trainer@example.test",
+                                  "temp_password": password}),
             (UpdateStaffRequest, {"reset_temp_password": password}),
             (CreateAdminUserRequest, {"full_name": "Admin", "admin_role_id": 1, "temp_password": password}),
             (UpdateAdminUserRequest, {"reset_temp_password": password}),

@@ -146,6 +146,7 @@ const ArckAuth = {
       auth: false,
       body: { username, password },
     });
+    if (data.mfa_required) return data;
     ArckAPI.setSession(data.access_token, data.user);
     return data.user;
   },

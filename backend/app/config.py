@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     google_client_id: str = ""
     google_client_secret: str = ""
     google_redirect_uri: str = ""
+    # Fernet key for encrypting TOTP secrets and keying recovery-code hashes.
+    # Kept separate from JWT_SECRET so either can rotate independently.
+    mfa_encryption_key: str = ""
 
     @property
     def google_configured(self) -> bool:

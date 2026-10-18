@@ -14,6 +14,8 @@ from app.crud.permissions import is_super_admin, user_has_permission
 from app.database import get_db
 from app.models.lab_vm import LabVm
 from app.models.session import AuthSession
+from app.models.mfa import MfaCredential
+from app.models.system_settings import SystemSettings, SETTINGS_ROW_ID
 from app.models.user import User
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -54,6 +56,11 @@ def get_current_user(
 
     user = db.get(User, user_id)
     if user is None or not user.is_active:
+        raise unauthorized
+    credential = db.get(MfaCredential, user_id)
+    policy = db.get(SystemSettings, SETTINGS_ROW_ID)
+    if ((credential is not None and credential.enabled_at is not None)
+            or (policy is not None and policy.mfa_required)) and not session.mfa_verified:
         raise unauthorized
 
     # Stash the session for the logout endpoint to revoke without a second lookup.
@@ -181,6 +188,12 @@ async def get_ws_user(websocket: WebSocket, db: Session, *, required_role: str |
 
     user = db.get(User, user_id)
     if user is None or not user.is_active:
+        await websocket.close(code=1008)
+        return None
+    credential = db.get(MfaCredential, user_id)
+    policy = db.get(SystemSettings, SETTINGS_ROW_ID)
+    if ((credential is not None and credential.enabled_at is not None)
+            or (policy is not None and policy.mfa_required)) and not session.mfa_verified:
         await websocket.close(code=1008)
         return None
 

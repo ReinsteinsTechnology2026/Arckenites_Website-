@@ -45,10 +45,9 @@ candidate records; it never represents candidates as authorized deletions.
 
 ## 2. Inventory: source facts versus production checks
 
-Current SQLAlchemy metadata declares **45 tables, 62 FK edges, 58 model indexes,
-and 124 model constraints**, not the
-historical 44 tables. `file_cleanup_jobs` is the added table. The source migration
-head is **`d7f9b3c5e2a1`**. PostgreSQL also has `alembic_version`, outside ORM
+Current SQLAlchemy metadata declares **48 tables, 65 FK edges, 60 model indexes,
+and 133 model constraints**. The three MFA tables were added after the original
+reset preparation. The source migration head is **`a9d4e7f1c2b6`**. PostgreSQL also has `alembic_version`, outside ORM
 metadata. Extra schemas, extension relations, old tables, custom triggers or
 operator-created tables remain possible. No custom trigger/function creation
 was found in the checked-in migration source; that does not establish absence
@@ -67,7 +66,7 @@ still requires explicit bounded child operations. Do not rely on cascades or ORM
 | Protected configuration | `admin_roles`, `permissions`, `admin_role_permissions`, `programs`, `system_settings` | Preserve all rows/IDs/values; never bootstrap or seed |
 | Migration state | `alembic_version` | Preserve, no migration during reset |
 | Mixed identity | `users`, `student_profiles`, `staff_profiles`, `admin_profiles`, `community_profiles` | Protect Super Admin by role+slug; consistent non-Super-Admin accounts are candidates; hold inconsistent profiles |
-| Mixed authentication | `auth_sessions`, `user_google_identities`, `google_login_tickets` | Preserve protected/held users' links and sessions; remove only eligible account-owned records |
+| Mixed authentication | `auth_sessions`, `user_google_identities`, `google_login_tickets`, `mfa_credentials`, `mfa_recovery_codes`, `mfa_challenges` | Preserve protected/held users' links, sessions and MFA state; remove only eligible account-owned records. Back up the MFA encryption key separately. |
 | Training memberships | `program_enrollments`, `batch_enrollments`, `interview_schedules` | Eligible user-owned rows only; preserve catalog and any held-user association |
 | Training containers/resources | `batches`, `class_sessions`, `study_materials`, `class_videos` | Manual ownership approval: no reliable creator/owner is recorded for resources; trainer assignment alone is not ownership |
 | Chat | `conversations`, `direct_messages`, `batch_messages`, `batch_chat_read_state` | Preserve mixed/protected/unknown history; fully operational direct threads can be candidates; batch history held while batch ownership is unresolved |
@@ -500,13 +499,11 @@ audit rows, so distinguish verification activity from reset changes.
 ## 9. Tests, remaining risks and required approvals
 
 Preparation tests use a fresh SQLite database with FK enforcement; only fixture
-creation writes are performed. **All 13 preparation tests passed** in a fresh
-isolated run on 17 October 2026 after the catalog-inventory update (23.687 seconds).
-The current ORM metadata was also compared with the checked-in source inventory:
-45 tables, 62 FK edges, 58 model indexes, 124 model constraints,
+creation writes are performed. The earlier 13-test run on 17 October 2026 preceded
+the MFA schema. The current ORM metadata was compared with the source inventory:
+48 tables, 65 FK edges, 60 model indexes, 133 model constraints,
 matching table names and FK declarations, with no unclassified model tables.
-The local `alembic heads` command reported `d7f9b3c5e2a1`; live `alembic current`
-remains unavailable.
+The local source head is `a9d4e7f1c2b6`; live `alembic current` remains unavailable.
 Preview functions issue reads only, preserve the
 fixture rows, identify multiple Super Admins by slug at role ID 17 (not hardcoded
 ID 1), reject inconsistent profiles, preserve shared threads,

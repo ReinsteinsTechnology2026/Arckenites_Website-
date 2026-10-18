@@ -12,6 +12,7 @@ from app.core.rate_limit import (
     register_successful_login,
 )
 from app.core.security import create_access_token, hash_password, validate_password_strength, verify_password
+from app.core.mfa import _key as require_mfa_key, new_challenge
 from app.crud.audit import write_audit_event
 from app.crud.permissions import get_effective_permissions
 from app.crud.session import revoke_other_sessions
@@ -20,8 +21,9 @@ from app.crud.user import get_by_username
 from app.database import get_db
 from app.models.audit_log import AuthEventType
 from app.models.session import AuthSession
+from app.models.mfa import MfaCredential
 from app.models.user import RoleEnum, User
-from app.schemas.auth import AdminRoleSummary, ChangePasswordRequest, LoginRequest, LoginResponse, MeResponse, UserOut
+from app.schemas.auth import AdminRoleSummary, ChangePasswordRequest, LoginRequest, LoginResponse, MfaChallengeOut, MeResponse, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -45,7 +47,35 @@ def _user_out(db: Session, user: User) -> UserOut:
     return out
 
 
-@router.post("/login", response_model=LoginResponse)
+def finish_login(db: Session, request: Request, user: User, *, mfa_verified: bool) -> LoginResponse:
+    ip, ua = _client_meta(request)
+    register_successful_login(db, user, commit=False)
+    jti = uuid.uuid4()
+    token, expires_at = create_access_token(user.id, user.role.value, jti,
+                                             ttl_minutes=get_settings(db).session_timeout_minutes)
+    db.add(AuthSession(id=jti, user_id=user.id, expires_at=expires_at,
+                       ip_address=ip, user_agent=ua, mfa_verified=mfa_verified))
+    write_audit_event(db, AuthEventType.login_success, ip, ua, user=user,
+                      detail="MFA login" if mfa_verified else None, commit=False)
+    db.commit()
+    return LoginResponse(access_token=token, user=_user_out(db, user))
+
+
+def begin_or_finish_login(db: Session, request: Request, user: User, source: str) -> LoginResponse | MfaChallengeOut:
+    credential = db.get(MfaCredential, user.id)
+    if (credential and credential.enabled_at) or get_settings(db).mfa_required:
+        try:
+            require_mfa_key()
+        except RuntimeError:
+            raise HTTPException(status_code=503, detail="MFA service is unavailable.")
+        needs_enrollment = credential is None or credential.enabled_at is None
+        token = new_challenge(db, user.id, f"enroll_{source}" if needs_enrollment else source)
+        db.commit()
+        return MfaChallengeOut(challenge=token, enrollment_required=needs_enrollment)
+    return finish_login(db, request, user, mfa_verified=False)
+
+
+@router.post("/login", response_model=LoginResponse | MfaChallengeOut)
 @limiter.limit("20/minute")
 def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)):
     ip, ua = _client_meta(request)
@@ -84,17 +114,7 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
         write_audit_event(db, event, ip, ua, user=user, detail="bad password")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=GENERIC_LOGIN_ERROR)
 
-    register_successful_login(db, user)
-
-    jti = uuid.uuid4()
-    token, expires_at = create_access_token(user.id, user.role.value, jti, ttl_minutes=settings_row.session_timeout_minutes)
-    session = AuthSession(id=jti, user_id=user.id, expires_at=expires_at, ip_address=ip, user_agent=ua)
-    db.add(session)
-    db.commit()
-
-    write_audit_event(db, AuthEventType.login_success, ip, ua, user=user)
-
-    return LoginResponse(access_token=token, user=_user_out(db, user))
+    return begin_or_finish_login(db, request, user, "password")
 
 
 @router.get("/me", response_model=MeResponse)

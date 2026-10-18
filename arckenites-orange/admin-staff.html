@@ -182,13 +182,17 @@
         <form id="addStaffForm" novalidate>
           <div class="admin-form-grid">
             <div>
-              <label class="form-label">Trainer Name</label>
+              <label class="form-label" for="newStaffName">Trainer Name</label>
               <input type="text" class="form-control" id="newStaffName" required>
             </div>
             <div>
-              <label class="form-label">Temporary Password</label>
+              <label class="form-label" for="newStaffEmail">Trainer Email (Login ID)</label>
+              <input type="email" class="form-control" id="newStaffEmail" maxlength="255" autocomplete="email" required>
+            </div>
+            <div>
+              <label class="form-label" for="newStaffPassword">Temporary Password</label>
               <div class="password-field-row">
-                <input type="text" class="form-control" id="newStaffPassword" minlength="8" required>
+                <input type="password" class="form-control" id="newStaffPassword" minlength="8" maxlength="72" autocomplete="new-password" required>
                 <button type="button" class="btn btn-primary-outline" id="generateStaffPasswordBtn">Generate</button>
               </div>
             </div>
@@ -207,7 +211,7 @@
         <div class="admin-panel-header"><h2>All Trainers</h2></div>
         <table class="admin-activity-table">
           <thead>
-            <tr><th>Username</th><th>Name</th><th>Status</th><th>Last Login</th><th>Created</th><th></th></tr>
+            <tr><th>Login ID</th><th>Name</th><th>Status</th><th>Last Login</th><th>Created</th><th></th></tr>
           </thead>
           <tbody id="staffTableBody">
             <tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr>
@@ -222,6 +226,7 @@
   <button type="button" class="admin-dropdown-link" data-action="view"><i class="fa-solid fa-id-card"></i> View Details</button>
   <button type="button" class="admin-dropdown-link" data-action="edit"><i class="fa-solid fa-pen"></i> Edit Trainer</button>
   <button type="button" class="admin-dropdown-link" data-action="reset"><i class="fa-solid fa-key"></i> Reset Password</button>
+  <button type="button" class="admin-dropdown-link" data-action="resend"><i class="fa-solid fa-envelope"></i> Resend Credentials</button>
   <button type="button" class="admin-dropdown-link" data-action="permissions"><i class="fa-solid fa-shield-halved"></i> Manage Permissions</button>
   <button type="button" class="admin-dropdown-link" data-action="toggle-active"><i class="fa-solid fa-power-off"></i> <span data-toggle-label>Disable Account</span></button>
   <div class="row-action-menu-divider"></div>
@@ -269,7 +274,7 @@
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=7"></script>
 <script src="js/theme.js?v=1"></script>
-<script src="js/admin-staff.js?v=1"></script>
+<script src="js/admin-staff.js?v=2"></script>
 <script src="js/chat.js?v=1"></script>
 
 </body>

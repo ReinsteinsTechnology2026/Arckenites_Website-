@@ -220,7 +220,8 @@ class StudentCreationTests(unittest.TestCase):
 
     def test_admin_and_trainer_creation_roll_back_when_commit_fails(self):
         cases = [
-            ("/api/admin/staff", {"full_name": "New Trainer", "temp_password": "New@Test123"}, "newtrainer.staff@arckenites.com"),
+            ("/api/admin/staff", {"full_name": "New Trainer", "email": "newtrainer@example.test",
+                                   "temp_password": "New@Test123"}, "newtrainer@example.test"),
             ("/api/admin/admin-users", {"full_name": "New Admin", "admin_role_id": 1,
                                          "temp_password": "New@Test123"}, "newadmin@arckenites.com"),
         ]

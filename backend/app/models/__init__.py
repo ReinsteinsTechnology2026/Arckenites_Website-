@@ -17,6 +17,7 @@ from app.models.community_post import (
 )
 from app.models.contact_enquiry import ContactEnquiry
 from app.models.google_identity import GoogleLoginTicket, UserGoogleIdentity
+from app.models.mfa import MfaCredential, MfaRecoveryCode, MfaChallenge
 from app.models.interview_schedule import InterviewModeEnum, InterviewSchedule, InterviewStatusEnum
 from app.models.lab_access_audit import LabAccessAuditLog
 from app.models.lab_access_override import LabAccessMode, LabAccessOverride
@@ -96,6 +97,9 @@ __all__ = [
     "CommunityPostEmailStatus",
     "UserGoogleIdentity",
     "GoogleLoginTicket",
+    "MfaCredential",
+    "MfaRecoveryCode",
+    "MfaChallenge",
     "InterviewSchedule",
     "InterviewModeEnum",
     "InterviewStatusEnum",

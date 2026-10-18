@@ -19,6 +19,7 @@ from app.database import Base
 from app.models import (AdminRole, AdminProfile, User, RoleEnum, StudentProfile, StaffProfile,
                         Conversation, DirectMessage, SupportTicket, SupportMessage, SupportAttachment)
 from app.models.support import SenderTypeEnum, TicketCategoryEnum
+from app.models.mfa import MfaCredential
 from maintenance.reset_policy import ALL_TABLES, preview
 from maintenance.reset_prepare import main, source_inventory, validate_target, write_report
 
@@ -60,20 +61,24 @@ class ResetPreparationTests(unittest.TestCase):
         result = {}
         with self.engine.connect() as conn:
             for table in Base.metadata.sorted_tables:
-                names = {"id"} | {f["source_column"] for f in self.metadata["foreign_keys"] if f["source_table"] == table.name}
+                primary_key = next(iter(table.primary_key.columns)).name
+                names = {primary_key} | {f["source_column"] for f in self.metadata["foreign_keys"] if f["source_table"] == table.name}
                 if table.name == "users":
                     names |= {"role", "is_active", "admin_role_id"}
                 if table.name == "admin_roles":
                     names.add("slug")
-                result[table.name] = [dict(row) for row in conn.execute(select(*(table.c[name] for name in sorted(names)))).mappings()]
+                columns = [table.c[name] for name in sorted(names)]
+                if primary_key != "id":
+                    columns.append(table.c[primary_key].label("id"))
+                result[table.name] = [dict(row) for row in conn.execute(select(*columns)).mappings()]
         return result
 
     def test_current_schema_and_fk_inventory_fully_classified(self):
-        self.assertEqual(self.metadata["table_count"], 45)
-        self.assertEqual(len(self.metadata["foreign_keys"]), 62)
-        self.assertEqual(len(self.metadata["model_indexes"]), 58)
-        # The Institutional enrollment domain adds one check constraint.
-        self.assertEqual(len(self.metadata["model_constraints"]), 125)
+        self.assertEqual(self.metadata["table_count"], 48)
+        self.assertEqual(len(self.metadata["foreign_keys"]), 65)
+        self.assertEqual(len(self.metadata["model_indexes"]), 60)
+        # Includes uniqueness, primary keys and foreign keys for the MFA tables.
+        self.assertEqual(len(self.metadata["model_constraints"]), 133)
         self.assertEqual(self.metadata["unclassified_model_tables"], [])
         self.assertFalse(self.metadata["production_schema_verified"])
         self.assertEqual(set(self.metadata["tables"]) | {"alembic_version"}, ALL_TABLES)
@@ -87,6 +92,17 @@ class ResetPreparationTests(unittest.TestCase):
         self.assertEqual(plan["proposed_actions"]["users"][103], "candidate_delete")
         self.assertEqual(plan["proposed_actions"]["users"][102], "retain")
         self.assertFalse(plan["execution_enabled"])
+
+    def test_mfa_credentials_follow_account_retention_without_exposing_secrets(self):
+        with self.engine.begin() as conn:
+            conn.execute(MfaCredential.__table__.insert(), [
+                {"user_id": 101, "secret_ciphertext": "protected-fixture-ciphertext"},
+                {"user_id": 105, "secret_ciphertext": "candidate-fixture-ciphertext"},
+            ])
+        plan = preview(self.rows(), self.metadata["foreign_keys"])
+        self.assertEqual(plan["proposed_actions"]["mfa_credentials"][101], "retain")
+        self.assertEqual(plan["proposed_actions"]["mfa_credentials"][105], "candidate_delete")
+        self.assertNotIn("fixture-ciphertext", json.dumps(plan))
 
     def test_mismatched_staff_profile_never_makes_protected_account_deletable(self):
         with self.engine.begin() as conn:

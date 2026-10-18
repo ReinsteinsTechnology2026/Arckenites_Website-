@@ -6,16 +6,39 @@ from sqlalchemy.orm import Session
 from app.models.user import RoleEnum, User
 
 
+def email_conflict(db: Session, email: str) -> str | None:
+    """Use the existing student-provisioning identity rules for a new email login."""
+    from app.models.admin_profile import AdminProfile
+    from app.models.community import CommunityProfile
+    from app.models.staff import StaffProfile
+    from app.models.student import StudentProfile
+
+    normalized = email.strip().lower()
+    user = db.scalar(select(User).where(func.lower(func.trim(User.username)) == normalized).limit(1))
+    if user is not None:
+        return "student" if user.role == RoleEnum.student else "portal_login"
+    profile = db.scalar(select(StudentProfile).where(
+        func.lower(func.trim(StudentProfile.email)) == normalized,
+    ).limit(1))
+    if profile is not None:
+        return "student"
+    for model in (AdminProfile, StaffProfile, CommunityProfile):
+        if db.scalar(select(model.user_id).where(func.lower(func.trim(model.email)) == normalized).limit(1)) is not None:
+            return "portal_login"
+    return None
+
+
 def get_by_username(db: Session, username: str) -> User | None:
     exact = db.scalar(select(User).where(User.username == username))
-    # Keep exact username matching for all existing account roles. Only
-    # student email logins gain whitespace/case normalization.
+    # Keep the exact path for legacy usernames and Admin accounts. Newly
+    # provisioned student and trainer email logins accept case/outer-space
+    # variations; the normalized unique index prevents two such identities.
     if exact is not None:
         return exact
     if "@" not in username:
         return None
     matches = db.scalars(select(User).where(
-        User.role == RoleEnum.student,
+        User.role.in_((RoleEnum.student, RoleEnum.staff)),
         func.lower(func.trim(User.username)) == username.strip().lower(),
     )).all()
     # Fail closed for ambiguous historical data before the migration runs.

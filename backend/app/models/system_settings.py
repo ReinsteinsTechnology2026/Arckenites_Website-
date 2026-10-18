@@ -29,6 +29,7 @@ class SystemSettings(Base):
     max_login_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=5)
     lockout_duration_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=15)
     require_strong_passwords: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    mfa_required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
 
     # Notifications
     notify_new_account: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)

@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
-from sqlalchemy import delete, func, or_, select, text, update
+from sqlalchemy import delete, or_, select, text, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
@@ -19,9 +19,8 @@ from app.crud.audit import write_audit_event
 from app.crud.permissions import user_has_permission
 from app.crud.session import revoke_all_sessions
 from app.crud.system_settings import get_settings
-from app.crud.user import generate_student_code
+from app.crud.user import email_conflict as _email_conflict, generate_student_code
 from app.database import get_db
-from app.models.admin_profile import AdminProfile
 from app.models.audit_log import AuthAuditLog, AuthEventType
 from app.models.batch import BatchEnrollment
 from app.models.batch_chat import BatchChatReadState, BatchMessage
@@ -36,7 +35,6 @@ from app.models.lab_vm import LabVmAccess, LabVmAccessAuditLog
 from app.models.meeting import MeetingMessage, MeetingParticipant
 from app.models.program import EnrollmentStatusEnum, Program, ProgramEnrollment
 from app.models.session import AuthSession
-from app.models.staff import StaffProfile
 from app.models.student import PROGRAM_LABELS, ProgramEnum, StudentProfile
 from app.models.support import SupportMessage, SupportTicket
 from app.models.user import RoleEnum, User
@@ -84,23 +82,6 @@ _STUDENT_RELATED_RECORD_CHECKS: list[tuple[type, str]] = [
 
 router = APIRouter(prefix="/admin", tags=["admin-students"])
 logger = logging.getLogger("students")
-
-
-def _email_conflict(db: Session, email: str) -> str | None:
-    """Classify a normalized identity collision without changing the account."""
-    normalized = email.strip().lower()
-    user = db.scalar(select(User).where(func.lower(func.trim(User.username)) == normalized).limit(1))
-    if user is not None:
-        return "student" if user.role == RoleEnum.student else "portal_login"
-    profile = db.scalar(select(StudentProfile).where(
-        func.lower(func.trim(StudentProfile.email)) == normalized,
-    ).limit(1))
-    if profile is not None:
-        return "student"
-    for model in (AdminProfile, StaffProfile, CommunityProfile):
-        if db.scalar(select(model.user_id).where(func.lower(func.trim(model.email)) == normalized).limit(1)) is not None:
-            return "portal_login"
-    return None
 
 
 def _email_conflict_response(conflict: str) -> HTTPException:

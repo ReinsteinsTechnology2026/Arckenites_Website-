@@ -13,7 +13,6 @@ short category needs, and never reveal any Google or account data.
 
 import hmac
 import secrets
-import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -22,20 +21,18 @@ from pydantic import BaseModel, Field
 from sqlalchemy import update
 from sqlalchemy.orm import Session
 
-from app.api.routes_auth import _user_out
+from app.api.routes_auth import begin_or_finish_login
 from app.config import settings
 from app.core import google_auth
 from app.core.google_auth import GoogleAuthError
-from app.core.rate_limit import limiter, register_successful_login
-from app.core.security import create_access_token
+from app.core.rate_limit import limiter
 from app.crud.audit import write_audit_event
 from app.crud.system_settings import get_settings
 from app.database import get_db
 from app.models.audit_log import AuthEventType
 from app.models.google_identity import GoogleLoginTicket
-from app.models.session import AuthSession
 from app.models.user import User
-from app.schemas.auth import LoginResponse
+from app.schemas.auth import LoginResponse, MfaChallengeOut
 
 router = APIRouter(prefix="/auth/google", tags=["auth-google"])
 
@@ -141,7 +138,7 @@ def google_callback(
     return response
 
 
-@router.post("/exchange", response_model=LoginResponse)
+@router.post("/exchange", response_model=LoginResponse | MfaChallengeOut)
 @limiter.limit("20/minute")
 def google_exchange(request: Request, payload: GoogleExchangeRequest, db: Session = Depends(get_db)):
     ip, ua = _client_meta(request)
@@ -173,14 +170,5 @@ def google_exchange(request: Request, payload: GoogleExchangeRequest, db: Sessio
         write_audit_event(db, AuthEventType.login_failure, ip, ua, user=user, detail="google ticket for ineligible account")
         raise invalid
 
-    register_successful_login(db, user)
-
-    jti = uuid.uuid4()
-    token, expires_at = create_access_token(
-        user.id, user.role.value, jti, ttl_minutes=get_settings(db).session_timeout_minutes,
-    )
-    db.add(AuthSession(id=jti, user_id=user.id, expires_at=expires_at, ip_address=ip, user_agent=ua))
-    db.commit()
-
-    write_audit_event(db, AuthEventType.login_success, ip, ua, user=user, detail="google sign-in")
-    return LoginResponse(access_token=token, user=_user_out(db, user))
+    db.commit()  # consume the Google exchange ticket before issuing a challenge
+    return begin_or_finish_login(db, request, user, "google")

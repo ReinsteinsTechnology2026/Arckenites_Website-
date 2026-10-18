@@ -7,6 +7,78 @@ document.addEventListener('DOMContentLoaded', () => {
   const passwordInput = document.getElementById('loginPassword');
   const errorBox = document.getElementById('loginError');
   const submitBtn = form.querySelector('button[type="submit"]');
+  const mfaPanel = document.getElementById('mfaLoginPanel');
+  const mfaForm = document.getElementById('mfaLoginForm');
+  const mfaCode = document.getElementById('mfaLoginCode');
+  const mfaError = document.getElementById('mfaLoginError');
+  let mfaChallenge = null;
+  let enrollmentRequired = false;
+  let pendingUser = null;
+
+  const startMfa = async (data) => {
+    mfaChallenge = data.challenge;
+    enrollmentRequired = !!data.enrollment_required;
+    form.style.display = 'none';
+    mfaPanel.style.display = 'block';
+    mfaError.style.display = 'none';
+    document.getElementById('mfaLoginInstructions').textContent = enrollmentRequired
+      ? 'MFA is required. Scan the QR code, then enter the six-digit code to complete enrollment.'
+      : 'Enter the current code from your authenticator app, or a saved recovery code.';
+    document.getElementById('mfaEnrollmentQr').style.display = 'none';
+    if (enrollmentRequired) {
+      try {
+        const setup = await ArckAPI.request('/auth/mfa/enrollment/start', {
+          method: 'POST', auth: false, body: {challenge: mfaChallenge},
+        });
+        document.getElementById('mfaEnrollmentImage').src = setup.qr_code;
+        document.getElementById('mfaEnrollmentQr').style.display = 'block';
+      } catch (err) {
+        mfaError.textContent = err.detail || 'Could not start MFA setup. Sign in again.';
+        mfaError.style.display = 'block';
+      }
+    }
+    mfaCode.focus();
+  };
+  mfaForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const button = mfaForm.querySelector('button[type="submit"]');
+    button.disabled = true;
+    mfaError.style.display = 'none';
+    try {
+      const result = await ArckAPI.request(enrollmentRequired
+        ? '/auth/mfa/enrollment/confirm' : '/auth/mfa/challenge/verify', {
+        method: 'POST', auth: false, body: {challenge: mfaChallenge, code: mfaCode.value.trim()},
+      });
+      mfaChallenge = null;
+      mfaCode.value = '';
+      ArckAPI.setSession(result.access_token, result.user);
+      if (result.recovery_codes) {
+        pendingUser = result.user;
+        document.getElementById('mfaLoginRecoveryCodes').textContent = result.recovery_codes.join('\n');
+        document.getElementById('mfaLoginRecovery').style.display = 'block';
+        mfaForm.style.display = 'none';
+        document.getElementById('mfaLoginContinue').focus();
+      } else {
+        ArckAuth.redirectToRoleEntryPoint(result.user);
+      }
+    } catch (err) {
+      mfaError.textContent = err.detail || 'Verification failed. Sign in again if the challenge expired.';
+      mfaError.style.display = 'block';
+      mfaCode.value = '';
+    } finally {
+      button.disabled = false;
+    }
+  });
+  document.getElementById('mfaLoginContinue').addEventListener('click', () => {
+    if (pendingUser) ArckAuth.redirectToRoleEntryPoint(pendingUser);
+  });
+  document.getElementById('mfaLoginCancel').addEventListener('click', () => {
+    mfaChallenge = null;
+    enrollmentRequired = false;
+    mfaCode.value = '';
+    mfaPanel.style.display = 'none';
+    form.style.display = '';
+  });
 
   // Complete sign-ins that were already redirected back from Google.
   const GOOGLE_ERRORS = {
@@ -47,8 +119,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await ArckAPI.request('/auth/google/exchange', {
           method: 'POST', auth: false, body: { ticket },
         });
-        ArckAPI.setSession(data.access_token, data.user);
-        ArckAuth.redirectToRoleEntryPoint(data.user);
+        if (data.mfa_required) await startMfa(data);
+        else {
+          ArckAPI.setSession(data.access_token, data.user);
+          ArckAuth.redirectToRoleEntryPoint(data.user);
+        }
       } catch (err) {
         showError(err.detail || 'This sign-in link has expired. Please try again.');
         submitBtn.disabled = false;
@@ -63,8 +138,9 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.disabled = true;
 
     try {
-      const user = await ArckAuth.login(usernameInput.value.trim(), passwordInput.value);
-      ArckAuth.redirectToRoleEntryPoint(user);
+      const result = await ArckAuth.login(usernameInput.value.trim(), passwordInput.value);
+      if (result.mfa_required) await startMfa(result);
+      else ArckAuth.redirectToRoleEntryPoint(result);
     } catch (err) {
       errorBox.textContent = err.detail || 'Invalid User ID or password.';
       errorBox.style.display = 'block';

@@ -31,6 +31,8 @@ OWNED = {
     "interview_schedules": "student_id", "lab_access_overrides": "student_id",
     "lab_slot_bookings": "student_id", "lab_vm_access": "student_id",
     "community_post_email_deliveries": "user_id",
+    "mfa_credentials": "user_id", "mfa_recovery_codes": "user_id",
+    "mfa_challenges": "user_id",
 }
 DETACH = {
     "auth_audit_log": ("user_id",),

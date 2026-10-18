@@ -1,6 +1,7 @@
 import re
 
 from pydantic import BaseModel, Field, field_validator
+from typing import Literal
 
 from app.core.security import validate_bcrypt_password_bytes
 
@@ -57,6 +58,12 @@ class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserOut
+
+
+class MfaChallengeOut(BaseModel):
+    mfa_required: Literal[True] = True
+    challenge: str
+    enrollment_required: bool = False
 
 
 class MeResponse(UserOut):

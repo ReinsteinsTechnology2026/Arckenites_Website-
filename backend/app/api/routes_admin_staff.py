@@ -1,19 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import require_permission
-from app.core.security import hash_password
+from app.core.security import hash_password, validate_password_strength, verify_password
 from app.core.student_deletion import stage_student_deletion
+from app.core.trainer_credentials import send_trainer_credentials
 from app.crud.audit import write_audit_event
 from app.crud.session import revoke_all_sessions
-from app.crud.user import generate_staff_code, generate_staff_username
+from app.crud.system_settings import get_settings
+from app.crud.user import email_conflict, generate_staff_code
 from app.database import Base, get_db
 from app.models.audit_log import AuthEventType
 from app.models.staff import StaffProfile
 from app.models.user import RoleEnum, User
-from app.schemas.admin_staff import CreateStaffRequest, StaffAdminOut, UpdateStaffRequest, _clean_permissions
+from app.schemas.admin_staff import (CreateStaffRequest, ResendStaffCredentialsRequest,
+                                     StaffAdminOut, StaffCreatedOut, UpdateStaffRequest, _clean_permissions)
+from app.schemas.admin_students import CredentialEmailOut
 
 router = APIRouter(prefix="/admin", tags=["admin-staff"])
 
@@ -42,41 +46,81 @@ def _staff_out(user: User) -> StaffAdminOut:
     )
 
 
-@router.post("/staff", response_model=StaffAdminOut, status_code=201)
+@router.post("/staff", response_model=StaffCreatedOut, status_code=201)
 def create_staff(
     payload: CreateStaffRequest,
     request: Request,
     db: Session = Depends(get_db),
     actor: User = Depends(require_permission("trainers.create")),
 ):
-    username = generate_staff_username(db, payload.full_name)
-
-    user = User(
-        username=username,
-        password_hash=hash_password(payload.temp_password),
-        full_name=payload.full_name,
-        role=RoleEnum.staff,
-        must_change_password=True,
-    )
+    if get_settings(db).require_strong_passwords:
+        error = validate_password_strength(payload.temp_password)
+        if error:
+            raise HTTPException(status_code=400, detail=error)
     try:
+        # Share the student allocator's lock so both creation flows classify
+        # email collisions before committing; the unique index is the final guard.
+        if db.get_bind().dialect.name == "postgresql":
+            db.execute(text("SELECT pg_advisory_xact_lock(19041701)"))
+        if email_conflict(db, payload.email):
+            raise HTTPException(status_code=409, detail="This email already belongs to an account. Review the existing account; no trainer was created.")
+        user = User(
+            username=payload.email, password_hash=hash_password(payload.temp_password),
+            full_name=payload.full_name, role=RoleEnum.staff,
+            is_active=True, must_change_password=True,
+        )
         db.add(user)
         db.flush()
         db.add(StaffProfile(user_id=user.id, email=payload.email, staff_code=generate_staff_code(db)))
         ip, ua = _client_meta(request)
         write_audit_event(
-            db, AuthEventType.trainer_created, ip, ua, user=actor, detail=f"Created trainer {username}",
-            module="trainers", target=username, status="success", commit=False,
+            db, AuthEventType.trainer_created, ip, ua, user=actor, detail=f"Created trainer {payload.email}",
+            module="trainers", target=payload.email, status="success", commit=False,
         )
         db.commit()
+    except HTTPException:
+        db.rollback()
+        raise
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=409, detail="Trainer login or code already exists. Refresh and retry.")
+        if email_conflict(db, payload.email):
+            raise HTTPException(status_code=409, detail="This email already belongs to an account. Review the existing account; no trainer was created.")
+        raise HTTPException(status_code=409, detail="A database constraint prevented trainer creation. No account was created. Refresh and retry.")
     except Exception:
         db.rollback()
         raise HTTPException(status_code=500, detail="Unable to create trainer account. No changes were made.")
     db.refresh(user)
+    trainer = _staff_out(user)
+    delivery = send_trainer_credentials(
+        trainer_id=user.id, full_name=user.full_name, email=payload.email,
+        temp_password=payload.temp_password,
+    )
+    return StaffCreatedOut(**trainer.model_dump(), **delivery.model_dump())
 
-    return _staff_out(user)
+
+@router.post("/staff/{staff_id}/credentials-email", response_model=CredentialEmailOut)
+def resend_staff_credentials(
+    staff_id: int, payload: ResendStaffCredentialsRequest,
+    db: Session = Depends(get_db),
+    _actor: User = Depends(require_permission("trainers.create")),
+):
+    user = _get_staff_or_404(db, staff_id)
+    if not user.is_active or not user.must_change_password:
+        raise HTTPException(status_code=400, detail="Credentials can only be resent for an active trainer awaiting a password change.")
+    profile = user.staff_profile
+    if not profile or not profile.email or user.username != profile.email.strip().lower():
+        raise HTTPException(status_code=400, detail="This trainer's login ID and contact email differ. Review the account before sending credentials.")
+    if not verify_password(payload.temp_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="The temporary password does not match. Enter the original temporary password.")
+    result = send_trainer_credentials(
+        trainer_id=user.id, full_name=user.full_name, email=user.username,
+        temp_password=payload.temp_password,
+    )
+    return CredentialEmailOut(
+        credential_email_sent=result.credential_email_sent,
+        detail=(f"Credentials were emailed to {user.username}." if result.credential_email_sent else
+                "The credential email could not be sent. The trainer account and password are unchanged; please retry later."),
+    )
 
 
 @router.get("/staff", response_model=list[StaffAdminOut])
@@ -176,6 +220,8 @@ def delete_staff(
             ("staff_profiles", "user_id"), ("auth_sessions", "user_id"),
             ("auth_audit_log", "user_id"), ("user_google_identities", "user_id"),
             ("google_login_tickets", "user_id"),
+            ("mfa_credentials", "user_id"), ("mfa_recovery_codes", "user_id"),
+            ("mfa_challenges", "user_id"),
         }
         for table in Base.metadata.sorted_tables:
             for column in table.c:

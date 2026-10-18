@@ -39,9 +39,10 @@ def register_failed_login(db: Session, user: User) -> None:
     db.commit()
 
 
-def register_successful_login(db: Session, user: User) -> None:
+def register_successful_login(db: Session, user: User, *, commit: bool = True) -> None:
     user.failed_login_count = 0
     user.locked_until = None
     user.last_login_at = datetime.now(timezone.utc)
     db.add(user)
-    db.commit()
+    if commit:
+        db.commit()

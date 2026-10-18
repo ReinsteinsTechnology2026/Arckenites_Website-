@@ -119,6 +119,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const openRowMenu = (trigger, trainer) => {
     rowMenuTrainer = trainer;
     rowMenu.querySelector('[data-toggle-label]').textContent = trainer.is_active ? 'Disable Account' : 'Enable Account';
+    const resend = rowMenu.querySelector('[data-action="resend"]');
+    resend.style.display = ArckAuth.hasPermission('trainers.create') && trainer.is_active
+      && trainer.must_change_password && trainer.email?.trim().toLowerCase() === trainer.username ? '' : 'none';
     rowMenu.classList.add('is-open');
 
     const rect = trigger.getBoundingClientRect();
@@ -231,6 +234,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cancelBtn = document.getElementById('cancelAddStaffBtn');
   const form = document.getElementById('addStaffForm');
   const nameInput = document.getElementById('newStaffName');
+  const emailInput = document.getElementById('newStaffEmail');
   const passwordInput = document.getElementById('newStaffPassword');
   const errorBox = document.getElementById('addStaffError');
   const submitBtn = document.getElementById('addStaffSubmitBtn');
@@ -256,12 +260,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     errorBox.style.display = 'none';
     notice.style.display = 'none';
 
+    emailInput.value = emailInput.value.trim().toLowerCase();
+    const validationError = !nameInput.value.trim() ? 'Trainer name is required.'
+      : !emailInput.value || !emailInput.validity.valid ? 'Please enter a valid email address.'
+      : !passwordInput.value ? 'Temporary password is required.'
+      : passwordInput.value.length < 8 ? 'Temporary password must contain at least 8 characters.'
+      : new TextEncoder().encode(passwordInput.value).length > 72 ? 'Temporary password must be at most 72 UTF-8 bytes.' : '';
+    if (validationError) {
+      errorBox.textContent = validationError;
+      errorBox.style.display = 'block';
+      return;
+    }
     submitBtn.disabled = true;
     try {
       const created = await ArckAPI.request('/admin/staff', {
         method: 'POST',
+        timeoutMs: 60000,
         body: {
           full_name: nameInput.value.trim(),
+          email: emailInput.value,
           temp_password: passwordInput.value,
         },
       });
@@ -269,10 +286,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderTrainers(trainers);
       closeAddPanel();
 
-      notice.innerHTML = `Created <code>${escapeHtml(created.username)}</code> for ${escapeHtml(created.full_name)}. Share the username and temporary password with the trainer — they'll be asked to set their own password on first login.`;
+      notice.textContent = `Trainer account created for ${created.username}. Credential email: `
+        + (created.credential_email_sent ? 'Sent.' : 'Not sent. Use Resend Credentials with the original temporary password.');
       notice.style.display = 'flex';
     } catch (err) {
-      errorBox.textContent = err.detail || 'Could not create trainer.';
+      errorBox.textContent = typeof err.detail === 'string' ? err.detail : 'Could not create trainer.';
       errorBox.style.display = 'block';
     } finally {
       submitBtn.disabled = false;
@@ -290,8 +308,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       bodyHtml: `
         <dl class="detail-list">
           <div class="detail-row"><dt>Name</dt><dd>${escapeHtml(trainer.full_name)}</dd></div>
-          <div class="detail-row"><dt>Username</dt><dd>${escapeHtml(trainer.username)}</dd></div>
-          <div class="detail-row"><dt>Email</dt><dd>${trainer.email ? escapeHtml(trainer.email) : '—'}</dd></div>
+          <div class="detail-row"><dt>Login ID</dt><dd>${escapeHtml(trainer.username)}</dd></div>
+          <div class="detail-row"><dt>Contact Email</dt><dd>${trainer.email ? escapeHtml(trainer.email) : '—'}</dd></div>
           <div class="detail-row"><dt>Account Status</dt><dd>${statusBadge(trainer)}</dd></div>
           <div class="detail-row"><dt>Created</dt><dd>${formatDateTime(trainer.created_at)}</dd></div>
           <div class="detail-row"><dt>Last Login</dt><dd>${trainer.last_login_at ? formatDateTime(trainer.last_login_at) : 'Never'}</dd></div>
@@ -315,7 +333,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <input type="text" class="form-control" id="editStaffName" value="${escapeHtml(trainer.full_name)}" required>
           </div>
           <div>
-            <label class="form-label">Email</label>
+            <label class="form-label">Contact Email (changing this does not change the Login ID)</label>
             <input type="email" class="form-control" id="editStaffEmail" value="${trainer.email ? escapeHtml(trainer.email) : ''}">
           </div>
         </div>
@@ -354,7 +372,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         <p>Set a new temporary password for this trainer. They'll be required to change it on their next login, and any devices they're currently logged in on will be signed out.</p>
         <label class="form-label">New Temporary Password</label>
         <div class="password-field-row">
-          <input type="text" class="form-control" id="resetPasswordInput" minlength="8" required>
+          <input type="password" class="form-control" id="resetPasswordInput" minlength="8" autocomplete="new-password" required>
           <button type="button" class="btn btn-primary-outline" id="resetPasswordGenerateBtn">Generate</button>
         </div>
         <div class="login-error" id="resetPasswordError" style="display:none; margin-top:14px;"></div>
@@ -387,6 +405,49 @@ document.addEventListener('DOMContentLoaded', async () => {
       } catch (err) {
         errEl.textContent = err.detail || 'Could not reset password.';
         errEl.style.display = 'block';
+      }
+    });
+  };
+
+  const showResendCredentials = (trainer) => {
+    openModal({
+      title: `Resend Credentials — ${escapeHtml(trainer.full_name)}`,
+      bodyHtml: `
+        <p>Enter the trainer's current temporary password. It will be verified and emailed to
+        <strong>${escapeHtml(trainer.username)}</strong> without resetting the account.</p>
+        <label class="form-label" for="resendStaffPassword">Current Temporary Password</label>
+        <input type="password" class="form-control" id="resendStaffPassword" minlength="8" autocomplete="off" required>
+        <div class="login-error" id="resendStaffError" style="display:none; margin-top:14px;"></div>
+      `,
+      footerHtml: `
+        <button type="button" class="btn btn-primary-outline" data-cancel>Cancel</button>
+        <button type="button" class="btn btn-accent" data-send>Send Credentials</button>
+      `,
+    });
+    modalFooter.querySelector('[data-cancel]').addEventListener('click', closeModal);
+    modalFooter.querySelector('[data-send]').addEventListener('click', async (event) => {
+      const password = document.getElementById('resendStaffPassword');
+      const error = document.getElementById('resendStaffError');
+      if (password.value.length < 8) {
+        error.textContent = 'Enter the current temporary password (at least 8 characters).';
+        error.style.display = 'block';
+        return;
+      }
+      event.currentTarget.disabled = true;
+      try {
+        const result = await ArckAPI.request(`/admin/staff/${trainer.id}/credentials-email`, {
+          method: 'POST', timeoutMs: 60000, body: {temp_password: password.value},
+        });
+        password.value = '';
+        notice.textContent = result.detail;
+        notice.style.display = 'flex';
+        if (result.credential_email_sent) closeModal();
+      } catch (err) {
+        password.value = '';
+        error.textContent = typeof err.detail === 'string' ? err.detail : 'Could not resend credentials.';
+        error.style.display = 'block';
+      } finally {
+        if (event.currentTarget.isConnected) event.currentTarget.disabled = false;
       }
     });
   };
@@ -507,6 +568,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       case 'view': showViewDetails(trainer); break;
       case 'edit': showEditTrainer(trainer); break;
       case 'reset': showResetPassword(trainer); break;
+      case 'resend': showResendCredentials(trainer); break;
       case 'permissions': showManagePermissions(trainer); break;
       case 'toggle-active': showToggleActive(trainer); break;
       case 'delete': showDeleteAccount(trainer); break;
