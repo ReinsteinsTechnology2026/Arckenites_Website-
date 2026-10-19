@@ -1,7 +1,8 @@
 from datetime import date, datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile, status
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, Response, UploadFile, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
@@ -11,6 +12,7 @@ from app.core.video import generate_batch_room_name
 from app.core.ws_manager import manager
 from app.crud.audit import write_audit_event
 from app.crud.profile import to_public_profile
+from app.crud.user import email_conflict
 from app.crud.support import (
     attachment_out,
     get_own_ticket_or_404,
@@ -19,12 +21,13 @@ from app.crud.support import (
     ticket_list_item_out,
 )
 from app.database import get_db
-from app.models.audit_log import AuthEventType
+from app.models.audit_log import AuthAuditLog, AuthEventType
 from app.models.batch import Batch, BatchEnrollment
 from app.models.batch_chat import BatchChatReadState, BatchMessage
 from app.models.batch_resources import ClassVideo, StudyMaterial
 from app.models.class_session import ClassSession
 from app.models.interview_schedule import InterviewSchedule
+from app.models.program import Program, ProgramEnrollment
 from app.models.support import SenderTypeEnum, SupportAttachment, SupportMessage, SupportTicket, TicketPriorityEnum, TicketStatusEnum
 from app.models.user import User
 from app.schemas.admin_students import CompleteProfileRequest
@@ -60,6 +63,18 @@ def complete_profile(
     db: Session = Depends(get_db),
     user: User = Depends(require_role("student")),
 ):
+    if user.profile_completed:
+        raise HTTPException(status_code=409, detail="Profile onboarding is already complete. Use account settings for permitted changes.")
+    # This one-time form records contact details but does not verify them.
+    # It must never replace the account's existing login identity.
+    if "@" in user.username and user.username.strip().lower() != payload.email.strip().lower():
+        raise HTTPException(status_code=400, detail="Use the email address assigned to this account. Contact support to change it.")
+    if "@" not in user.username:
+        recorded = (user.student_profile.email or "").strip().lower()
+        if recorded and recorded != payload.email.strip().lower():
+            raise HTTPException(status_code=400, detail="Contact support to change the email already recorded on this account.")
+        if not recorded and email_conflict(db, payload.email):
+            raise HTTPException(status_code=409, detail="This email belongs to an existing portal account. Contact support.")
     user.full_name = payload.full_name
 
     profile = user.student_profile
@@ -83,11 +98,12 @@ def update_my_profile(
     """The ongoing "edit my profile" action from the Profile screen — unlike
     complete_profile above (the one-time onboarding step), this is a
     repeatable self-service update and never touches current_role/program."""
-    user.full_name = payload.full_name
-
     profile = user.student_profile
-    profile.email = payload.email
-    profile.phone = payload.phone
+    # Contact changes need a verified flow that this application does not yet
+    # have. Reject old clients attempting to change either value as well.
+    if (payload.email or "").strip().lower() != (profile.email or "").strip().lower() or (payload.phone or "").strip() != (profile.phone or "").strip():
+        raise HTTPException(status_code=403, detail="Email and phone changes require verification. Contact support.")
+    user.full_name = payload.full_name.strip()
     profile.address = payload.address
 
     db.add(user)
@@ -96,6 +112,58 @@ def update_my_profile(
     db.refresh(user)
 
     return MeResponse.model_validate(user)
+
+
+@router.get("/me/enrollments")
+def my_enrollments(db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
+    """Read-only program and batch memberships from the authenticated identity."""
+    programs = db.execute(
+        select(ProgramEnrollment, Program).join(Program, Program.id == ProgramEnrollment.program_id)
+        .where(ProgramEnrollment.student_id == user.id).order_by(ProgramEnrollment.id).limit(501)
+    ).all()
+    batches = db.execute(
+        select(BatchEnrollment, Batch).join(Batch, Batch.id == BatchEnrollment.batch_id)
+        .where(BatchEnrollment.student_id == user.id).order_by(BatchEnrollment.id).limit(501)
+    ).all()
+    if len(programs) > 500 or len(batches) > 500:
+        raise HTTPException(status_code=413, detail="Too many enrollment records. Contact support for a complete copy.")
+    return {
+        "programs": [{"name": p.name, "status": e.status.value, "domain": e.domain,
+                      "enrolled_at": e.enrolled_at} for e, p in programs],
+        "batches": [{"name": b.name, "course": b.course, "status": b.status.value,
+                     "program_name": b.program.name if b.program else None,
+                     "joined_at": e.joined_at, "start_date": b.start_date} for e, b in batches],
+    }
+
+
+@router.get("/me/login-history")
+def my_login_history(page: int = Query(default=1, ge=1, le=1000),
+                     db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
+    rows = db.scalars(
+        select(AuthAuditLog).where(AuthAuditLog.user_id == user.id,
+                                   AuthAuditLog.event_type.in_((AuthEventType.login_success, AuthEventType.login_failure)))
+        .order_by(AuthAuditLog.created_at.desc(), AuthAuditLog.id.desc())
+        .offset((page - 1) * 20).limit(21)
+    ).all()
+    return {"items": [{"at": e.created_at, "result": "success" if e.event_type == AuthEventType.login_success else "failure",
+                       "ip_address": e.ip_address} for e in rows[:20]],
+            "page": page, "has_more": len(rows) > 20}
+
+
+@router.get("/me/data-export")
+def download_my_data(db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
+    """Bounded, private JSON export; no password, token, MFA or audit internals."""
+    enrollments = my_enrollments(db=db, user=user)
+    profile = {"full_name": user.full_name, "username": user.username,
+               "student_id": user.student_id, "email": user.email,
+               "phone": user.phone, "address": user.address,
+               "email_notifications_enabled": user.email_notifications_enabled}
+    document = {"format_version": 1, "profile": profile, "enrollments": enrollments,
+                "note": "Certificates and achievements are unavailable because no issuance records exist in this application."}
+    return JSONResponse(jsonable_encoder(document), headers={
+        "Content-Disposition": 'attachment; filename="arckenites-my-data.json"',
+        "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff",
+    })
 
 
 @router.patch("/me/notifications", response_model=MeResponse)

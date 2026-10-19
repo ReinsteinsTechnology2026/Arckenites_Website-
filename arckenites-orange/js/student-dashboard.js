@@ -42,11 +42,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('simpleWelcome').textContent = `Welcome, ${user.full_name}`;
     document.getElementById('simpleProgram').textContent = `Program: ${user.program_name || PROGRAM_LABELS[user.program] || 'Not assigned yet'}`;
     document.getElementById('simpleLogoutBtn').addEventListener('click', () => ArckAuth.logout());
-    return;
   }
 
   /* ---------- Sidebar layout for assigned programs ---------- */
-  document.getElementById('sidebarLayout').style.display = 'flex';
+  if (user.program_name || user.program) document.getElementById('sidebarLayout').style.display = 'flex';
+  document.getElementById('simpleAccountBtn').addEventListener('click', () => {
+    document.getElementById('simpleLayout').style.display = 'none';
+    document.getElementById('sidebarLayout').style.display = 'flex';
+    activatePanel('settings');
+  });
   document.getElementById('studentLogoutBtn').addEventListener('click', () => ArckAuth.logout());
 
   /* ---------- Topbar profile dropdown (photo + name, same pattern as the admin portal) ---------- */
@@ -69,6 +73,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     profilePanel.classList.remove('is-open');
     activatePanel('settings');
   });
+  document.getElementById('studentAccountSettingsLink').addEventListener('click', () => {
+    profilePanel.classList.remove('is-open');
+    activatePanel('settings');
+  });
 
   // One shared, hidden file input for the whole page — the avatar control
   // inside the Profile page is the only thing that opens it now (clicking
@@ -79,25 +87,37 @@ document.addEventListener('DOMContentLoaded', async () => {
   // uploads per file picked.
   const photoInput = document.getElementById('profilePhotoInput');
   const uploadPhoto = async (file) => {
+    const status = document.getElementById('profilePhotoStatus');
+    if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      status.textContent = 'Choose a PNG, JPEG, WebP or GIF image under 5 MB.';
+      return;
+    }
+    status.textContent = 'Uploading photo…';
     try {
       const result = await ArckAPI.uploadFile('/users/me/photo', file);
       user.photo_url = result.photo_url;
       ArckAPI.setSession(ArckAPI.getToken(), user);
       renderTopbarProfile();
       renderProfilePhoto();
+      window.dispatchEvent(new CustomEvent('student-account-updated', {detail: user}));
+      status.textContent = 'Profile photo updated.';
     } catch (err) {
-      alert(err.message || 'Could not upload photo.');
+      status.textContent = ArckAPI.errorMessage(err, 'Could not upload photo.');
     }
   };
   const removePhoto = async () => {
+    const status = document.getElementById('profilePhotoStatus');
+    status.textContent = 'Removing photo…';
     try {
       await ArckAPI.request('/users/me/photo', { method: 'DELETE' });
       user.photo_url = null;
       ArckAPI.setSession(ArckAPI.getToken(), user);
       renderTopbarProfile();
       renderProfilePhoto();
+      window.dispatchEvent(new CustomEvent('student-account-updated', {detail: user}));
+      status.textContent = 'Profile photo removed.';
     } catch (err) {
-      alert(err.message || 'Could not remove photo.');
+      status.textContent = ArckAPI.errorMessage(err, 'Could not remove photo.');
     }
   };
   photoInput.addEventListener('change', () => {
@@ -139,7 +159,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const addressInput = document.getElementById('profileAddressInput');
   const editSaveBtn = document.getElementById('profileEditSaveBtn');
   const editError = document.getElementById('profileEditError');
-  const editableInputs = [nameInput, emailInput, phoneInput, addressInput];
+  const editableInputs = [nameInput, addressInput];
   let isEditingProfile = false;
 
   const fillProfileFormFromUser = () => {
@@ -153,6 +173,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('profileEditForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     editError.style.display = 'none';
+    document.getElementById('profileEditSuccess').textContent = '';
 
     if (!isEditingProfile) {
       isEditingProfile = true;
@@ -177,12 +198,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       ArckAPI.setSession(ArckAPI.getToken(), user);
       renderTopbarProfile();
       renderAccountDetails();
+      window.dispatchEvent(new CustomEvent('student-account-updated', {detail: user}));
       fillProfileFormFromUser();
       isEditingProfile = false;
       editableInputs.forEach((input) => { input.disabled = true; });
       editSaveBtn.textContent = 'Edit';
+      document.getElementById('profileEditSuccess').textContent = 'Personal information saved.';
     } catch (err) {
-      editError.textContent = err.message || 'Could not save your profile.';
+      editError.textContent = ArckAPI.errorMessage(err, 'Could not save your profile.');
       editError.style.display = 'block';
     } finally {
       editSaveBtn.disabled = false;
@@ -202,7 +225,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="detail-row"><span class="form-label">Batch</span><span>${myBatches.length ? escapeHtml(myBatches.map((b) => b.name).join(', ')) : 'Not assigned yet'}</span></div>
       ${primaryBatch ? `<div class="detail-row"><span class="form-label">Status</span><span class="admin-activity-badge ${BATCH_STATUS_BADGE[primaryBatch.status] || 'is-muted'}">${BATCH_STATUS_LABEL[primaryBatch.status] || primaryBatch.status}</span></div>` : ''}
       <div class="detail-row"><span class="form-label">Account</span><span class="admin-activity-badge ${user.is_active ? 'is-success' : 'is-danger'}">${user.is_active ? 'Active' : 'Inactive'}</span></div>
-      <div class="detail-row"><span class="form-label"></span><a class="btn btn-primary-outline" href="change-password.html" style="margin-top:6px;">Change Password</a></div>
     `;
   };
 
@@ -216,9 +238,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const updatedUser = await ArckAPI.request('/students/me/notifications', { method: 'PATCH', body: { enabled } });
       user.email_notifications_enabled = updatedUser.email_notifications_enabled;
       ArckAPI.setSession(ArckAPI.getToken(), user);
+      document.getElementById('privacyStatus').textContent = 'Email notification preference saved.';
     } catch (err) {
       notifyEmailToggle.checked = !enabled;
-      alert(err.detail || 'Could not update notification preference.');
+      document.getElementById('privacyStatus').textContent = ArckAPI.errorMessage(err, 'Could not update notification preference.');
     } finally {
       notifyEmailToggle.disabled = false;
     }
@@ -254,6 +277,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   navButtons.forEach((btn) => {
     btn.addEventListener('click', () => activatePanel(btn.dataset.panel));
+  });
+  document.querySelector('section[data-panel="settings"]').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-goto-panel]');
+    if (button) activatePanel(button.dataset.gotoPanel);
   });
 
   /* ---------- Support: ticket system ---------- */

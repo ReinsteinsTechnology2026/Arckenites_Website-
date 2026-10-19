@@ -93,6 +93,16 @@ class UpdateMyProfileRequest(BaseModel):
     phone: str | None = Field(default=None, max_length=30)
     address: str | None = Field(default=None, max_length=500)
 
+    model_config = {"extra": "forbid"}
+
+    @field_validator("full_name")
+    @classmethod
+    def clean_name(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Enter your name.")
+        return value
+
     @field_validator("email")
     @classmethod
     def validate_email(cls, value: str | None) -> str | None:

@@ -496,6 +496,49 @@ class StudentCreationTests(unittest.TestCase):
         self.assertEqual(profile.json()["program"], "institutional")
         self.assertEqual(profile.json()["program_name"], "Institutional Program")
 
+    def test_student_account_routes_keep_records_and_export_scoped(self):
+        first = self._create().json()
+        second = self._create(email="second@example.com", full_name="Second Student",
+                              program_id=self.institutional_id).json()
+        auth = self._headers(first["id"], "student")
+        enrollments = self.client.get("/api/students/me/enrollments", headers=auth)
+        self.assertEqual(enrollments.status_code, 200, enrollments.text)
+        self.assertEqual([row["name"] for row in enrollments.json()["programs"]], ["Freshers Job Hack Program"])
+        history = self.client.get("/api/students/me/login-history", headers=auth)
+        self.assertEqual(history.status_code, 200, history.text)
+        self.assertEqual(history.json()["items"], [])
+        export = self.client.get("/api/students/me/data-export", headers=auth)
+        self.assertEqual(export.status_code, 200, export.text)
+        self.assertEqual(export.json()["profile"]["username"], first["username"])
+        self.assertNotIn(second["username"], export.text)
+        self.assertNotIn("password_hash", export.text)
+        self.assertEqual(export.headers["cache-control"], "no-store")
+        blocked = self.client.patch("/api/students/me/profile", headers=auth,
+                                    json={"full_name": "Arun Kumar", "email": second["username"],
+                                          "phone": None, "address": "New"})
+        self.assertEqual(blocked.status_code, 403)
+        self.assertEqual(self.client.get("/api/students/me/enrollments", headers=self.headers).status_code, 403)
+
+    def test_student_session_revocation_requires_password_and_ownership(self):
+        first = self._create().json()
+        second = self._create(email="second@example.com", full_name="Second Student").json()
+        current = self._headers(first["id"], "student")
+        another = self._headers(first["id"], "student")
+        outsider = self._headers(second["id"], "student")
+        own_other = next(row["id"] for row in self.client.get("/api/me/sessions", headers=current).json()
+                         if not row["is_current"])
+        other_user_session = self.client.get("/api/me/sessions", headers=outsider).json()[0]["id"]
+        path = f"/api/me/sessions/{own_other}"
+        self.assertEqual(self.client.request("DELETE", path, headers=current).status_code, 403)
+        self.assertEqual(self.client.request("DELETE", path, headers=current,
+                                             json={"current_password": "wrong"}).status_code, 403)
+        self.assertEqual(self.client.request("DELETE", f"/api/me/sessions/{other_user_session}", headers=current,
+                                             json={"current_password": PASSWORD}).status_code, 404)
+        self.assertEqual(self.client.request("DELETE", path, headers=current,
+                                             json={"current_password": PASSWORD}).status_code, 204)
+        self.assertEqual(self.client.get("/api/auth/me", headers=current).status_code, 200)
+        self.assertEqual(self.client.get("/api/auth/me", headers=another).status_code, 401)
+
     def test_password_change_revokes_other_sessions_and_keeps_current_onboarding_session(self):
         created = self._create(program_id=self.institutional_id).json()
         current = self._headers(created["id"], "student")

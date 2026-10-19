@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const updatedUser = await ArckAuth.getCurrentUser();
       ArckAuth.redirectToRoleEntryPoint(updatedUser);
     } catch (err) {
-      errorBox.textContent = err.detail || 'Could not update password.';
+      errorBox.textContent = ArckAPI.errorMessage(err, 'Could not update password.');
       errorBox.style.display = 'block';
     } finally {
       submitBtn.disabled = false;

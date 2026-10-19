@@ -1,17 +1,30 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
+from app.core.security import verify_password
+from app.core.rate_limit import limiter
 from app.crud.audit import write_audit_event
 from app.crud.session import list_active_sessions, revoke_session
 from app.database import get_db
 from app.models.audit_log import AuthEventType
-from app.models.user import User
+from app.models.user import RoleEnum, User
 from app.schemas.sessions import SessionOut
 
 router = APIRouter(prefix="/me/sessions", tags=["sessions"])
+
+
+class SessionReauth(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+
+
+def _verify_student_reauth(user: User, payload: SessionReauth | None) -> None:
+    # Existing admin session controls retain their established contract.
+    if user.role == RoleEnum.student and (payload is None or not verify_password(payload.current_password, user.password_hash)):
+        raise HTTPException(status_code=403, detail="Enter your current password to end another session.")
 
 
 def _device_label(user_agent: str | None) -> str:
@@ -64,12 +77,15 @@ def list_my_sessions(user: User = Depends(get_current_user), db: Session = Depen
 
 
 @router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("5/minute")
 def revoke_my_session(
     session_id: uuid.UUID,
     request: Request,
+    payload: SessionReauth | None = Body(default=None),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    _verify_student_reauth(user, payload)
     current_session_id = getattr(user, "_current_session", None)
     if current_session_id and session_id == current_session_id.id:
         raise HTTPException(
@@ -92,11 +108,14 @@ def revoke_my_session(
 
 
 @router.post("/revoke-others", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("5/minute")
 def revoke_other_sessions(
     request: Request,
+    payload: SessionReauth | None = Body(default=None),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    _verify_student_reauth(user, payload)
     current_session_id = getattr(user, "_current_session", None)
     current_id = current_session_id.id if current_session_id else None
 
