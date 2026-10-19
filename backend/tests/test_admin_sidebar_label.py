@@ -27,9 +27,15 @@ class AdminSidebarLabelTests(unittest.TestCase):
             self.assertNotIn('<span class="label">Account</span>', text, page.name)
             self.assertIn("Change Password", text, page.name)
             self.assertIn('id="adminProfileLogout"', text, page.name)
-        # Unrelated uses of "Account" are untouched.
+        # The student sidebar now uses Settings instead of an Account accordion.
         self.assertIn("Disable Account", (SITE / "admin-staff.html").read_text(encoding="utf-8"))
-        self.assertIn('<span class="label">Account</span>', (SITE / "student-dashboard.html").read_text(encoding="utf-8"))
+        student = (SITE / "student-dashboard.html").read_text(encoding="utf-8")
+        self.assertNotIn('id="studentProfileTrigger"', student)
+        self.assertNotIn('class="admin-sidebar-account"', student)
+        self.assertIn('data-panel="settings"', student)
+        for category in ("profile", "security", "contact"):
+            self.assertIn(f'data-settings-category="{category}"', student)
+        self.assertIn('data-settings-action="logout"', student)
         self.assertIn('<div class="community-nav-label">Account</div>', (SITE / "community-dashboard.html").read_text(encoding="utf-8"))
 
     def test_accordion_groups_and_menu_items_are_unchanged(self):
