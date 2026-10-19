@@ -39,6 +39,12 @@ class SystemSettings(Base):
     # System — enforced in routes_auth.py::login
     maintenance_mode: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
+    # Existing student job access remains enabled on rollout; admins can
+    # explicitly disable the whole section without changing individual posts.
+    job_applications_section_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="true"
+    )
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )

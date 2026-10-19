@@ -1,7 +1,7 @@
 """Isolated job announcement HTTP tests; never use the configured database."""
 import tempfile
 import unittest
-from datetime import timezone
+from datetime import date, timedelta, timezone
 from pathlib import Path
 from uuid import uuid4
 
@@ -17,7 +17,7 @@ from app.core.security import create_access_token
 from app.database import Base, get_db
 from app.main import app
 from app.models import AdminRole, AdminRolePermission, AuthAuditLog, AuthSession, Permission, RoleEnum, SystemSettings, User
-from app.models.job_application import JobApplicationReaction
+from app.models.job_application import JobApplication, JobApplicationReaction
 
 
 @compiles(JSONB, "sqlite")
@@ -47,13 +47,21 @@ class JobApplicationTests(unittest.TestCase):
         with JobQaSession(self.engine) as db:
             admin_role = AdminRole(name="Placement Admin", slug="placement_admin", is_system=False)
             viewer_role = AdminRole(name="Placement Viewer", slug="placement_viewer", is_system=False)
-            db.add_all([admin_role, viewer_role])
+            batch_role = AdminRole(name="Batch Admin", slug="batch_admin", is_system=False)
+            settings_role = AdminRole(name="Settings Admin", slug="settings_admin", is_system=False)
+            db.add_all([admin_role, viewer_role, batch_role, settings_role])
             for key, action in (("placement.view", "view"), ("placement.create", "create"), ("placement.edit", "edit")):
                 db.add(Permission(key=key, module="Placement", action=action, description=action))
+            for key, module, action in (("job_applications.section_manage", "Job Applications", "section_manage"),
+                                        ("settings.view", "Settings", "view"), ("settings.edit", "Settings", "edit")):
+                db.add(Permission(key=key, module=module, action=action, description=action))
             db.flush()
             for key in ("placement.view", "placement.create", "placement.edit"):
                 db.add(AdminRolePermission(admin_role_id=admin_role.id, permission_key=key))
             db.add(AdminRolePermission(admin_role_id=viewer_role.id, permission_key="placement.view"))
+            db.add(AdminRolePermission(admin_role_id=batch_role.id, permission_key="job_applications.section_manage"))
+            for key in ("settings.view", "settings.edit"):
+                db.add(AdminRolePermission(admin_role_id=settings_role.id, permission_key=key))
             users = [
                 User(username="jobs-admin", full_name="Jobs Admin", role=RoleEnum.admin,
                      admin_role_id=admin_role.id, password_hash="unused", is_active=True, must_change_password=False),
@@ -67,6 +75,10 @@ class JobApplicationTests(unittest.TestCase):
                      password_hash="unused", is_active=True, must_change_password=False),
                 User(username="jobs-viewer", full_name="Viewer", role=RoleEnum.admin,
                      admin_role_id=viewer_role.id, password_hash="unused", is_active=True, must_change_password=False),
+                User(username="jobs-batch-admin", full_name="Batch Admin", role=RoleEnum.admin,
+                     admin_role_id=batch_role.id, password_hash="unused", is_active=True, must_change_password=False),
+                User(username="jobs-settings-admin", full_name="Settings Admin", role=RoleEnum.admin,
+                     admin_role_id=settings_role.id, password_hash="unused", is_active=True, must_change_password=False),
                 User(username="jobs-inactive", full_name="Inactive", role=RoleEnum.student,
                      password_hash="unused", is_active=False, must_change_password=False),
             ]
@@ -197,6 +209,73 @@ class JobApplicationTests(unittest.TestCase):
         self.assertEqual(self.client.get("/api/student/job-applications", headers=trainer).status_code, 403)
         self.assertEqual(self.client.get("/api/student/job-applications", headers=community).status_code, 403)
         self.assertEqual(self.client.get("/api/student/job-applications", headers=self.headers("jobs-inactive")).status_code, 401)
+
+    def test_section_switch_is_scoped_audited_and_preserves_data(self):
+        job = self.create()
+        self.assertEqual(self.status(job, "publish").status_code, 200)
+        student = self.headers("jobs-student-1")
+        batch = self.headers("jobs-batch-admin")
+        settings_url = "/api/admin/settings/job-applications-section"
+        job_url = f"/api/student/job-applications/{job}"
+        reaction_url = f"{job_url}/reaction"
+        self.assertEqual(self.client.put(reaction_url, headers=student, json={"kind": "love"}).status_code, 200)
+        self.assertEqual(self.client.get(settings_url, headers=batch).json(), {"enabled": True})
+        for username in ("jobs-admin", "jobs-settings-admin", "jobs-viewer", "jobs-student-1", "jobs-trainer"):
+            headers = self.headers(username)
+            self.assertEqual(self.client.get(settings_url, headers=headers).status_code, 403)
+            self.assertEqual(self.client.patch(settings_url, headers=headers, json={"enabled": False}).status_code, 403)
+        self.assertEqual(self.client.patch("/api/admin/settings", headers=batch,
+                         json={"maintenance_mode": True}).status_code, 403)
+        self.assertEqual(self.client.patch(settings_url, headers=batch, json={"enabled": "maybe"}).status_code, 422)
+        changed = self.client.patch(settings_url, headers=batch, json={"enabled": False})
+        self.assertEqual(changed.status_code, 200, changed.text)
+        self.assertEqual(changed.json(), {"enabled": False})
+        self.assertEqual(self.client.get("/api/student/job-applications/availability", headers=student).json(), {"enabled": False})
+        for url in ("/api/student/job-applications", job_url):
+            denied = self.client.get(url, headers=student)
+            self.assertEqual(denied.status_code, 403, denied.text)
+            self.assertIn("unavailable", denied.json()["detail"])
+        self.assertEqual(self.client.put(reaction_url, headers=student, json={"kind": "like"}).status_code, 403)
+        self.assertEqual(self.client.delete(reaction_url, headers=student).status_code, 403)
+        with JobQaSession(self.engine) as db:
+            setting = db.get(SystemSettings, 1)
+            self.assertFalse(setting.job_applications_section_enabled)
+            self.assertEqual(setting.updated_by_id, self.ids["jobs-batch-admin"])
+            self.assertEqual(db.get(JobApplication, job).status.value, "published")
+            self.assertEqual(len(db.scalars(select(JobApplicationReaction)).all()), 1)
+            logs = db.scalars(select(AuthAuditLog).where(AuthAuditLog.module == "Job Applications")).all()
+            self.assertTrue(any("disabled" in log.detail and log.user_id == self.ids["jobs-batch-admin"] for log in logs))
+        # A new client and DB session see the persisted value, as after login or restart.
+        restarted_client = TestClient(app)
+        try:
+            self.assertEqual(restarted_client.get("/api/student/job-applications/availability", headers=student).json(), {"enabled": False})
+        finally:
+            restarted_client.close()
+        self.assertEqual(self.client.get(f"/api/admin/job-applications/{job}", headers=self.headers("jobs-admin")).status_code, 200)
+        self.assertEqual(self.client.patch(settings_url, headers=batch, json={"enabled": True}).json(), {"enabled": True})
+        restored = self.client.get(job_url, headers=student)
+        self.assertEqual(restored.status_code, 200, restored.text)
+        self.assertEqual(restored.json()["my_reaction"], "love")
+        self.assertEqual(self.client.delete(reaction_url, headers=student).status_code, 200)
+
+    def test_expired_posts_hidden_without_deleting_admin_records(self):
+        expired = self.create("Expired")
+        current = self.create("Current")
+        self.assertEqual(self.status(expired, "publish").status_code, 200)
+        self.assertEqual(self.status(current, "publish").status_code, 200)
+        with JobQaSession(self.engine) as db:
+            db.get(JobApplication, expired).deadline = date.today() - timedelta(days=1)
+            db.get(JobApplication, current).deadline = date.today()
+            db.commit()
+        student = self.headers("jobs-student-1")
+        self.assertEqual([row["id"] for row in self.client.get("/api/student/job-applications", headers=student).json()], [current])
+        self.assertEqual(self.client.get(f"/api/student/job-applications/{expired}", headers=student).status_code, 404)
+        self.assertEqual(self.client.put(f"/api/student/job-applications/{expired}/reaction", headers=student,
+                         json={"kind": "like"}).status_code, 404)
+        self.assertEqual(self.client.get(f"/api/admin/job-applications/{expired}",
+                         headers=self.headers("jobs-admin")).status_code, 200)
+        self.assertEqual(self.status(current, "archive").status_code, 200)
+        self.assertEqual(self.client.get("/api/student/job-applications", headers=student).json(), [])
 
 
 if __name__ == "__main__":

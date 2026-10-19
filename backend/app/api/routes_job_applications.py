@@ -1,9 +1,9 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_permission, require_role
@@ -11,6 +11,7 @@ from app.crud.audit import write_audit_event
 from app.database import get_db
 from app.models.audit_log import AuthEventType
 from app.models.job_application import JobApplication, JobApplicationReaction, JobApplicationStatus, JobReactionKind
+from app.models.system_settings import SETTINGS_ROW_ID, SystemSettings
 from app.models.user import User
 from app.schemas.job_applications import AdminJobOut, JobCreate, JobOut, JobReactionInput, JobUpdate
 
@@ -21,7 +22,22 @@ admin_router = APIRouter(prefix="/admin/job-applications", tags=["admin-job-appl
 
 def _visible():
     return (JobApplication.status == JobApplicationStatus.published,
-            JobApplication.is_enabled.is_(True))
+            JobApplication.is_enabled.is_(True),
+            or_(JobApplication.deadline.is_(None), JobApplication.deadline >= date.today()))
+
+
+def _section_enabled(db: Session, *, lock: bool = False) -> bool:
+    query = select(SystemSettings.job_applications_section_enabled).where(SystemSettings.id == SETTINGS_ROW_ID)
+    if lock:
+        query = query.with_for_update()
+    enabled = db.scalar(query)
+    # A missing singleton is treated as the documented rollout default.
+    return enabled is not False
+
+
+def _require_section_enabled(db: Session, *, lock: bool = False) -> None:
+    if not _section_enabled(db, lock=lock):
+        raise HTTPException(status_code=403, detail="Job Applications section is currently unavailable")
 
 
 def _job(db: Session, job_id: int, *, student: bool = False, lock: bool = False) -> JobApplication:
@@ -72,11 +88,17 @@ def _audit(db: Session, actor: User, event: AuthEventType, job: JobApplication, 
     )
 
 
+@student_router.get("/availability")
+def student_job_availability(db: Session = Depends(get_db), _student: User = Depends(require_role("student"))):
+    return {"enabled": _section_enabled(db)}
+
+
 @student_router.get("", response_model=list[JobOut])
 def list_student_jobs(
     offset: int = Query(default=0, ge=0), limit: int = Query(default=50, ge=1, le=100),
     db: Session = Depends(get_db), student: User = Depends(require_role("student")),
 ):
+    _require_section_enabled(db)
     jobs = db.scalars(select(JobApplication).where(*_visible())
                       .order_by(JobApplication.published_at.desc(), JobApplication.id.desc())
                       .offset(offset).limit(limit)).all()
@@ -85,6 +107,7 @@ def list_student_jobs(
 
 @student_router.get("/{job_id}", response_model=JobOut)
 def get_student_job(job_id: int, db: Session = Depends(get_db), student: User = Depends(require_role("student"))):
+    _require_section_enabled(db)
     return _summaries(db, [_job(db, job_id, student=True)], student.id)[0]
 
 
@@ -93,6 +116,7 @@ def set_reaction(
     job_id: int, payload: JobReactionInput, db: Session = Depends(get_db),
     student: User = Depends(require_role("student")),
 ):
+    _require_section_enabled(db, lock=True)
     # Serializing on the parent row prevents concurrent requests from one
     # student creating two rows. The unique constraint is the final guard.
     job = _job(db, job_id, student=True, lock=True)
@@ -110,6 +134,7 @@ def set_reaction(
 
 @student_router.delete("/{job_id}/reaction", response_model=JobOut)
 def remove_reaction(job_id: int, db: Session = Depends(get_db), student: User = Depends(require_role("student"))):
+    _require_section_enabled(db, lock=True)
     job = _job(db, job_id, student=True, lock=True)
     reaction = db.scalar(select(JobApplicationReaction).where(
         JobApplicationReaction.job_id == job_id,

@@ -65,6 +65,9 @@ PERMISSION_CATALOG: list[dict] = [
 
     {"key": "settings.view", "module": "Settings", "action": "view", "description": "View system settings."},
     {"key": "settings.edit", "module": "Settings", "action": "edit", "description": "Edit system settings."},
+    # Explicit grant for the Batch Admin role; intentionally excluded from
+    # default admin grants and from the general settings.edit permission.
+    {"key": "job_applications.section_manage", "module": "Job Applications", "action": "section_manage", "description": "Enable or disable the student Job Applications section."},
 
     {"key": "support.view", "module": "Support", "action": "view", "description": "View support tickets."},
     {"key": "support.reply", "module": "Support", "action": "reply", "description": "Reply to a student on a support ticket."},

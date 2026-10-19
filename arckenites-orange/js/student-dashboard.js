@@ -36,6 +36,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const user = await ArckAuth.requireRole('student');
   if (!user) return; // requireRole already redirected
 
+  // Keep both dashboard layouts hidden until the server confirms access.
+  ArckAPI.request('/student/job-applications/availability').then((availability) => {
+    if (availability.enabled) {
+      document.getElementById('simpleJobsBtn').style.display = '';
+      document.querySelector('#studentSidebar [data-panel="job-applications"]').style.display = '';
+    }
+  }).catch(() => {
+    // A failed availability check never reveals a section that may be off.
+  });
+
   if (!user.program_name && !user.program) {
     // Accounts awaiting program assignment receive the small welcome layout.
     document.getElementById('simpleLayout').style.display = 'block';

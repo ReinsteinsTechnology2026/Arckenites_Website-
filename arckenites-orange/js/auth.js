@@ -41,7 +41,7 @@ const ADMIN_PAGE_PERMISSIONS = {
   'admin-users.html': 'admin_users.view',
   'admin-roles.html': 'roles.view',
   'admin-activity-logs.html': 'activity_logs.view',
-  'admin-settings.html': 'settings.view',
+  'admin-settings.html': ['settings.view', 'job_applications.section_manage'],
 };
 
 /**
@@ -74,6 +74,12 @@ function _adminPagePathname(href) {
   return href.split('?')[0].split('/').pop();
 }
 
+function _hasAdminPagePermission(permissions, required) {
+  return !required || (Array.isArray(required)
+    ? required.some((key) => permissions.includes(key))
+    : permissions.includes(required));
+}
+
 /**
  * Hides each sidebar link the current admin lacks the permission for, then
  * hides the whole category (group heading + list) if nothing under it is
@@ -85,7 +91,7 @@ function applySidebarPermissions(user) {
 
   document.querySelectorAll('.admin-sidebar-link[href]').forEach((link) => {
     const required = ADMIN_PAGE_PERMISSIONS[_adminPagePathname(link.getAttribute('href'))];
-    if (!required || permissions.includes(required)) return;
+    if (_hasAdminPagePermission(permissions, required)) return;
     const item = link.closest('li') || link;
     item.style.display = 'none';
   });
@@ -119,7 +125,7 @@ function applySidebarPermissions(user) {
 function enforcePagePermission(user) {
   const required = ADMIN_PAGE_PERMISSIONS[_adminPagePathname(location.pathname)];
   const permissions = Array.isArray(user.permissions) ? user.permissions : [];
-  if (!required || permissions.includes(required)) return true;
+  if (_hasAdminPagePermission(permissions, required)) return true;
 
   const main = document.querySelector('.admin-main') || document.body;
   main.innerHTML = `

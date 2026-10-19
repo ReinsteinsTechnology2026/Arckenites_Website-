@@ -48,6 +48,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const showServerBanner = () => serverBanner.classList.add('is-visible');
   const errorBox = document.getElementById('settingsError');
   const notice = document.getElementById('settingsNotice');
+  const canViewSystemSettings = ArckAuth.hasPermission('settings.view');
+  const canManageJobSection = ArckAuth.hasPermission('job_applications.section_manage');
 
   /* ---------- Tabs ---------- */
   document.querySelectorAll('.settings-tab').forEach((tab) => {
@@ -58,6 +60,54 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.querySelector(`.settings-tab-panel[data-panel="${tab.dataset.tab}"]`).classList.add('is-active');
     });
   });
+
+  if (!canViewSystemSettings) {
+    document.querySelectorAll('.settings-tab:not([data-tab="job-applications"])').forEach((el) => { el.style.display = 'none'; });
+    document.querySelectorAll('.settings-tab-panel:not([data-panel="job-applications"])').forEach((el) => { el.style.display = 'none'; });
+    document.querySelector('.settings-tab.is-active').classList.remove('is-active');
+    document.querySelector('.settings-tab-panel.is-active').classList.remove('is-active');
+    document.getElementById('jobSectionTab').classList.add('is-active');
+    document.querySelector('.settings-tab-panel[data-panel="job-applications"]').classList.add('is-active');
+  }
+
+  if (canManageJobSection) {
+    document.getElementById('jobSectionTab').style.display = '';
+    const toggle = document.getElementById('jobSectionEnabled');
+    const status = document.getElementById('jobSectionStatus');
+    const message = document.getElementById('jobSectionMessage');
+    let savedValue;
+    const render = (enabled) => {
+      savedValue = enabled;
+      toggle.checked = enabled;
+      status.textContent = enabled ? 'Enabled — students can access eligible posts.' : 'Disabled — student access is unavailable.';
+    };
+    try {
+      const current = await ArckAPI.request('/admin/settings/job-applications-section');
+      render(current.enabled);
+      toggle.disabled = false;
+    } catch (err) {
+      status.textContent = ArckAPI.errorMessage(err, 'Could not load section status.');
+    }
+    toggle.addEventListener('change', async () => {
+      toggle.disabled = true;
+      message.style.display = 'none';
+      try {
+        const updated = await ArckAPI.request('/admin/settings/job-applications-section', {
+          method: 'PATCH', body: {enabled: toggle.checked},
+        });
+        render(updated.enabled);
+        message.textContent = `Job Applications Section ${updated.enabled ? 'enabled' : 'disabled'}.`;
+      } catch (err) {
+        render(savedValue);
+        message.textContent = ArckAPI.errorMessage(err, 'Could not update section status.');
+      } finally {
+        message.style.display = 'block';
+        toggle.disabled = false;
+      }
+    });
+  }
+
+  if (!canViewSystemSettings) return;
 
   /* ---------- Load settings ---------- */
   const fields = {

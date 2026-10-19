@@ -45,7 +45,9 @@ const StudentJobApplications = (() => {
       target.innerHTML = jobs.length ? jobs.map(card).join('')
         : '<div class="admin-panel-empty">No job applications are available at the moment.</div>';
     } catch (error) {
-      target.innerHTML = '<div class="admin-panel-empty">Could not load job applications. Please try again.</div>';
+      target.innerHTML = error.status === 403
+        ? '<div class="admin-panel-empty">Job Applications is currently unavailable.</div>'
+        : '<div class="admin-panel-empty">Could not load job applications. Please try again.</div>';
     }
   };
 
