@@ -51,36 +51,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('sidebarLayout').style.display = 'flex';
     StudentSettingsNav.openMenu();
   });
-  document.getElementById('studentLogoutBtn').addEventListener('click', () => ArckAuth.logout());
-
-  /* ---------- Topbar profile dropdown (photo + name, same pattern as the admin portal) ---------- */
+  /* ---------- Topbar profile photo ---------- */
   const renderTopbarProfile = () => {
     document.getElementById('studentAvatarWrap').innerHTML = ArckAPI.avatarHtml(user.full_name, user.photo_url, 36);
-    document.getElementById('studentAvatarWrapMenu').innerHTML = ArckAPI.avatarHtml(user.full_name, user.photo_url, 40);
-    document.getElementById('studentProfileName').textContent = user.full_name;
   };
   renderTopbarProfile();
 
-  const profileTrigger = document.getElementById('studentProfileTrigger');
-  const profilePanel = document.getElementById('studentProfilePanel');
-  profileTrigger.addEventListener('click', (e) => {
-    e.stopPropagation();
-    profilePanel.classList.toggle('is-open');
-  });
-  document.addEventListener('click', () => profilePanel.classList.remove('is-open'));
-  document.getElementById('studentProfileLogout').addEventListener('click', () => ArckAuth.logout());
-  document.getElementById('studentProfileSettingsLink').addEventListener('click', () => {
-    profilePanel.classList.remove('is-open');
-    StudentSettingsNav.openMenu();
-  });
-
-  // One shared, hidden file input for the whole page — the avatar control
-  // inside the Profile page is the only thing that opens it now (clicking
-  // the topbar/menu avatar just navigates to Profile — see below). Wiring
-  // `change`/upload here ONCE (rather than inside a render function that
-  // re-runs on every photo change) matters: this element is never
-  // recreated, so re-attaching the listener there would stack duplicate
-  // uploads per file picked.
+  // The Profile Photo control uses one persistent file input. Attach the
+  // upload listener once so rerendering the photo cannot duplicate uploads.
   const photoInput = document.getElementById('profilePhotoInput');
   const uploadPhoto = async (file) => {
     const status = document.getElementById('profilePhotoStatus');
@@ -121,17 +99,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     photoInput.value = '';
     if (file) uploadPhoto(file);
   });
-  // The avatar opens Settings. Uploading happens only from Profile Photo.
-  document.getElementById('studentAvatarBtn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    StudentSettingsNav.openMenu();
-  });
-  document.getElementById('studentAvatarMenuBtn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    profilePanel.classList.remove('is-open');
-    StudentSettingsNav.openMenu();
-  });
-
   // This form uses /auth/me for the signed-in student's own details.
   const renderProfilePhoto = () => {
     document.getElementById('profilePhotoTrigger').innerHTML = ArckAPI.avatarHtml(user.full_name, user.photo_url, 96);

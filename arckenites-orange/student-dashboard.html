@@ -66,33 +66,7 @@
       <button type="button" class="admin-sidebar-link" data-panel="settings"><i class="fa-solid fa-gear"></i><span class="label">Settings</span></button>
     </nav>
 
-    <div class="admin-sidebar-logout">
-      <div class="admin-dropdown admin-sidebar-account">
-        <button type="button" class="admin-profile-trigger" id="studentProfileTrigger">
-          <span class="label">Account</span>
-          <i class="fa-solid fa-chevron-up"></i>
-        </button>
-        <div class="admin-dropdown-panel" id="studentProfilePanel">
-          <div class="admin-profile-meta">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <button type="button" class="ak-avatar-btn" id="studentAvatarMenuBtn" title="Go to Profile">
-                <span id="studentAvatarWrapMenu"></span>
-              </button>
-              <div>
-                <strong id="studentProfileName">Student</strong>
-                <span>Student</span>
-              </div>
-            </div>
-          </div>
-          <button type="button" class="admin-dropdown-link" id="studentProfileSettingsLink"><i class="fa-solid fa-gear"></i> Settings</button>
-          <button type="button" class="admin-dropdown-link" id="studentProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-        </div>
-        <input type="file" id="profilePhotoInput" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none;">
-      </div>
-      <button type="button" class="admin-sidebar-link" id="studentLogoutBtn" title="Logout" style="display:none;">
-        <i class="fa-solid fa-right-from-bracket"></i><span class="label">Logout</span>
-      </button>
-    </div>
+    <input type="file" id="profilePhotoInput" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none;">
   </aside>
 
   <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
@@ -106,9 +80,7 @@
       </div>
       <div class="admin-topbar-actions">
         <button type="button" class="icon-btn theme-toggle-btn" aria-label="Switch to light theme" title="Switch to light theme"><i class="fa-solid fa-sun"></i></button>
-        <button type="button" class="ak-avatar-btn" id="studentAvatarBtn" title="Go to Profile">
-          <span id="studentAvatarWrap"></span>
-        </button>
+        <span id="studentAvatarWrap"></span>
       </div>
     </header>
 
@@ -565,7 +537,7 @@
 <script src="js/theme.js?v=1"></script>
 <script src="js/video-conference.js?v=1"></script>
 <script src="js/student-settings-nav.js?v=1"></script>
-<script src="js/student-dashboard.js?v=18"></script>
+<script src="js/student-dashboard.js?v=19"></script>
 <script src="js/student-account.js?v=1"></script>
 <script src="js/mfa-controls.js?v=2"></script>
 <script src="js/chat.js?v=1"></script>

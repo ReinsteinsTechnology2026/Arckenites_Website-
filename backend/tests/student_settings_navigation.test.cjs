@@ -11,6 +11,12 @@ const viewNames = [...html.matchAll(/data-settings-view="([^"]+)"/g)].map((match
 const detailNames = [...html.matchAll(/data-settings-detail="([^"]+)"/g)].map((match) => match[1]);
 const categories = [...html.matchAll(/data-settings-category="([^"]+)"/g)].map((match) => match[1]);
 assert.deepEqual(categories, ['profile', 'security', 'contact']);
+assert.equal([...html.matchAll(/class="admin-sidebar-link" data-panel="settings"/g)].length, 1);
+assert.ok(!html.includes('admin-sidebar-account'));
+assert.ok(!html.includes('id="studentProfileTrigger"'));
+assert.ok(!html.includes('id="studentProfilePanel"'));
+assert.ok(html.includes('id="profilePhotoInput"'));
+assert.ok(html.includes('id="studentAvatarWrap"'));
 assert.equal(detailNames.length, 11);
 assert.ok(html.includes('href="change-password.html?from=student-settings"'));
 for (const detail of detailNames) assert.ok(viewNames.includes(`detail:${detail}`), detail);
@@ -133,4 +139,4 @@ assert.equal(visiblePanel, 'support');
 history.back();
 click('[data-settings-action="logout"]');
 assert.equal(loggedOut, true);
-console.log('PASS: Settings categories, all 11 in-dashboard detail items, password destination, Back navigation, browser history, and Logout.');
+console.log('PASS: Single Settings entry, no Account accordion, Settings categories, all 11 detail items, password destination, Back navigation, browser history, and Logout.');
