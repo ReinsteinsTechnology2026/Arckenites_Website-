@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('simpleAccountBtn').addEventListener('click', () => {
     document.getElementById('simpleLayout').style.display = 'none';
     document.getElementById('sidebarLayout').style.display = 'flex';
-    activatePanel('settings');
+    StudentSettingsNav.openMenu();
   });
   document.getElementById('studentLogoutBtn').addEventListener('click', () => ArckAuth.logout());
 
@@ -71,11 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('studentProfileLogout').addEventListener('click', () => ArckAuth.logout());
   document.getElementById('studentProfileSettingsLink').addEventListener('click', () => {
     profilePanel.classList.remove('is-open');
-    activatePanel('settings');
-  });
-  document.getElementById('studentAccountSettingsLink').addEventListener('click', () => {
-    profilePanel.classList.remove('is-open');
-    activatePanel('settings');
+    StudentSettingsNav.openMenu();
   });
 
   // One shared, hidden file input for the whole page — the avatar control
@@ -125,22 +121,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     photoInput.value = '';
     if (file) uploadPhoto(file);
   });
-  // Clicking the avatar (topbar or dropdown menu) goes to the Profile page —
-  // it does NOT upload a photo directly. Uploading only happens from the
-  // dedicated avatar control inside the Profile page itself.
+  // The avatar opens Settings. Uploading happens only from Profile Photo.
   document.getElementById('studentAvatarBtn').addEventListener('click', (e) => {
     e.stopPropagation();
-    activatePanel('settings');
+    StudentSettingsNav.openMenu();
   });
   document.getElementById('studentAvatarMenuBtn').addEventListener('click', (e) => {
     e.stopPropagation();
     profilePanel.classList.remove('is-open');
-    activatePanel('settings');
+    StudentSettingsNav.openMenu();
   });
 
-  // Profile page — this is the student's OWN view (via /auth/me), so it's
-  // the one place username/email/phone/student ID are shown; nowhere else
-  // in the portal exposes these for any student, including this one.
+  // This form uses /auth/me for the signed-in student's own details.
   const renderProfilePhoto = () => {
     document.getElementById('profilePhotoTrigger').innerHTML = ArckAPI.avatarHtml(user.full_name, user.photo_url, 96);
     document.getElementById('profilePhotoCaption').textContent = user.photo_url ? 'Change Photo' : 'Upload Photo';
@@ -151,8 +143,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('profilePhotoRemoveBtn').addEventListener('click', removePhoto);
   renderProfilePhoto();
 
-  // Name/Email/Phone/Address start disabled (view-only); "Edit" enables
-  // them, and the same button (now labeled "Save") submits the PATCH.
+  // Name and address start disabled; Edit enables those permitted fields.
   const nameInput = document.getElementById('profileNameInput');
   const emailInput = document.getElementById('profileEmailInput');
   const phoneInput = document.getElementById('profilePhoneInput');
@@ -266,17 +257,38 @@ document.addEventListener('DOMContentLoaded', async () => {
   const navButtons = sidebar.querySelectorAll('.admin-sidebar-link[data-panel]');
   const panels = document.querySelectorAll('main.admin-main > section[data-panel]');
 
-  // Shared by the sidebar nav, the overview's data-goto-panel shortcuts, and
-  // the topbar profile dropdown's "Profile" link/avatar — "settings" has no
-  // sidebar entry, so this can't just be navButtons.forEach + one click().
-  const activatePanel = (name) => {
+  // Settings manages category and detail history inside this dashboard panel.
+  let activeDashboardPanel = 'overview';
+  const activatePanel = (name, {restore = false} = {}) => {
+    if (name !== 'settings') {
+      if (!restore) StudentSettingsNav.leaveToPanel(name);
+      activeDashboardPanel = name;
+    }
     navButtons.forEach((b) => b.classList.toggle('is-active', b.dataset.panel === name));
     panels.forEach((p) => { p.style.display = p.dataset.panel === name ? 'block' : 'none'; });
     closeMobileSidebar();
   };
 
+  StudentSettingsNav.init({
+    showSettingsPanel: () => {
+      document.getElementById('simpleLayout').style.display = 'none';
+      document.getElementById('sidebarLayout').style.display = 'flex';
+      activatePanel('settings', {restore: true});
+    },
+    getDashboardPanel: () => activeDashboardPanel,
+    restoreDashboardPanel: (name) => {
+      activatePanel(name, {restore: true});
+      if (!user.program_name && !user.program && name === 'overview') {
+        document.getElementById('sidebarLayout').style.display = 'none';
+        document.getElementById('simpleLayout').style.display = 'block';
+      }
+    },
+    logout: () => ArckAuth.logout(),
+  });
+
   navButtons.forEach((btn) => {
-    btn.addEventListener('click', () => activatePanel(btn.dataset.panel));
+    btn.addEventListener('click', () => btn.dataset.panel === 'settings'
+      ? StudentSettingsNav.openMenu() : activatePanel(btn.dataset.panel));
   });
   document.querySelector('section[data-panel="settings"]').addEventListener('click', (event) => {
     const button = event.target.closest('[data-goto-panel]');

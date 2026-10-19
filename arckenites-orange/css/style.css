@@ -821,11 +821,14 @@ html.auth-pending .admin-shell{ display:none; }
 }
 .admin-panel-header{ padding:18px 20px; border-bottom:1px solid var(--border-c); }
 .admin-panel-header h2{ font-size:1.1rem; margin:0; }
+#studentSettingsSection [hidden]{ display:none!important; }
+#studentSettingsReturn[hidden]{ display:none!important; }
+.student-settings-routebar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+.student-settings-active-category{ display:inline-block; border-radius:999px; padding:7px 12px; color:var(--primary); background:color-mix(in srgb,var(--primary) 14%,var(--surface)); font-size:.82rem; font-weight:700; }
 .student-account-nav{ margin-bottom:24px; }
-.student-account-nav h2,.student-account-group{ font-size:1.2rem; margin:24px 0 12px; }
 .student-account-links{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; }
-.student-account-links a{ display:flex; gap:12px; align-items:flex-start; padding:14px; border:1px solid var(--border-c); border-radius:12px; color:var(--ink); text-decoration:none; background:var(--surface); }
-.student-account-links a:hover,.student-account-links a:focus-visible{ border-color:var(--primary); color:var(--primary); }
+.student-account-links button,.student-account-links a{ display:flex; gap:12px; align-items:flex-start; width:100%; padding:14px; border:1px solid var(--border-c); border-radius:12px; color:var(--ink); text-align:left; text-decoration:none; font:inherit; cursor:pointer; background:var(--surface); }
+.student-account-links button:hover,.student-account-links button:focus-visible,.student-account-links a:hover,.student-account-links a:focus-visible{ border-color:var(--primary); color:var(--primary); }
 .student-account-links i{ width:20px; padding-top:3px; color:var(--primary); }
 .student-account-links span{ display:flex; flex-direction:column; gap:2px; }
 .student-account-links small{ color:var(--muted); font-size:.78rem; }
@@ -837,7 +840,7 @@ html.auth-pending .admin-shell{ display:none; }
 .student-identity-person{ display:flex; align-items:center; gap:15px; margin-bottom:12px; }
 .student-identity-person strong{ display:block; font-size:1.15rem; }
 @media(max-width:600px){.student-account-links{grid-template-columns:1fr}.student-account-row{align-items:flex-start;flex-direction:column}}
-@media print{body:has(.student-identity-card) .admin-shell > :not(.admin-shell-main),body:has(.student-identity-card) .admin-topbar,body:has(.student-identity-card) .admin-main > section:not([data-panel="settings"]),body:has(.student-identity-card) section[data-panel="settings"] > :not(#student-id-card),body:has(.student-identity-card) #student-id-card .admin-panel-header,body:has(.student-identity-card) .student-print-card{display:none!important}body:has(.student-identity-card) .admin-shell-main,body:has(.student-identity-card) .admin-main{margin:0!important;padding:0!important;width:100%!important}body:has(.student-identity-card) #student-id-card{border:0;box-shadow:none}}
+@media print{body:has(#student-id-card:not([hidden]) .student-identity-card) .admin-shell > :not(.admin-shell-main),body:has(#student-id-card:not([hidden]) .student-identity-card) .admin-topbar,body:has(#student-id-card:not([hidden]) .student-identity-card) .admin-main > section:not([data-panel="settings"]),body:has(#student-id-card:not([hidden]) .student-identity-card) section[data-panel="settings"] > :not(#student-id-card),body:has(#student-id-card:not([hidden]) .student-identity-card) #student-id-card .admin-panel-header,body:has(#student-id-card:not([hidden]) .student-identity-card) .student-print-card{display:none!important}body:has(#student-id-card:not([hidden]) .student-identity-card) .admin-shell-main,body:has(#student-id-card:not([hidden]) .student-identity-card) .admin-main{margin:0!important;padding:0!important;width:100%!important}body:has(#student-id-card:not([hidden]) .student-identity-card) #student-id-card{border:0;box-shadow:none}}
 .admin-activity-table{ width:100%; border-collapse:collapse; }
 .admin-activity-table th{
   text-align:left; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted-2);

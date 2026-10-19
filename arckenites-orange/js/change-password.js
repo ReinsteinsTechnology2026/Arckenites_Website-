@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
+  if (new URLSearchParams(window.location.search).get('from') === 'student-settings') {
+    document.getElementById('studentSettingsReturn').hidden = false;
+  }
 
   // Any authenticated user (regardless of role) can be here — this page
   // doesn't gate by role, only by "are you logged in at all".
@@ -32,6 +35,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         body: { current_password: currentInput.value, new_password: newInput.value },
       });
       const updatedUser = await ArckAuth.getCurrentUser();
+      if (new URLSearchParams(window.location.search).get('from') === 'student-settings' && updatedUser.role === 'student') {
+        sessionStorage.setItem('ak_student_settings_notice', 'Password updated successfully. Other sessions have been signed out.');
+        window.location.href = 'student-dashboard.html#settings/security';
+        return;
+      }
       ArckAuth.redirectToRoleEntryPoint(updatedUser);
     } catch (err) {
       errorBox.textContent = ArckAPI.errorMessage(err, 'Could not update password.');

@@ -14,7 +14,7 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=18">
+<link rel="stylesheet" href="css/style.css?v=19">
 
 </head>
 <body>
@@ -37,7 +37,7 @@
     <h1>Dashboard</h1>
     <p>Your Arckenites learning overview.</p>
     <p id="simpleProgram"></p>
-    <button type="button" class="btn btn-accent" id="simpleAccountBtn">Personal Account &amp; Security</button>
+    <button type="button" class="btn btn-accent" id="simpleAccountBtn">Settings</button>
 
     <div class="dashboard-notice">
       <i class="fa-solid fa-circle-info"></i>
@@ -63,6 +63,7 @@
       <button type="button" class="admin-sidebar-link" data-panel="meetings"><i class="fa-solid fa-video"></i><span class="label">Meetings</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="interviews"><i class="fa-solid fa-user-tie"></i><span class="label">Interview Schedule</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="support"><i class="fa-solid fa-life-ring"></i><span class="label">Support</span><span class="admin-notif-badge" id="supportSidebarBadge" style="display:none; position:static; margin-left:auto;">0</span></button>
+      <button type="button" class="admin-sidebar-link" data-panel="settings"><i class="fa-solid fa-gear"></i><span class="label">Settings</span></button>
     </nav>
 
     <div class="admin-sidebar-logout">
@@ -83,9 +84,7 @@
               </div>
             </div>
           </div>
-          <button type="button" class="admin-dropdown-link" id="studentProfileSettingsLink"><i class="fa-solid fa-id-card"></i> Profile</button>
-          <button type="button" class="admin-dropdown-link" id="studentAccountSettingsLink"><i class="fa-solid fa-gear"></i> Account Settings</button>
-          <a class="admin-dropdown-link" href="change-password.html"><i class="fa-solid fa-key"></i> Change Password</a>
+          <button type="button" class="admin-dropdown-link" id="studentProfileSettingsLink"><i class="fa-solid fa-gear"></i> Settings</button>
           <button type="button" class="admin-dropdown-link" id="studentProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
         </div>
         <input type="file" id="profilePhotoInput" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none;">
@@ -190,33 +189,45 @@
         </div>
       </section>
 
-      <section data-panel="settings" style="display:none;">
+      <section data-panel="settings" id="studentSettingsSection" style="display:none;">
         <div class="admin-page-header">
-          <div><h1>Account Settings</h1><p>Manage your personal account and security.</p></div>
+          <div><h1 id="settingsPageTitle" tabindex="-1">Settings</h1><p id="settingsPageDescription">Choose what you want to manage.</p></div>
         </div>
-        <nav class="student-account-nav" aria-label="Account settings">
-          <h2>Personal Account</h2>
+        <div class="student-settings-routebar">
+          <button type="button" class="btn btn-primary-outline" id="settingsBackBtn" hidden><i class="fa-solid fa-arrow-left"></i> <span>Back to Settings</span></button>
+          <button type="button" class="btn btn-primary-outline" id="settingsHomeBtn" hidden>Back to Settings</button>
+          <span id="settingsActiveCategory" class="student-settings-active-category" hidden></span>
+        </div>
+        <p id="settingsNotice" role="status" class="student-account-status" hidden></p>
+        <nav class="student-account-nav" data-settings-view="menu" aria-label="Settings categories">
           <div class="student-account-links">
-            <a href="#personal-info"><i class="fa-solid fa-user"></i><span><strong>Personal Information</strong><small>Review and edit your profile</small></span></a>
-            <a href="#profile-photo"><i class="fa-solid fa-camera"></i><span><strong>Profile Photo</strong><small>Upload or remove your picture</small></span></a>
-            <a href="#contact-details"><i class="fa-solid fa-envelope"></i><span><strong>Email &amp; Phone</strong><small>View registered contact details</small></span></a>
-            <a href="#student-id-card"><i class="fa-solid fa-id-card"></i><span><strong>Student ID Card</strong><small>View and print your identity card</small></span></a>
-            <a href="#my-enrollments"><i class="fa-solid fa-graduation-cap"></i><span><strong>My Enrollments</strong><small>Programs, courses and batches</small></span></a>
-            <a href="#my-certificates"><i class="fa-solid fa-certificate"></i><span><strong>Certificates &amp; Achievements</strong><small>Issued records and availability</small></span></a>
-          </div>
-          <h2>Security &amp; Privacy</h2>
-          <div class="student-account-links">
-            <a href="#password-settings"><i class="fa-solid fa-key"></i><span><strong>Change Password</strong><small>Update your account password</small></span></a>
-            <a href="#mfa-settings"><i class="fa-solid fa-shield-halved"></i><span><strong>Two-Factor Authentication</strong><small>Authenticator app and recovery codes</small></span></a>
-            <a href="#active-sessions"><i class="fa-solid fa-laptop"></i><span><strong>Active Devices &amp; Sessions</strong><small>Review and end signed-in sessions</small></span></a>
-            <a href="#login-history"><i class="fa-solid fa-clock-rotate-left"></i><span><strong>Login History</strong><small>Recent account sign-ins</small></span></a>
-            <a href="#privacy-settings"><i class="fa-solid fa-lock"></i><span><strong>Privacy Settings</strong><small>Email notification preference</small></span></a>
-            <a href="#data-export"><i class="fa-solid fa-download"></i><span><strong>Download My Data</strong><small>Export available student records</small></span></a>
-            <a href="#deactivate-account"><i class="fa-solid fa-user-slash"></i><span><strong>Deactivate Account</strong><small>Read account lifecycle options</small></span></a>
+            <button type="button" data-settings-category="profile"><i class="fa-solid fa-user"></i><span><strong>Profile</strong><small>Personal profile and learning records</small></span></button>
+            <button type="button" data-settings-category="security"><i class="fa-solid fa-shield-halved"></i><span><strong>Privacy &amp; Security</strong><small>Password, MFA, sessions and data</small></span></button>
+            <button type="button" data-settings-category="contact"><i class="fa-solid fa-envelope"></i><span><strong>Contact &amp; Email</strong><small>Registered email and phone</small></span></button>
+            <button type="button" data-settings-action="logout"><i class="fa-solid fa-right-from-bracket"></i><span><strong>Logout</strong><small>Securely end this session</small></span></button>
           </div>
         </nav>
-        <h2 class="student-account-group">Personal Account</h2>
-        <div class="admin-panel" id="personal-info" style="max-width:620px;">
+        <nav class="student-account-nav" data-settings-view="profile" aria-label="Personal Profile options" hidden>
+          <div class="student-account-links">
+            <button type="button" data-settings-detail="personal-info"><i class="fa-solid fa-user"></i><span><strong>Personal Information</strong><small>Review and edit your profile</small></span></button>
+            <button type="button" data-settings-detail="profile-photo"><i class="fa-solid fa-camera"></i><span><strong>Profile Photo</strong><small>Upload or remove your picture</small></span></button>
+            <button type="button" data-settings-detail="student-id-card"><i class="fa-solid fa-id-card"></i><span><strong>Student ID Card</strong><small>View and print your identity card</small></span></button>
+            <button type="button" data-settings-detail="my-enrollments"><i class="fa-solid fa-graduation-cap"></i><span><strong>My Enrollments</strong><small>Programs, courses and batches</small></span></button>
+            <button type="button" data-settings-detail="my-certificates"><i class="fa-solid fa-certificate"></i><span><strong>Certificates &amp; Achievements</strong><small>Issued records and availability</small></span></button>
+          </div>
+        </nav>
+        <nav class="student-account-nav" data-settings-view="security" aria-label="Privacy and Security options" hidden>
+          <div class="student-account-links">
+            <a href="change-password.html?from=student-settings"><i class="fa-solid fa-key"></i><span><strong>Change Password</strong><small>Update your account password</small></span></a>
+            <button type="button" data-settings-detail="mfa-settings"><i class="fa-solid fa-shield-halved"></i><span><strong>Two-Factor Authentication</strong><small>Authenticator app and recovery codes</small></span></button>
+            <button type="button" data-settings-detail="active-sessions"><i class="fa-solid fa-laptop"></i><span><strong>Active Devices &amp; Sessions</strong><small>Review and end signed-in sessions</small></span></button>
+            <button type="button" data-settings-detail="login-history"><i class="fa-solid fa-clock-rotate-left"></i><span><strong>Login History</strong><small>Recent account sign-ins</small></span></button>
+            <button type="button" data-settings-detail="privacy-settings"><i class="fa-solid fa-lock"></i><span><strong>Privacy Settings</strong><small>Email notification preference</small></span></button>
+            <button type="button" data-settings-detail="data-export"><i class="fa-solid fa-download"></i><span><strong>Download My Data</strong><small>Export available student records</small></span></button>
+            <button type="button" data-settings-detail="deactivate-account"><i class="fa-solid fa-user-slash"></i><span><strong>Deactivate Account</strong><small>Read account lifecycle options</small></span></button>
+          </div>
+        </nav>
+        <div class="admin-panel" id="personal-info" data-settings-view="detail:personal-info" style="max-width:620px;" hidden>
           <div class="admin-panel-header"><h2>Personal Information</h2></div>
           <div style="padding:24px;">
             <form id="profileEditForm">
@@ -224,14 +235,8 @@
                 <label class="form-label" for="profileNameInput">Name</label>
                 <input type="text" class="form-control" id="profileNameInput" disabled required>
               </div>
-              <div style="margin-bottom:16px;">
-                <label class="form-label" for="profileEmailInput">Email</label>
-                <input type="email" class="form-control" id="profileEmailInput" disabled>
-              </div>
-              <div style="margin-bottom:16px;">
-                <label class="form-label" for="profilePhoneInput">Phone</label>
-                <input type="text" class="form-control" id="profilePhoneInput" disabled>
-              </div>
+              <input type="hidden" id="profileEmailInput">
+              <input type="hidden" id="profilePhoneInput">
               <div style="margin-bottom:20px;">
                 <label class="form-label" for="profileAddressInput">Address</label>
                 <input type="text" class="form-control" id="profileAddressInput" disabled>
@@ -242,7 +247,7 @@
             </form>
           </div>
         </div>
-        <div class="admin-panel" id="profile-photo" style="max-width:620px; margin-top:20px;">
+        <div class="admin-panel" id="profile-photo" data-settings-view="detail:profile-photo" style="max-width:620px;" hidden>
           <div class="admin-panel-header"><h2>Profile Photo</h2></div>
           <p id="profilePhotoStatus" role="status" class="student-account-status"></p>
           <div style="padding:20px; text-align:center;">
@@ -252,51 +257,45 @@
           </div>
         </div>
 
-        <div class="admin-panel" style="max-width:620px; margin-top:20px;">
+        <div class="admin-panel" data-settings-view="detail:personal-info" style="max-width:620px; margin-top:20px;" hidden>
           <div class="admin-panel-header"><h2><i class="fa-solid fa-circle-info"></i> Account Details</h2></div>
           <div id="profileAccountDetailsBody" class="detail-list" style="padding:20px;"></div>
         </div>
 
-        <div class="admin-panel" id="contact-details" style="max-width:620px; margin-top:20px;">
+        <div class="admin-panel" id="contact-details" data-settings-view="contact" style="max-width:620px;" hidden>
           <div class="admin-panel-header"><h2>Email &amp; Phone</h2></div>
           <div id="contactDetailsBody" class="detail-list" style="padding:20px;">Loading contact details&hellip;</div>
           <p class="student-account-status">Contact changes require a verified support process. Your email and phone are currently view only.</p>
           <button type="button" class="btn btn-primary-outline" data-goto-panel="support" style="margin:0 20px 20px;">Contact Support</button>
         </div>
-        <div class="admin-panel" id="student-id-card" style="max-width:620px; margin-top:20px;">
+        <div class="admin-panel" id="student-id-card" data-settings-view="detail:student-id-card" style="max-width:620px;" hidden>
           <div class="admin-panel-header"><h2>Student ID Card</h2></div>
           <div id="studentIdCardBody" style="padding:20px;">Loading card&hellip;</div>
         </div>
-        <div class="admin-panel" id="my-enrollments" style="max-width:620px; margin-top:20px;">
+        <div class="admin-panel" id="my-enrollments" data-settings-view="detail:my-enrollments" style="max-width:620px;" hidden>
           <div class="admin-panel-header"><h2>My Enrollments</h2></div>
           <div id="accountEnrollmentsBody" style="padding:20px;">Loading enrollments&hellip;</div>
         </div>
-        <div class="admin-panel" id="my-certificates" style="max-width:620px; margin-top:20px;">
+        <div class="admin-panel" id="my-certificates" data-settings-view="detail:my-certificates" style="max-width:620px;" hidden>
           <div class="admin-panel-header"><h2>Certificates &amp; Achievements</h2></div>
           <p class="student-account-status">Certificate issuance and achievement records are not available in this portal yet. Contact support for an issued certificate.</p>
         </div>
-        <h2 class="student-account-group">Security &amp; Privacy</h2>
-        <div class="admin-panel" id="password-settings" style="max-width:620px; margin-top:20px;">
-          <div class="admin-panel-header"><h2>Change Password</h2></div>
-          <p class="student-account-status">Verify your current password and choose a new one.</p>
-          <p class="student-account-status"><a class="btn btn-primary-outline" href="change-password.html">Change Password</a></p>
-        </div>
-        <div class="admin-panel" id="mfa-settings" style="max-width:620px; margin-top:20px;">
+        <div class="admin-panel" id="mfa-settings" data-settings-view="detail:mfa-settings" style="max-width:620px;" hidden>
           <div class="admin-panel-header"><h2>Two-Factor Authentication</h2></div>
           <div id="mfaControls" style="padding:20px;">Loading MFA settings&hellip;</div>
         </div>
-        <div class="admin-panel" id="active-sessions" style="max-width:620px; margin-top:20px;">
+        <div class="admin-panel" id="active-sessions" data-settings-view="detail:active-sessions" style="max-width:620px;" hidden>
           <div class="admin-panel-header"><h2>Active Devices &amp; Sessions</h2></div>
           <div style="padding:20px 20px 0;"><label class="form-label" for="sessionReauthPassword">Current password to end another session</label><input type="password" class="form-control" id="sessionReauthPassword" autocomplete="current-password"></div>
           <div id="accountSessionsBody" style="padding:20px;">Loading sessions&hellip;</div>
           <p id="accountSessionsStatus" role="status" class="student-account-status"></p>
         </div>
-        <div class="admin-panel" id="login-history" style="max-width:620px; margin-top:20px;">
+        <div class="admin-panel" id="login-history" data-settings-view="detail:login-history" style="max-width:620px;" hidden>
           <div class="admin-panel-header"><h2>Login History</h2></div>
           <div id="accountLoginHistoryBody" style="padding:20px;">Loading history&hellip;</div>
           <button type="button" class="btn btn-primary-outline" id="loginHistoryMoreBtn" style="display:none; margin:0 20px 20px;">Load more</button>
         </div>
-        <div class="admin-panel" id="privacy-settings" style="max-width:620px; margin-top:20px;">
+        <div class="admin-panel" id="privacy-settings" data-settings-view="detail:privacy-settings" style="max-width:620px;" hidden>
           <div class="admin-panel-header"><h2>Privacy Settings</h2></div>
           <div style="padding:20px;">
             <div class="settings-toggle-row">
@@ -313,13 +312,13 @@
           <p id="privacyStatus" role="status" class="student-account-status"></p>
           <p class="student-account-status">For details about personal data use, read the <a href="privacy-policy.html">privacy policy</a>. Your password and MFA settings are managed in this account section.</p>
         </div>
-        <div class="admin-panel" id="data-export" style="max-width:620px; margin-top:20px;">
+        <div class="admin-panel" id="data-export" data-settings-view="detail:data-export" style="max-width:620px;" hidden>
           <div class="admin-panel-header"><h2>Download My Data</h2></div>
           <p class="student-account-status">Download your profile and enrollment records as JSON. Secrets and other users' records are excluded.</p>
           <button type="button" class="btn btn-primary-outline" id="downloadMyDataBtn" style="margin:0 20px 20px;">Download JSON</button>
           <p id="dataExportStatus" role="status" class="student-account-status"></p>
         </div>
-        <div class="admin-panel" id="deactivate-account" style="max-width:620px; margin-top:20px;">
+        <div class="admin-panel" id="deactivate-account" data-settings-view="detail:deactivate-account" style="max-width:620px;" hidden>
           <div class="admin-panel-header"><h2>Deactivate Account</h2></div>
           <p class="student-account-status">Self-service deactivation is unavailable until an account recovery process is approved. Deactivation would suspend sign-in; it would not delete enrollments or certificates. Contact support to request a review.</p>
           <button type="button" class="btn btn-primary-outline" data-goto-panel="support" style="margin:0 20px 20px;">Open Support</button>
@@ -565,7 +564,8 @@
 <script src="js/auth.js?v=7"></script>
 <script src="js/theme.js?v=1"></script>
 <script src="js/video-conference.js?v=1"></script>
-<script src="js/student-dashboard.js?v=17"></script>
+<script src="js/student-settings-nav.js?v=1"></script>
+<script src="js/student-dashboard.js?v=18"></script>
 <script src="js/student-account.js?v=1"></script>
 <script src="js/mfa-controls.js?v=2"></script>
 <script src="js/chat.js?v=1"></script>
