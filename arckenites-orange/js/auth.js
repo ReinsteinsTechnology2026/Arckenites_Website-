@@ -37,6 +37,7 @@ const ADMIN_PAGE_PERMISSIONS = {
   'admin-leads.html': 'leads.view',
   'admin-community.html': 'community.view',
   'admin-interviews.html': 'placement.view',
+  'admin-job-applications.html': 'placement.view',
   'admin-users.html': 'admin_users.view',
   'admin-roles.html': 'roles.view',
   'admin-activity-logs.html': 'activity_logs.view',
@@ -45,7 +46,7 @@ const ADMIN_PAGE_PERMISSIONS = {
 
 /**
  * The "coming soon" placeholder buttons (Placement Candidates, Companies,
- * Job Opportunities, Placement Statistics) have no href — they're inert
+ * Placement Statistics) have no href — they're inert
  * &lt;button disabled&gt; elements — so they can't be looked up in
  * ADMIN_PAGE_PERMISSIONS by page. Left ungated, they kept the whole
  * Placement category visible even for an admin with none of its real
@@ -61,7 +62,6 @@ const ADMIN_PAGE_PERMISSIONS = {
 const ADMIN_COMING_SOON_PERMISSIONS = {
   'Placement Candidates': 'placement.view',
   'Companies': 'placement.view',
-  'Job Opportunities': 'placement.view',
   'Placement Statistics': 'placement.view',
 };
 

@@ -48,6 +48,7 @@ jobs:
           node backend/tests/inauguration_endpoint.test.cjs
           node backend/tests/public_newsletter.test.cjs
           node backend/tests/mfa_controls_ui.test.cjs
+          node backend/tests/job_applications_ui.test.cjs
           python -m compileall -q backend/app backend/tests
       - name: Python dependencies
         working-directory: backend

@@ -19,6 +19,7 @@ from app.models.contact_enquiry import ContactEnquiry
 from app.models.google_identity import GoogleLoginTicket, UserGoogleIdentity
 from app.models.mfa import MfaCredential, MfaRecoveryCode, MfaChallenge
 from app.models.interview_schedule import InterviewModeEnum, InterviewSchedule, InterviewStatusEnum
+from app.models.job_application import JobApplication, JobApplicationReaction, JobApplicationStatus, JobReactionKind
 from app.models.lab_access_audit import LabAccessAuditLog
 from app.models.lab_access_override import LabAccessMode, LabAccessOverride
 from app.models.lab_slot_booking import LabSlotBooking
@@ -103,6 +104,10 @@ __all__ = [
     "InterviewSchedule",
     "InterviewModeEnum",
     "InterviewStatusEnum",
+    "JobApplication",
+    "JobApplicationReaction",
+    "JobApplicationStatus",
+    "JobReactionKind",
     "LabAccessAuditLog",
     "LabAccessOverride",
     "LabAccessMode",

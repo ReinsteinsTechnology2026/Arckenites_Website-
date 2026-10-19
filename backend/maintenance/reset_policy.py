@@ -9,6 +9,7 @@ from app.models.admin_role import SUPER_ADMIN_SLUG
 PRESERVE = {
     "admin_roles", "permissions", "admin_role_permissions", "programs",
     "system_settings", "alembic_version", "lab_vms", "file_cleanup_jobs",
+    "job_applications", "job_application_reactions",
 }
 AUDIT = {"auth_audit_log", "lab_access_audit_log", "lab_vm_access_audit_log"}
 OWNED = {

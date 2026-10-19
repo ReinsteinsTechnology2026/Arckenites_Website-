@@ -20,6 +20,7 @@ from app.models import (AdminRole, AdminProfile, User, RoleEnum, StudentProfile,
                         Conversation, DirectMessage, SupportTicket, SupportMessage, SupportAttachment)
 from app.models.support import SenderTypeEnum, TicketCategoryEnum
 from app.models.mfa import MfaCredential
+from app.models.job_application import JobApplication, JobApplicationReaction, JobApplicationStatus, JobReactionKind
 from maintenance.reset_policy import ALL_TABLES, preview
 from maintenance.reset_prepare import main, source_inventory, validate_target, write_report
 
@@ -74,14 +75,28 @@ class ResetPreparationTests(unittest.TestCase):
         return result
 
     def test_current_schema_and_fk_inventory_fully_classified(self):
-        self.assertEqual(self.metadata["table_count"], 48)
-        self.assertEqual(len(self.metadata["foreign_keys"]), 65)
-        self.assertEqual(len(self.metadata["model_indexes"]), 60)
+        self.assertEqual(self.metadata["table_count"], 50)
+        self.assertEqual(len(self.metadata["foreign_keys"]), 68)
+        self.assertEqual(len(self.metadata["model_indexes"]), 62)
         # Includes uniqueness, primary keys and foreign keys for the MFA tables.
-        self.assertEqual(len(self.metadata["model_constraints"]), 133)
+        self.assertEqual(len(self.metadata["model_constraints"]), 139)
         self.assertEqual(self.metadata["unclassified_model_tables"], [])
         self.assertFalse(self.metadata["production_schema_verified"])
         self.assertEqual(set(self.metadata["tables"]) | {"alembic_version"}, ALL_TABLES)
+
+    def test_job_announcements_and_reactions_are_preserved_in_reset_preview(self):
+        with self.engine.begin() as conn:
+            conn.execute(JobApplication.__table__.insert(), {
+                "id": 1, "title": "Fixture role", "company": "Fixture company",
+                "description": "Fixture", "application_url": "https://example.test/apply",
+                "status": JobApplicationStatus.published, "is_enabled": True, "created_by_id": 103,
+            })
+            conn.execute(JobApplicationReaction.__table__.insert(), {
+                "id": 1, "job_id": 1, "student_id": 105, "kind": JobReactionKind.like,
+            })
+        plan = preview(self.rows(), self.metadata["foreign_keys"])
+        self.assertEqual(plan["proposed_actions"]["job_applications"][1], "retain")
+        self.assertEqual(plan["proposed_actions"]["job_application_reactions"][1], "retain")
 
     def test_super_admin_accounts_protected_other_admins_candidate(self):
         plan = preview(self.rows(), self.metadata["foreign_keys"])

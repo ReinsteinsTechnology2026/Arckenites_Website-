@@ -14,6 +14,7 @@ from app.api.routes_admin_class_schedule import router as admin_class_schedule_r
 from app.api.routes_admin_contact_enquiries import router as admin_contact_enquiries_router
 from app.api.routes_admin_community import router as admin_community_router
 from app.api.routes_admin_community_posts import router as admin_community_posts_router
+from app.api.routes_job_applications import admin_router as admin_job_applications_router, student_router as student_job_applications_router
 from app.api.routes_admin_leads import router as admin_leads_router
 from app.api.routes_admin_interviews import router as admin_interviews_router
 from app.api.routes_lab_vm_agent import router as lab_vm_agent_router
@@ -136,6 +137,8 @@ app.include_router(admin_contact_enquiries_router, prefix="/api")
 app.include_router(admin_leads_router, prefix="/api")
 app.include_router(admin_community_router, prefix="/api")
 app.include_router(admin_community_posts_router, prefix="/api")
+app.include_router(admin_job_applications_router, prefix="/api")
+app.include_router(student_job_applications_router, prefix="/api")
 app.include_router(admin_users_router, prefix="/api")
 app.include_router(admin_roles_router, prefix="/api")
 app.include_router(admin_activity_logs_router, prefix="/api")

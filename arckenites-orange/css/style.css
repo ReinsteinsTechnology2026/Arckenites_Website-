@@ -1562,3 +1562,15 @@ body.is-database-view .col-database{ display:table-cell; }
   .community-join-head{ padding:8px 12px 0; }
   .community-join-footer{ padding:10px 24px 14px; }
 }
+.job-list{display:grid;gap:18px}
+.job-card{padding:22px}
+.job-card-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.job-card-heading h2{font-size:1.2rem;margin:0 0 4px}
+.job-card-heading strong{color:var(--primary)}
+.job-card p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;margin:14px 0}
+.job-card-meta{display:flex;gap:12px 22px;flex-wrap:wrap;color:var(--muted);font-size:.86rem;margin:16px 0}
+.job-card-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.job-reactions{display:flex;gap:7px;flex-wrap:wrap}
+.job-reaction{border:1px solid var(--border-c);border-radius:999px;background:transparent;color:var(--ink);padding:7px 11px;cursor:pointer;font:inherit}
+.job-reaction:hover,.job-reaction.is-selected{border-color:var(--primary);background:color-mix(in srgb,var(--primary) 12%,transparent)}
+.job-reaction:disabled{opacity:.6;cursor:wait}

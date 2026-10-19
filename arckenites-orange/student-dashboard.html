@@ -14,7 +14,7 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=19">
+<link rel="stylesheet" href="css/style.css?v=20">
 
 </head>
 <body>
@@ -38,6 +38,7 @@
     <p>Your Arckenites learning overview.</p>
     <p id="simpleProgram"></p>
     <button type="button" class="btn btn-accent" id="simpleAccountBtn">Settings</button>
+    <button type="button" class="btn btn-primary-outline" id="simpleJobsBtn">Job Applications</button>
 
     <div class="dashboard-notice">
       <i class="fa-solid fa-circle-info"></i>
@@ -63,6 +64,7 @@
       <button type="button" class="admin-sidebar-link" data-panel="meetings"><i class="fa-solid fa-video"></i><span class="label">Meetings</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="interviews"><i class="fa-solid fa-user-tie"></i><span class="label">Interview Schedule</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="support"><i class="fa-solid fa-life-ring"></i><span class="label">Support</span><span class="admin-notif-badge" id="supportSidebarBadge" style="display:none; position:static; margin-left:auto;">0</span></button>
+      <button type="button" class="admin-sidebar-link" data-panel="job-applications"><i class="fa-solid fa-briefcase"></i><span class="label">Job Applications</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="settings"><i class="fa-solid fa-gear"></i><span class="label">Settings</span></button>
     </nav>
 
@@ -159,6 +161,11 @@
             <div id="batchClassmatesBody" class="admin-panel-empty" style="padding:20px;">Loading&hellip;</div>
           </div>
         </div>
+      </section>
+
+      <section data-panel="job-applications" style="display:none;">
+        <div class="admin-page-header"><div><h1>Job Applications</h1><p>Explore opportunities shared by Arckenites administrators.</p></div></div>
+        <div id="studentJobsList" class="job-list" aria-live="polite"><div class="admin-panel-empty">Loading job applications&hellip;</div></div>
       </section>
 
       <section data-panel="settings" id="studentSettingsSection" style="display:none;">
@@ -537,7 +544,8 @@
 <script src="js/theme.js?v=1"></script>
 <script src="js/video-conference.js?v=1"></script>
 <script src="js/student-settings-nav.js?v=1"></script>
-<script src="js/student-dashboard.js?v=19"></script>
+<script src="js/student-dashboard.js?v=20"></script>
+<script src="js/student-job-applications.js?v=1"></script>
 <script src="js/student-account.js?v=1"></script>
 <script src="js/mfa-controls.js?v=2"></script>
 <script src="js/chat.js?v=1"></script>

@@ -35,6 +35,10 @@ class AuthEventType(str, enum.Enum):
     program_updated = "program_updated"
     program_deleted = "program_deleted"
 
+    job_application_created = "job_application_created"
+    job_application_updated = "job_application_updated"
+    job_application_status_changed = "job_application_status_changed"
+
     batch_created = "batch_created"
     batch_updated = "batch_updated"
     batch_deleted = "batch_deleted"

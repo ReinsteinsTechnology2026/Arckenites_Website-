@@ -51,6 +51,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('sidebarLayout').style.display = 'flex';
     StudentSettingsNav.openMenu();
   });
+  document.getElementById('simpleJobsBtn').addEventListener('click', () => {
+    document.getElementById('simpleLayout').style.display = 'none';
+    document.getElementById('sidebarLayout').style.display = 'flex';
+    activatePanel('job-applications');
+  });
   /* ---------- Topbar profile photo ---------- */
   const renderTopbarProfile = () => {
     document.getElementById('studentAvatarWrap').innerHTML = ArckAPI.avatarHtml(user.full_name, user.photo_url, 36);
@@ -233,6 +238,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     navButtons.forEach((b) => b.classList.toggle('is-active', b.dataset.panel === name));
     panels.forEach((p) => { p.style.display = p.dataset.panel === name ? 'block' : 'none'; });
+    if (name === 'job-applications') StudentJobApplications.load();
     closeMobileSidebar();
   };
 
