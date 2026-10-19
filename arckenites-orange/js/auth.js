@@ -146,11 +146,11 @@ ArckAPI.onUnauthorized = () => {
 };
 
 const ArckAuth = {
-  async login(username, password) {
+  async login(username, password, portal = null) {
     const data = await ArckAPI.request('/auth/login', {
       method: 'POST',
       auth: false,
-      body: { username, password },
+      body: { username, password, ...(portal ? { portal } : {}) },
     });
     if (data.mfa_required) return data;
     ArckAPI.setSession(data.access_token, data.user);

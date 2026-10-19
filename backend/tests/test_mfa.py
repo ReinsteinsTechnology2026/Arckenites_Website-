@@ -121,6 +121,25 @@ class MfaHttpTests(unittest.TestCase):
                 self.assertEqual(response.status_code, 200, response.text)
                 self.assertIn("access_token", response.json())
 
+    def test_selected_portal_is_enforced_before_session_or_mfa(self):
+        # Student can only use the student entry; staff and admin use staff.
+        for role, portal, allowed in (
+            ("student", "student", True), ("student", "staff", False),
+            ("staff", "staff", True), ("staff", "student", False),
+            ("admin", "staff", True), ("admin", "student", False),
+        ):
+            with self.subTest(role=role, portal=portal):
+                response = self.client.post("/api/auth/login", json={
+                    "username": f"mfa-{role}@example.test", "password": PASSWORD, "portal": portal,
+                })
+                self.assertEqual(response.status_code, 200 if allowed else 401, response.text)
+                if allowed:
+                    self.assertIn("access_token", response.json())
+                    self.assertEqual(response.json()["user"]["role"], role)
+                else:
+                    self.assertNotIn("access_token", response.json())
+                    self.assertNotIn("challenge", response.json())
+
     def test_setup_requires_confirm_then_password_login_is_challenged(self):
         old = self._headers("student")
         pending = self.client.post("/api/auth/mfa/setup/start", json={"password": PASSWORD}, headers=old)
@@ -240,6 +259,18 @@ class MfaHttpTests(unittest.TestCase):
         response = self.client.post("/api/auth/google/exchange", json={"ticket": raw})
         self.assertEqual(response.status_code, 200, response.text)
         self.assertTrue(response.json()["mfa_required"])
+        self.assertNotIn("access_token", response.json())
+
+    def test_google_exchange_enforces_selected_portal(self):
+        import hashlib
+        raw = "s" * 48
+        with QaSession(self.engine) as db:
+            db.add(GoogleLoginTicket(user_id=self.ids["student"],
+                                     token_hash=hashlib.sha256(raw.encode()).hexdigest(),
+                                     expires_at=datetime.now(timezone.utc) + timedelta(minutes=2)))
+            db.commit()
+        response = self.client.post("/api/auth/google/exchange", json={"ticket": raw, "portal": "staff"})
+        self.assertEqual(response.status_code, 401, response.text)
         self.assertNotIn("access_token", response.json())
 
     def test_recovery_regeneration_and_account_isolation(self):

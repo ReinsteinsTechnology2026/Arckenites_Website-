@@ -114,6 +114,15 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
         write_audit_event(db, event, ip, ua, user=user, detail="bad password")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=GENERIC_LOGIN_ERROR)
 
+    # The selected portal is only a requested audience. Authorization comes
+    # from the persisted role and is checked before MFA challenges or sessions.
+    if payload.portal == "student" and user.role != RoleEnum.student:
+        write_audit_event(db, AuthEventType.login_failure, ip, ua, user=user, detail="wrong portal: student")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=GENERIC_LOGIN_ERROR)
+    if payload.portal == "staff" and user.role not in (RoleEnum.staff, RoleEnum.admin):
+        write_audit_event(db, AuthEventType.login_failure, ip, ua, user=user, detail="wrong portal: staff")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=GENERIC_LOGIN_ERROR)
+
     return begin_or_finish_login(db, request, user, "password")
 
 

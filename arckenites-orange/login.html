@@ -99,8 +99,14 @@
       <div class="col-lg-5 col-md-7">
         <div class="form-card" data-aos="fade-up">
           <div class="course-icon mx-auto mb-3"><img src="assets/logo.png" alt="Arckenites" style="width:100%;height:100%;object-fit:contain;border-radius:inherit;"></div>
-          <h5 class="mb-1 text-center">Arckenites Hub</h5>
-          <p class="text-center text-muted mb-3" style="font-size:.85rem;">One login for students, staff and admins.</p>
+          <h5 class="mb-1 text-center">Arckenites Portal</h5>
+          <p class="text-center text-muted mb-3" style="font-size:.85rem;" id="loginSubtitle">Choose the portal you want to access.</p>
+          <div id="portalChooser" class="portal-chooser" aria-label="Choose a portal">
+            <a class="btn btn-accent portal-choice" href="login.html?portal=student"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><span>Student Login</span></a>
+            <a class="btn btn-primary-outline portal-choice" href="login.html?portal=staff"><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i><span>Staff Login</span></a>
+          </div>
+          <div id="portalLogin" style="display:none;">
+          <a href="login.html" class="btn btn-link px-0 mb-2" id="portalBack"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to portal selection</a>
           <form id="loginForm" novalidate>
             <div class="row g-3">
               <div class="col-12"><label class="form-label" for="loginUsername">Email ID / User ID</label><input type="text" class="form-control" id="loginUsername" maxlength="255" autocomplete="username" required></div>
@@ -127,8 +133,9 @@
             </div>
             <button type="button" class="btn btn-primary-outline mt-3" id="mfaLoginCancel">Back to login</button>
           </div>
-          <p class="text-center mt-3 mb-0" style="font-size:.85rem;">Students: use the email address provided when your account was created. Existing portal users can continue using their User ID.</p>
-          <p class="text-center mt-2 mb-0" style="font-size:.85rem;">Not a student, staff or admin? <a href="community-register.html">Join the Arckenites Community</a></p>
+          <p class="text-center mt-3 mb-0" style="font-size:.85rem;">Use the email address or User ID registered to your account.</p>
+          </div>
+          <p class="text-center mt-3 mb-0" style="font-size:.85rem;">Not a student or staff member? <a href="community-register.html">Join the Arckenites Community</a></p>
         </div>
       </div>
     </div>
@@ -203,8 +210,14 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script src="js/script.js"></script>
 <script src="js/api.js?v=3"></script>
-<script src="js/auth.js?v=8"></script>
-<script src="js/login.js?v=5"></script>
+<script src="js/auth.js?v=9"></script>
+<script src="js/login.js?v=6"></script>
+<style>
+.portal-chooser{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin:1.5rem 0 .5rem}
+.portal-choice{min-height:112px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;font-weight:600;font-size:1rem;border-radius:14px}
+.portal-choice i{font-size:1.6rem}
+@media(max-width:480px){.portal-chooser{grid-template-columns:1fr}.portal-choice{min-height:80px;flex-direction:row}}
+</style>
 
 </body>
 </html>

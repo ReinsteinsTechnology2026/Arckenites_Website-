@@ -31,7 +31,7 @@ from app.crud.system_settings import get_settings
 from app.database import get_db
 from app.models.audit_log import AuthEventType
 from app.models.google_identity import GoogleLoginTicket
-from app.models.user import User
+from app.models.user import RoleEnum, User
 from app.schemas.auth import LoginResponse, MfaChallengeOut
 
 router = APIRouter(prefix="/auth/google", tags=["auth-google"])
@@ -42,6 +42,7 @@ UNAVAILABLE_ERROR = "Google sign-in is not available right now."
 
 class GoogleExchangeRequest(BaseModel):
     ticket: str = Field(min_length=20, max_length=200)
+    portal: str | None = Field(default=None, pattern="^(student|staff)$")
 
 
 def _client_meta(request: Request) -> tuple[str, str]:
@@ -168,6 +169,12 @@ def google_exchange(request: Request, payload: GoogleExchangeRequest, db: Sessio
         # The account changed (disabled, locked, or maintenance) since the callback.
         db.commit()
         write_audit_event(db, AuthEventType.login_failure, ip, ua, user=user, detail="google ticket for ineligible account")
+        raise invalid
+
+    if ((payload.portal == "student" and user.role != RoleEnum.student)
+            or (payload.portal == "staff" and user.role not in (RoleEnum.staff, RoleEnum.admin))):
+        db.commit()
+        write_audit_event(db, AuthEventType.login_failure, ip, ua, user=user, detail="google sign-in wrong portal")
         raise invalid
 
     db.commit()  # consume the Google exchange ticket before issuing a challenge

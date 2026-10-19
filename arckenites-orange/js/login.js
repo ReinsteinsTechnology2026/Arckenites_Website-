@@ -3,6 +3,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('loginForm');
   if (!form) return;
 
+  const params = new URLSearchParams(window.location.search);
+  const portal = params.get('portal');
+  const chooser = document.getElementById('portalChooser');
+  const loginPanel = document.getElementById('portalLogin');
+  const validPortal = portal === 'student' || portal === 'staff';
+  chooser.style.display = validPortal ? 'none' : '';
+  loginPanel.style.display = validPortal ? '' : 'none';
+  document.getElementById('loginSubtitle').textContent = validPortal
+    ? (portal === 'student' ? 'Student Login' : 'Staff Login')
+    : 'Choose the portal you want to access.';
+  document.getElementById('portalBack').addEventListener('click', (event) => {
+    event.preventDefault();
+    window.location.href = 'login.html';
+  });
+  if (!validPortal && (params.has('google_ticket') || params.has('google_error'))) {
+    window.location.replace('login.html');
+    return;
+  }
+
   const usernameInput = document.getElementById('loginUsername');
   const passwordInput = document.getElementById('loginPassword');
   const errorBox = document.getElementById('loginError');
@@ -101,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // The backend sends the outcome back in the query string. Read it once, then
   // clean the address bar so a ticket or error is not left in history.
-  const params = new URLSearchParams(window.location.search);
   const ticket = params.get('google_ticket');
   const googleError = params.get('google_error');
   if (ticket || googleError) {
@@ -117,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
       submitBtn.disabled = true;
       try {
         const data = await ArckAPI.request('/auth/google/exchange', {
-          method: 'POST', auth: false, body: { ticket },
+          method: 'POST', auth: false, body: { ticket, portal },
         });
         if (data.mfa_required) await startMfa(data);
         else {
@@ -138,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.disabled = true;
 
     try {
-      const result = await ArckAuth.login(usernameInput.value.trim(), passwordInput.value);
+      const result = await ArckAuth.login(usernameInput.value.trim(), passwordInput.value, portal);
       if (result.mfa_required) await startMfa(result);
       else ArckAuth.redirectToRoleEntryPoint(result);
     } catch (err) {

@@ -11,6 +11,7 @@ _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 class LoginRequest(BaseModel):
     username: str = Field(min_length=1, max_length=255)
     password: str = Field(min_length=1, max_length=128)
+    portal: Literal["student", "staff"] | None = None
 
 
 class AdminRoleSummary(BaseModel):
