@@ -5,16 +5,16 @@
    cross-folder dependency. */
 
 :root{
-  --ia-bg:#0b0b10;
-  --ia-bg-alt:#111118;
-  --ia-surface:#15151e;
-  --ia-border:rgba(255,255,255,.08);
-  --ia-ink:#f5f5f7;
-  --ia-muted:#aeaeb8;
-  --ia-muted-2:#7c7c89;
-  --ia-accent:#ff6e30;
-  --ia-accent-2:#ffb347;
-  --ia-danger:#ff6b6b;
+  --ia-bg:#080A0D;
+  --ia-bg-alt:#101216;
+  --ia-surface:#12161B;
+  --ia-border:#2B323B;
+  --ia-ink:#F5F7FA;
+  --ia-muted:#A7AFBA;
+  --ia-muted-2:#94A0AD;
+  --ia-accent:#FF6A00;
+  --ia-accent-2:#FF8A1F;
+  --ia-danger:#FF7D79;
   --ia-radius:18px;
   --ia-shadow:0 20px 60px rgba(0,0,0,.45);
 }

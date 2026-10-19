@@ -14,7 +14,7 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=17">
+<link rel="stylesheet" href="css/style.css?v=21">
 
 </head>
 <body>
@@ -138,10 +138,6 @@
         <button type="button" class="icon-btn" id="adminSidebarCollapseBtn" aria-label="Collapse sidebar">
           <i class="fa-solid fa-bars-staggered"></i>
         </button>
-        <label class="admin-search-input">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" placeholder="Search — coming soon" disabled>
-        </label>
       </div>
 
       <div class="admin-topbar-actions">
@@ -172,8 +168,13 @@
         Cannot reach the Arckenites server. Check that the backend is running, then refresh this page.
       </div>
 
-      <h1 id="adminGreeting">Good Morning</h1>
-      <p>Here's what's happening at Arckenites today.</p>
+      <section class="command-hero" aria-labelledby="adminGreeting">
+        <div class="command-hero-content">
+          <span class="command-hero-eyebrow">Arckenites / Command Center</span>
+          <h1 id="adminGreeting">Good Morning</h1>
+          <p>Here's what's happening at Arckenites today.</p>
+        </div>
+      </section>
 
       <div class="admin-kpi-grid" id="adminKpiGrid">
         <div class="admin-kpi-card"><i class="fa-solid fa-users"></i><h3 id="kpiTotalUsers">—</h3><p>Total Portal Users</p></div>
@@ -184,7 +185,8 @@
         <div class="admin-kpi-card" id="kpiFailedCard"><i class="fa-solid fa-triangle-exclamation"></i><h3 id="kpiFailedToday">—</h3><p>Failed Logins Today</p></div>
       </div>
 
-      <div class="admin-panel" id="systemHealthPanel" style="margin-bottom:20px;">
+      <div class="admin-dashboard-grid">
+      <div class="admin-panel" id="systemHealthPanel">
         <div class="admin-panel-header"><h2>System Health</h2></div>
         <div id="dashboardSystemHealth" style="padding:18px 20px; display:flex; gap:24px; flex-wrap:wrap;" class="admin-panel-empty">Loading&hellip;</div>
       </div>
@@ -202,6 +204,7 @@
             <tr><td colspan="3" class="admin-panel-empty">Loading…</td></tr>
           </tbody>
         </table>
+      </div>
       </div>
     </main>
   </div>

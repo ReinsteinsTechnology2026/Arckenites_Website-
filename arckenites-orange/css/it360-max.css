@@ -17,7 +17,7 @@
   font-size: .82rem; font-weight: 600; color: var(--muted);
 }
 .it-hero-highlight i{
-  width: 26px; height: 26px; border-radius: 50%; background: rgba(255,90,31,.16); color: var(--primary);
+  width: 26px; height: 26px; border-radius: 50%; background: rgba(255,106,0,.16); color: var(--primary);
   display: flex; align-items: center; justify-content: center; font-size: .75rem; flex-shrink: 0;
 }
 
@@ -44,7 +44,7 @@
 /* ---------- Highlight quote / positioning statement ---------- */
 .highlight-quote{
   max-width: 800px; margin: 0 auto 46px; text-align: center; padding: 26px 30px;
-  background: rgba(255,90,31,.08); border: 1px solid rgba(255,90,31,.25); border-radius: var(--radius-lg);
+  background: rgba(255,106,0,.08); border: 1px solid rgba(255,106,0,.25); border-radius: var(--radius-lg);
 }
 .highlight-quote p{ margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--ink); line-height: 1.5; }
 .highlight-quote p span{ color: var(--primary); }
@@ -56,7 +56,7 @@
 }
 .it-feature-card:hover{ transform: translateY(-8px); box-shadow: var(--shadow-hover); border-color: var(--primary); }
 .it-feature-card__icon{
-  width: 54px; height: 54px; border-radius: 16px; background: rgba(255,90,31,.14); color: var(--primary);
+  width: 54px; height: 54px; border-radius: 16px; background: rgba(255,106,0,.14); color: var(--primary);
   display: flex; align-items: center; justify-content: center; font-size: 1.35rem; margin-bottom: 18px;
   transition: var(--transition);
 }
@@ -83,7 +83,7 @@
 }
 .flow-step:hover{ transform: translateY(-6px); box-shadow: var(--shadow-hover); border-color: var(--primary); }
 .flow-step__icon{
-  width: 46px; height: 46px; border-radius: 50%; margin: 0 auto 12px; background: rgba(255,90,31,.14); color: var(--primary);
+  width: 46px; height: 46px; border-radius: 50%; margin: 0 auto 12px; background: rgba(255,106,0,.14); color: var(--primary);
   display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;
 }
 .flow-step h6{ font-size: .85rem; margin: 0; line-height: 1.35; }
@@ -100,10 +100,10 @@
 .round-card:hover{ transform: translateY(-8px); box-shadow: var(--shadow-hover); border-color: var(--primary); }
 .round-card__number{
   position: absolute; top: -14px; right: -6px; font-size: 5rem; font-weight: 800;
-  color: rgba(255,90,31,.09); line-height: 1; pointer-events: none;
+  color: rgba(255,106,0,.09); line-height: 1; pointer-events: none;
 }
 .round-card__icon{
-  width: 54px; height: 54px; border-radius: 16px; background: rgba(255,90,31,.14); color: var(--primary);
+  width: 54px; height: 54px; border-radius: 16px; background: rgba(255,106,0,.14); color: var(--primary);
   display: flex; align-items: center; justify-content: center; font-size: 1.3rem; margin-bottom: 18px; position: relative;
 }
 .round-card .eyebrow-dark{ margin-bottom: 8px; display: inline-block; font-size: .72rem; }

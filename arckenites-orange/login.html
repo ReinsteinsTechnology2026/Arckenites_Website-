@@ -15,10 +15,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=21">
 
 </head>
-<body>
+<body class="portal-auth-page">
 
 <div id="loader">
   <div class="loader-mark"><img src="assets/logo.png" alt="Arckenites"></div>
@@ -88,8 +88,8 @@
   <div class="hero-bg"></div>
   <div class="container">
     <div class="breadcrumb-custom"><a href="index.html">Home</a><span>/</span><span>Login</span></div>
-    <h1>Portal Login</h1>
-    <p>Sign in with the username and password provided by your administrator.</p>
+    <h1>Arckenites Portal</h1>
+    <p>Choose your portal to continue.</p>
   </div>
 </header>
 
@@ -110,8 +110,8 @@
           <form id="loginForm" novalidate>
             <div class="row g-3">
               <div class="col-12"><label class="form-label" for="loginUsername">Email ID / User ID</label><input type="text" class="form-control" id="loginUsername" maxlength="255" autocomplete="username" required></div>
-              <div class="col-12"><label class="form-label">Password</label><input type="password" class="form-control" id="loginPassword" autocomplete="current-password" required></div>
-              <div class="col-12 login-error" id="loginError" style="display:none;"></div>
+              <div class="col-12"><label class="form-label" for="loginPassword">Password</label><input type="password" class="form-control" id="loginPassword" autocomplete="current-password" required></div>
+              <div class="col-12 login-error" id="loginError" role="alert" style="display:none;"></div>
               <div class="col-12"><button type="submit" class="btn btn-accent w-100">Login</button></div>
             </div>
           </form>
@@ -123,7 +123,7 @@
             <form id="mfaLoginForm">
               <label class="form-label" for="mfaLoginCode">Authenticator or recovery code</label>
               <input id="mfaLoginCode" class="form-control" autocomplete="one-time-code" required>
-              <div class="login-error mt-2" id="mfaLoginError" style="display:none;"></div>
+              <div class="login-error mt-2" id="mfaLoginError" role="alert" style="display:none;"></div>
               <button type="submit" class="btn btn-accent w-100 mt-3">Verify and sign in</button>
             </form>
             <div id="mfaLoginRecovery" style="display:none;" class="dashboard-notice mt-3">
@@ -212,12 +212,6 @@
 <script src="js/api.js?v=3"></script>
 <script src="js/auth.js?v=9"></script>
 <script src="js/login.js?v=6"></script>
-<style>
-.portal-chooser{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin:1.5rem 0 .5rem}
-.portal-choice{min-height:112px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;font-weight:600;font-size:1rem;border-radius:14px}
-.portal-choice i{font-size:1.6rem}
-@media(max-width:480px){.portal-chooser{grid-template-columns:1fr}.portal-choice{min-height:80px;flex-direction:row}}
-</style>
 
 </body>
 </html>

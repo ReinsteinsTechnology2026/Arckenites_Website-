@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const user = await ArckAuth.requireRole('staff');
   if (!user) return; // requireRole already redirected
+  document.getElementById('staffGreeting').textContent = `Welcome back, ${user.full_name}`;
 
   /* ---------- Topbar profile dropdown (photo + name, same pattern as the admin portal) ---------- */
   const renderTopbarProfile = () => {
