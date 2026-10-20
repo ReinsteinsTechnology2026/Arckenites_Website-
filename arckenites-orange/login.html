@@ -3,215 +3,97 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login | Arckenites</title>
-<meta name="description" content="Log in to your Arckenites student or staff portal.">
-
+<meta name="theme-color" content="#0b0d11">
+<title>Arckenites Portal | Choose Your Access</title>
+<meta name="description" content="Choose your Arckenites student or staff portal and continue to your account.">
 <link rel="icon" href="assets/favicon.png" type="image/png">
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-
 <link rel="stylesheet" href="css/style.css?v=21">
-
+<link rel="stylesheet" href="css/portal.css?v=7">
 </head>
 <body class="portal-auth-page">
 
-<div id="loader">
-  <div class="loader-mark"><img src="assets/logo.png" alt="Arckenites"></div>
-</div>
-
 <div class="cookie-banner" id="cookieBanner">
   <p>We use cookies to improve your experience on Arckenites. By continuing, you agree to our <a href="privacy-policy.html">Privacy Policy</a>.</p>
-  <button class="btn btn-accent btn-sm" id="cookieAccept">Accept</button>
+  <button class="btn btn-accent btn-sm" id="cookieAccept" type="button">Accept</button>
 </div>
 
-<nav class="navbar navbar-expand-lg fixed-top" id="mainNavbar">
-  <div class="container">
-    <a class="navbar-brand" href="index.html">
-      <img src="assets/logo-wordmark.png" alt="Arckenites" class="brand-mark brand-mark--wordmark">
-    </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-      <i class="fa-solid fa-bars"></i>
-    </button>
-
-    <div class="collapse navbar-collapse" id="navMenu">
-      <ul class="navbar-nav mx-auto align-items-lg-center">
-        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-        <li class="nav-item dropdown mega-dropdown">
-          <a class="nav-link dropdown-toggle" href="index.html#courses" data-bs-toggle="dropdown">Programs</a>
-          <div class="dropdown-menu mega-menu">
-            <div class="row g-4">
-              <div class="col-md-6">
-                <a href="certification-program.html">Official Certification Program</a>
-                <a href="corporate-training.html">Corporate Training Program</a>
-                <a href="about.html">Institutional Program</a>
-              </div>
-              <div class="col-md-6">
-                <a href="placements.html">Placement Training Program</a>
-                <a href="trainers.html">Arckenites Trainers Program</a>
-                <a href="careers.html">Internship Program</a>
-                <a href="interview-crack-program.html">Interview 'n' Crack Program</a>
-                <a href="job-assist-program.html">Arckenites Job Assist Program</a>
-                <a href="college-projects-program.html">College Projects Program</a>
-              </div>
-            </div>
-          </div>
-        </li>
-        <li class="nav-item"><a class="nav-link" href="corporate-training.html">Training</a></li>
-        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
-        <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
-      </ul>
-
-      <div class="d-flex align-items-center gap-2 nav-actions">
-        <button class="icon-btn" id="searchToggle" aria-label="Search courses">
-          <i class="fa-solid fa-magnifying-glass"></i>
-        </button>
-        <a href="login.html" class="btn btn-primary-outline" id="loginBtn">Login</a>
-        <a href="free-demo.html" class="btn btn-accent">Book Free Demo</a>
-      </div>
-    </div>
-  </div>
-
-  <div class="search-bar" id="searchBar">
-    <div class="container">
-      <input type="text" placeholder="Search courses e.g. AWS, Python, DevOps..." id="courseSearchInput">
-      <button id="searchClose"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-  </div>
+<nav id="mainNavbar" class="portal-topbar" aria-label="Main navigation">
+  <a class="portal-topbar-brand" href="index.html" aria-label="Arckenites home"><img src="assets/portal-wordmark.webp" alt="Arckenites" width="620" height="207"></a>
+  <a class="portal-home-link" href="index.html"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Back to website</span></a>
 </nav>
 
-<header class="page-hero text-center">
-  <div class="hero-bg"></div>
-  <div class="container">
-    <div class="breadcrumb-custom"><a href="index.html">Home</a><span>/</span><span>Login</span></div>
-    <h1>Arckenites Portal</h1>
-    <p>Choose your portal to continue.</p>
+<main class="portal-stage">
+  <div class="portal-story">
+    <img class="portal-story-art" src="assets/portal-campus.webp" alt="Arckenites Hub technology ecosystem artwork" width="1536" height="1024" fetchpriority="high">
   </div>
-</header>
 
-<section class="content-section">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-lg-5 col-md-7">
-        <div class="form-card" data-aos="fade-up">
-          <div class="course-icon mx-auto mb-3"><img src="assets/logo.png" alt="Arckenites" style="width:100%;height:100%;object-fit:contain;border-radius:inherit;"></div>
-          <h5 class="mb-1 text-center">Arckenites Portal</h5>
-          <p class="text-center text-muted mb-3" style="font-size:.85rem;" id="loginSubtitle">Choose the portal you want to access.</p>
-          <div id="portalChooser" class="portal-chooser" aria-label="Choose a portal">
-            <a class="btn btn-accent portal-choice" href="login.html?portal=student"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><span>Student Login</span></a>
-            <a class="btn btn-primary-outline portal-choice" href="login.html?portal=staff"><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i><span>Staff Login</span></a>
-          </div>
-          <div id="portalLogin" style="display:none;">
-          <a href="login.html" class="btn btn-link px-0 mb-2" id="portalBack"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to portal selection</a>
-          <form id="loginForm" novalidate>
-            <div class="row g-3">
-              <div class="col-12"><label class="form-label" for="loginUsername">Email ID / User ID</label><input type="text" class="form-control" id="loginUsername" maxlength="255" autocomplete="username" required></div>
-              <div class="col-12"><label class="form-label" for="loginPassword">Password</label><input type="password" class="form-control" id="loginPassword" autocomplete="current-password" required></div>
-              <div class="col-12 login-error" id="loginError" role="alert" style="display:none;"></div>
-              <div class="col-12"><button type="submit" class="btn btn-accent w-100">Login</button></div>
-            </div>
-          </form>
-          <div id="mfaLoginPanel" style="display:none;" class="mt-3">
-            <p id="mfaLoginInstructions" class="text-muted"></p>
-            <div id="mfaEnrollmentQr" style="display:none; text-align:center;">
-              <img id="mfaEnrollmentImage" alt="Scan this QR code with an authenticator app" style="max-width:220px;">
-            </div>
-            <form id="mfaLoginForm">
-              <label class="form-label" for="mfaLoginCode">Authenticator or recovery code</label>
-              <input id="mfaLoginCode" class="form-control" autocomplete="one-time-code" required>
-              <div class="login-error mt-2" id="mfaLoginError" role="alert" style="display:none;"></div>
-              <button type="submit" class="btn btn-accent w-100 mt-3">Verify and sign in</button>
-            </form>
-            <div id="mfaLoginRecovery" style="display:none;" class="dashboard-notice mt-3">
-              <strong>Save these recovery codes now. They will not be shown again.</strong>
-              <pre id="mfaLoginRecoveryCodes" style="white-space:pre-wrap;"></pre>
-              <button type="button" class="btn btn-accent" id="mfaLoginContinue">Continue</button>
-            </div>
-            <button type="button" class="btn btn-primary-outline mt-3" id="mfaLoginCancel">Back to login</button>
-          </div>
-          <p class="text-center mt-3 mb-0" style="font-size:.85rem;">Use the email address or User ID registered to your account.</p>
-          </div>
-          <p class="text-center mt-3 mb-0" style="font-size:.85rem;">Not a student or staff member? <a href="community-register.html">Join the Arckenites Community</a></p>
-        </div>
+  <section class="portal-access" aria-labelledby="accessHeading">
+    <div class="portal-access-inner">
+      <div class="portal-access-heading">
+        <h2 id="accessHeading">Welcome to Arckenites</h2>
+        <p id="loginSubtitle">Choose your portal to continue.</p>
       </div>
-    </div>
-  </div>
-</section>
 
-<footer class="footer">
-  <div class="container">
-    <div class="row g-4">
-      <div class="col-lg-4">
-        <a class="navbar-brand" href="index.html">
-          <img src="assets/logo-wordmark.png" alt="Arckenites" class="brand-mark brand-mark--wordmark">
+      <div id="portalChooser" class="portal-chooser" aria-label="Choose a portal">
+        <a class="portal-choice portal-choice-student" href="login.html?portal=student">
+          <span class="portal-choice-main">
+            <span class="portal-choice-icon"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>
+            <span class="portal-choice-copy"><strong>Student Portal</strong><span>Access your courses and opportunities.</span></span>
+          </span>
+          <span class="portal-choice-action">Student Login <span aria-hidden="true">→</span></span>
         </a>
-        <p class="footer-about">Premium IT training institute helping students and professionals build careers in technology through industry-ready programs.</p>
-        <div class="social-icons">
-          <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-          <a href="#"><i class="fa-brands fa-instagram"></i></a>
-          <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
-          <a href="#"><i class="fa-brands fa-youtube"></i></a>
+        <a class="portal-choice portal-choice-staff" href="login.html?portal=staff">
+          <span class="portal-choice-main">
+            <span class="portal-choice-icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
+            <span class="portal-choice-copy"><strong>Staff &amp; Admin Portal</strong><span>Access your workspace.</span></span>
+          </span>
+          <span class="portal-choice-action">Staff Login <span aria-hidden="true">→</span></span>
+        </a>
+        <a class="portal-community" href="community-register.html">Join the Arckenites Community <span aria-hidden="true">→</span></a>
+      </div>
+
+      <div id="portalLogin" class="portal-login-panel" style="display:none;">
+        <a href="login.html" class="portal-back" id="portalBack"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to portal selection</a>
+        <form id="loginForm" novalidate>
+          <div class="row g-3">
+            <div class="col-12"><label class="form-label" for="loginUsername">Email ID / User ID</label><input type="text" class="form-control" id="loginUsername" maxlength="255" autocomplete="username" required></div>
+            <div class="col-12"><label class="form-label" for="loginPassword">Password</label><input type="password" class="form-control" id="loginPassword" autocomplete="current-password" required></div>
+            <div class="col-12 login-error" id="loginError" role="alert" style="display:none;"></div>
+            <div class="col-12"><button type="submit" class="btn btn-accent w-100">Login</button></div>
+          </div>
+        </form>
+        <div id="mfaLoginPanel" style="display:none;" class="mt-3">
+          <p id="mfaLoginInstructions" class="text-muted"></p>
+          <div id="mfaEnrollmentQr" style="display:none; text-align:center;"><img id="mfaEnrollmentImage" alt="Scan this QR code with an authenticator app" style="max-width:220px;"></div>
+          <form id="mfaLoginForm">
+            <label class="form-label" for="mfaLoginCode">Authenticator or recovery code</label>
+            <input id="mfaLoginCode" class="form-control" autocomplete="one-time-code" required>
+            <div class="login-error mt-2" id="mfaLoginError" role="alert" style="display:none;"></div>
+            <button type="submit" class="btn btn-accent w-100 mt-3">Verify and sign in</button>
+          </form>
+          <div id="mfaLoginRecovery" style="display:none;" class="dashboard-notice mt-3">
+            <strong>Save these recovery codes now. They will not be shown again.</strong>
+            <pre id="mfaLoginRecoveryCodes" style="white-space:pre-wrap;"></pre>
+            <button type="button" class="btn btn-accent" id="mfaLoginContinue">Continue</button>
+          </div>
+          <button type="button" class="btn btn-primary-outline mt-3" id="mfaLoginCancel">Back to login</button>
         </div>
+        <p class="portal-login-help">Use the email address or User ID registered to your account.</p>
       </div>
-      <div class="col-lg-2 col-6">
-        <h6>Quick Links</h6>
-        <ul>
-          <li><a href="about.html">About Us</a></li>
-          <li><a href="courses.html">Courses</a></li>
-          <li><a href="placements.html">Placements</a></li>
-          <li><a href="trainers.html">Trainers</a></li>
-          <li><a href="blog.html">Blog</a></li>
-        </ul>
-      </div>
-      <div class="col-lg-2 col-6">
-        <h6>Our Programs</h6>
-        <ul>
-          <li><a href="certification-program.html">Official Certification Program</a></li>
-          <li><a href="corporate-training.html">Corporate Training Program</a></li>
-          <li><a href="placements.html">Placement Training Program</a></li>
-          <li><a href="trainers.html">Arckenites Trainers Program</a></li>
-          <li><a href="careers.html">Internship Program</a></li>
-          <li><a href="interview-crack-program.html">Interview 'n' Crack Program</a></li>
-          <li><a href="job-assist-program.html">Arckenites Job Assist Program</a></li>
-          <li><a href="college-projects-program.html">College Projects Program</a></li>
-        </ul>
-      </div>
-      <div class="col-lg-4">
-        <h6>Contact</h6>
-        <ul class="footer-contact">
-          <li><i class="fa-solid fa-location-dot"></i> Krishna Kutir, No. 6/24, Ramanathan Street, Mahalingapuram, Nungambakkam, Chennai, Tamil Nadu, 600034</li>
-          <li><i class="fa-solid fa-envelope"></i> contact@arckenites.com</li>
-          <li><i class="fa-solid fa-phone"></i> +91 98765 43210</li>
-        </ul>
-      </div>
+
     </div>
-    <hr>
-    <div class="footer-bottom">
-      <p>&copy; <span id="year"></span> Arckenites. All rights reserved.</p>
-      <div class="footer-links">
-        <a href="privacy-policy.html">Privacy Policy</a>
-        <a href="terms.html">Terms &amp; Conditions</a>
-      </div>
-    </div>
-  </div>
-</footer>
+  </section>
+</main>
 
-<a href="https://wa.me/919876543210" class="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
-  <i class="fa-brands fa-whatsapp"></i>
-</a>
-
-<button id="backToTop" aria-label="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<button id="backToTop" aria-label="Back to top" type="button"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></button>
 <script src="js/script.js"></script>
 <script src="js/api.js?v=3"></script>
 <script src="js/auth.js?v=9"></script>
 <script src="js/login.js?v=6"></script>
-
 </body>
 </html>

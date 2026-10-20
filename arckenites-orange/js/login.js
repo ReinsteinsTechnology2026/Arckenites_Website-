@@ -11,8 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
   chooser.style.display = validPortal ? 'none' : '';
   loginPanel.style.display = validPortal ? '' : 'none';
   document.getElementById('loginSubtitle').textContent = validPortal
-    ? (portal === 'student' ? 'Student Login' : 'Staff Login')
-    : 'Choose the portal you want to access.';
+    ? (portal === 'student' ? 'Sign in to your Student Portal.' : 'Sign in through Staff Login to continue.')
+    : 'Choose your portal to continue.';
   document.getElementById('portalBack').addEventListener('click', (event) => {
     event.preventDefault();
     window.location.href = 'login.html';
