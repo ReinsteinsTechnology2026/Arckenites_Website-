@@ -191,6 +191,21 @@
           </div>
         </div>
 
+        <div class="admin-panel batch-section-access" aria-labelledby="batchSectionAccessTitle">
+          <div class="admin-panel-header"><h2 id="batchSectionAccessTitle">Student section access</h2></div>
+          <div class="batch-section-access-body">
+            <div class="settings-toggle-row">
+              <div class="settings-toggle-label"><strong>Job Applications Access</strong><span id="jobAccessMeta">Disabled</span><span>Site-wide pause in Settings also applies.</span></div>
+              <label class="settings-switch"><input type="checkbox" id="jobAccessToggle" aria-label="Enable Job Applications for this batch" disabled><span class="settings-switch-track"></span></label>
+            </div>
+            <div class="settings-toggle-row">
+              <div class="settings-toggle-label"><strong>Interview Schedule Access</strong><span id="interviewAccessMeta">Disabled</span></div>
+              <label class="settings-switch"><input type="checkbox" id="interviewAccessToggle" aria-label="Enable Interview Schedule for this batch" disabled><span class="settings-switch-track"></span></label>
+            </div>
+            <p id="batchSectionAccessMessage" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+
         <div class="form-card admin-inline-form" id="editBatchPanel" style="display:none;">
           <h5>Edit Batch</h5>
           <form id="editBatchForm" novalidate>
@@ -418,7 +433,7 @@
 <script src="js/auth.js?v=8"></script>
 <script src="js/theme.js?v=1"></script>
 <script src="js/video-conference.js?v=1"></script>
-<script src="js/admin-batch-detail.js?v=6"></script>
+<script src="js/admin-batch-detail.js?v=7"></script>
 <script src="js/chat.js?v=1"></script>
 
 </body>

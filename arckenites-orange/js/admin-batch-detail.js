@@ -100,9 +100,43 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   let batch = null;
+  const canManageStudentSections = ArckAuth.hasPermission('batches.student_sections_manage');
+  const sectionControls = {
+    job_applications: {toggle: document.getElementById('jobAccessToggle'), meta: document.getElementById('jobAccessMeta'), field: 'job_applications_access_enabled', label: 'Job Applications'},
+    interview_schedule: {toggle: document.getElementById('interviewAccessToggle'), meta: document.getElementById('interviewAccessMeta'), field: 'interview_schedule_access_enabled', label: 'Interview Schedule'},
+  };
+  const accessMessage = document.getElementById('batchSectionAccessMessage');
+
+  const renderSectionAccess = () => {
+    for (const [section, control] of Object.entries(sectionControls)) {
+      const enabled = batch[control.field];
+      control.toggle.checked = enabled;
+      control.toggle.disabled = !canManageStudentSections;
+      const changedAt = batch[`${section}_access_updated_at`];
+      const changedBy = batch[`${section}_access_updated_by`];
+      control.meta.textContent = `${enabled ? 'Enabled' : 'Disabled'}${changedAt ? ` · Changed ${new Date(changedAt).toLocaleString()}${changedBy ? ` by ${changedBy}` : ''}` : ' · Default setting'}`;
+    }
+  };
+
+  for (const [section, control] of Object.entries(sectionControls)) {
+    control.toggle.addEventListener('change', async () => {
+      const enabled = control.toggle.checked;
+      control.toggle.disabled = true;
+      accessMessage.textContent = '';
+      try {
+        batch = await ArckAPI.request(`/admin/batches/${batchId}/student-sections/${section}`, {method: 'PATCH', body: {enabled}});
+        renderSectionAccess();
+        accessMessage.textContent = `${control.label} access ${enabled ? 'enabled' : 'disabled'} for this batch.`;
+      } catch (err) {
+        renderSectionAccess();
+        accessMessage.textContent = ArckAPI.errorMessage(err, `Could not update ${control.label} access.`);
+      }
+    });
+  }
 
   /* ---------- Render batch info ---------- */
   const renderBatch = () => {
+    renderSectionAccess();
     document.getElementById('batchDetailName').textContent = batch.name;
     document.getElementById('batchBreadcrumbName').textContent = batch.name;
 

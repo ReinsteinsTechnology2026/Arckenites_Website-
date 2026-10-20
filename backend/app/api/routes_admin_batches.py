@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
@@ -19,6 +21,7 @@ from app.schemas.admin_batches import (
     BatchDetailOut,
     BatchListItemOut,
     BatchStatsOut,
+    BatchStudentSectionAccessInput,
     CreateBatchRequest,
     ProgramSummary,
     StudentSummary,
@@ -46,7 +49,8 @@ def _client_meta(request: Request) -> tuple[str, str]:
 def _get_batch_or_404(db: Session, batch_id: int) -> Batch:
     batch = db.get(
         Batch, batch_id,
-        options=[selectinload(Batch.enrollments).selectinload(BatchEnrollment.student), selectinload(Batch.program)],
+        options=[selectinload(Batch.enrollments).selectinload(BatchEnrollment.student), selectinload(Batch.program),
+                 selectinload(Batch.job_applications_access_updated_by), selectinload(Batch.interview_schedule_access_updated_by)],
     )
     if batch is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Batch not found")
@@ -91,7 +95,15 @@ def _detail(batch: Batch) -> BatchDetailOut:
         )
         for e in sorted(batch.enrollments, key=lambda e: e.joined_at or e.id)
     ]
-    return BatchDetailOut(**base, students=students)
+    return BatchDetailOut(
+        **base, students=students,
+        job_applications_access_enabled=batch.job_applications_access_enabled,
+        interview_schedule_access_enabled=batch.interview_schedule_access_enabled,
+        job_applications_access_updated_at=batch.job_applications_access_updated_at,
+        interview_schedule_access_updated_at=batch.interview_schedule_access_updated_at,
+        job_applications_access_updated_by=(batch.job_applications_access_updated_by.full_name if batch.job_applications_access_updated_by else None),
+        interview_schedule_access_updated_by=(batch.interview_schedule_access_updated_by.full_name if batch.interview_schedule_access_updated_by else None),
+    )
 
 
 def _validate_trainer(db: Session, trainer_id: int) -> User:
@@ -181,6 +193,35 @@ def create_batch(
 
 @router.get("/{batch_id}", response_model=BatchDetailOut)
 def get_batch(batch_id: int, db: Session = Depends(get_db), _actor: User = Depends(require_permission("batches.view"))):
+    return _detail(_get_batch_or_404(db, batch_id))
+
+
+@router.patch("/{batch_id}/student-sections/{section}", response_model=BatchDetailOut)
+def update_student_section_access(
+    batch_id: int, section: str, payload: BatchStudentSectionAccessInput, request: Request,
+    db: Session = Depends(get_db), actor: User = Depends(require_permission("batches.student_sections_manage")),
+):
+    fields = {
+        "job_applications": ("job_applications_access_enabled", "job_applications_access_updated_at", "job_applications_access_updated_by_id", "Job Applications"),
+        "interview_schedule": ("interview_schedule_access_enabled", "interview_schedule_access_updated_at", "interview_schedule_access_updated_by_id", "Interview Schedule"),
+    }
+    if section not in fields:
+        raise HTTPException(status_code=404, detail="Unknown student section")
+    batch = db.scalar(select(Batch).where(Batch.id == batch_id).with_for_update())
+    if batch is None:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    value_field, at_field, by_field, label = fields[section]
+    if getattr(batch, value_field) != payload.enabled:
+        setattr(batch, value_field, payload.enabled)
+        setattr(batch, at_field, datetime.now(timezone.utc))
+        setattr(batch, by_field, actor.id)
+        ip, ua = _client_meta(request)
+        write_audit_event(
+            db, AuthEventType.batch_updated, ip, ua, user=actor,
+            detail=f"{label} access {'enabled' if payload.enabled else 'disabled'} for batch {batch.name} (ID {batch.id})",
+            module="batches", target=f"batch:{batch.id}:{section}", status="success", commit=False,
+        )
+        db.commit()
     return _detail(_get_batch_or_404(db, batch_id))
 
 

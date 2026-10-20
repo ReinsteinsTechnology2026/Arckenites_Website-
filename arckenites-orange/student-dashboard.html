@@ -64,7 +64,7 @@
       <button type="button" class="admin-sidebar-link" data-panel="videos"><i class="fa-solid fa-video"></i><span class="label">Class Videos</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="materials"><i class="fa-solid fa-book-open"></i><span class="label">Study Materials</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="meetings"><i class="fa-solid fa-video"></i><span class="label">Meetings</span></button>
-      <button type="button" class="admin-sidebar-link" data-panel="interviews"><i class="fa-solid fa-user-tie"></i><span class="label">Interview Schedule</span></button>
+      <button type="button" class="admin-sidebar-link" data-panel="interviews" style="display:none;"><i class="fa-solid fa-user-tie"></i><span class="label">Interview Schedule</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="support"><i class="fa-solid fa-life-ring"></i><span class="label">Support</span><span class="admin-notif-badge" id="supportSidebarBadge" style="display:none; position:static; margin-left:auto;">0</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="job-applications" style="display:none;"><i class="fa-solid fa-briefcase"></i><span class="label">Job Applications</span></button>
       <button type="button" class="admin-sidebar-link" data-panel="settings"><i class="fa-solid fa-gear"></i><span class="label">Settings</span></button>
@@ -371,7 +371,7 @@
 
       <section data-panel="interviews" style="display:none;">
         <div class="admin-page-header"><div><h1>Interview Schedule</h1></div></div>
-        <div class="admin-panel"><div class="admin-panel-empty" style="padding:40px;">Content coming soon.</div></div>
+        <div class="admin-panel"><div id="studentInterviewsBody" class="admin-panel-empty" style="padding:40px;">Loading interviews&hellip;</div></div>
       </section>
 
       <section data-panel="support" style="display:none;">
@@ -547,7 +547,7 @@
 <script src="js/theme.js?v=1"></script>
 <script src="js/video-conference.js?v=1"></script>
 <script src="js/student-settings-nav.js?v=1"></script>
-<script src="js/student-dashboard.js?v=21"></script>
+<script src="js/student-dashboard.js?v=22"></script>
 <script src="js/student-job-applications.js?v=2"></script>
 <script src="js/student-account.js?v=1"></script>
 <script src="js/mfa-controls.js?v=2"></script>

@@ -36,15 +36,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   const user = await ArckAuth.requireRole('student');
   if (!user) return; // requireRole already redirected
 
-  // Keep both dashboard layouts hidden until the server confirms access.
-  ArckAPI.request('/student/job-applications/availability').then((availability) => {
-    if (availability.enabled) {
-      document.getElementById('simpleJobsBtn').style.display = '';
-      document.querySelector('#studentSidebar [data-panel="job-applications"]').style.display = '';
+  const sectionPaths = {
+    'job-applications': '/student/job-applications/availability',
+    interviews: '/students/me/interviews/availability',
+  };
+  const sectionAccess = {'job-applications': false, interviews: false};
+  const refreshSectionAccess = async (panel) => {
+    try {
+      sectionAccess[panel] = !!(await ArckAPI.request(sectionPaths[panel])).enabled;
+    } catch (_) {
+      sectionAccess[panel] = false;
     }
-  }).catch(() => {
-    // A failed availability check never reveals a section that may be off.
-  });
+    document.querySelector(`#studentSidebar [data-panel="${panel}"]`).style.display = sectionAccess[panel] ? '' : 'none';
+    if (panel === 'job-applications') document.getElementById('simpleJobsBtn').style.display = sectionAccess[panel] ? '' : 'none';
+    return sectionAccess[panel];
+  };
+  await Promise.all(Object.keys(sectionPaths).map(refreshSectionAccess));
 
   if (!user.program_name && !user.program) {
     // Accounts awaiting program assignment receive the small welcome layout.
@@ -241,7 +248,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Settings manages category and detail history inside this dashboard panel.
   let activeDashboardPanel = 'overview';
-  const activatePanel = (name, {restore = false} = {}) => {
+  const activatePanel = async (name, {restore = false} = {}) => {
+    if (sectionPaths[name] && !(await refreshSectionAccess(name))) name = 'overview';
     if (name !== 'settings') {
       if (!restore) StudentSettingsNav.leaveToPanel(name);
       activeDashboardPanel = name;
@@ -249,6 +257,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     navButtons.forEach((b) => b.classList.toggle('is-active', b.dataset.panel === name));
     panels.forEach((p) => { p.style.display = p.dataset.panel === name ? 'block' : 'none'; });
     if (name === 'job-applications') StudentJobApplications.load();
+    if (name === 'interviews') loadInterviews();
     closeMobileSidebar();
   };
 
@@ -273,6 +282,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.addEventListener('click', () => btn.dataset.panel === 'settings'
       ? StudentSettingsNav.openMenu() : activatePanel(btn.dataset.panel));
   });
+  const loadInterviews = async () => {
+    const body = document.getElementById('studentInterviewsBody');
+    body.className = 'admin-panel-empty';
+    body.textContent = 'Loading interviews…';
+    try {
+      const interviews = await ArckAPI.request('/students/me/interviews');
+      if (!interviews.length) {
+        body.textContent = 'No interviews are scheduled for you yet.';
+        return;
+      }
+      body.className = '';
+      body.innerHTML = interviews.map((i) => `<div class="session-row"><div class="session-row-meta"><strong>${escapeHtml(i.company_name)}${i.role ? ` · ${escapeHtml(i.role)}` : ''}</strong><span>${escapeHtml(formatDate(i.interview_date))}${i.interview_time ? ` · ${escapeHtml(formatTime(i.interview_time))}` : ''} · ${escapeHtml(i.mode)} · ${escapeHtml(i.status)}</span>${i.location_or_link ? `<span>${escapeHtml(i.location_or_link)}</span>` : ''}</div></div>`).join('');
+    } catch (err) {
+      body.className = 'admin-panel-empty';
+      body.textContent = err.status === 403 ? 'Interview Schedule is currently unavailable.' : 'Could not load interviews. Please try again.';
+      if (err.status === 403) refreshSectionAccess('interviews');
+    }
+  };
   document.querySelector('section[data-panel="settings"]').addEventListener('click', (event) => {
     const button = event.target.closest('[data-goto-panel]');
     if (button) activatePanel(button.dataset.gotoPanel);
@@ -785,6 +812,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Upcoming Schedule — real class sessions merged with real placement interviews.
     let upcomingInterviews = [];
     try {
+      if (!sectionAccess.interviews) throw new Error('Interview Schedule unavailable');
       const interviews = await ArckAPI.request('/students/me/interviews');
       upcomingInterviews = interviews.filter((i) => i.status === 'scheduled' && i.interview_date >= todayISO);
     } catch (_) { /* interviews are a nice-to-have on this panel, not required */ }
@@ -886,7 +914,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       { panel: 'materials', label: 'Study Materials', icon: 'fa-book-open' },
       { panel: 'videos', label: 'Class Videos', icon: 'fa-video' },
       { panel: 'meetings', label: 'Meetings', icon: 'fa-video' },
-      { panel: 'interviews', label: 'Interview Schedule', icon: 'fa-user-tie' },
+      ...(sectionAccess.interviews ? [{ panel: 'interviews', label: 'Interview Schedule', icon: 'fa-user-tie' }] : []),
       { panel: 'support', label: 'Support', icon: 'fa-life-ring' },
     ];
     document.getElementById('quickActionsBody').innerHTML = quickActions.map((a) => `

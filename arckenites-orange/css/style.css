@@ -1043,6 +1043,12 @@ body.is-database-view .col-database{ display:table-cell; }
 }
 .settings-switch input:checked + .settings-switch-track{ background:var(--primary); }
 .settings-switch input:checked + .settings-switch-track::before{ transform:translateX(20px); }
+.settings-switch input:focus-visible + .settings-switch-track{ outline:2px solid var(--primary); outline-offset:3px; }
+.settings-switch input:disabled + .settings-switch-track{ cursor:not-allowed; opacity:.55; }
+.batch-section-access{ margin-top:20px; }
+.batch-section-access-body{ padding:4px 20px 12px; }
+.batch-section-access-body .settings-toggle-row{ min-height:72px; }
+#batchSectionAccessMessage{ min-height:1.3em; color:var(--muted); font-size:.85rem; }
 .session-row{
   display:flex; align-items:center; justify-content:space-between; gap:16px;
   padding:14px 20px; border-bottom:1px solid var(--border-c);

@@ -1,6 +1,6 @@
 from datetime import date, datetime, time
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.batch import BatchStatusEnum, BatchTypeEnum
 
@@ -111,6 +111,17 @@ class BatchListItemOut(BaseModel):
 
 class BatchDetailOut(BatchListItemOut):
     students: list[StudentSummary]
+    job_applications_access_enabled: bool
+    interview_schedule_access_enabled: bool
+    job_applications_access_updated_at: datetime | None = None
+    interview_schedule_access_updated_at: datetime | None = None
+    job_applications_access_updated_by: str | None = None
+    interview_schedule_access_updated_by: str | None = None
+
+
+class BatchStudentSectionAccessInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    enabled: bool
 
 
 class BatchStatsOut(BaseModel):

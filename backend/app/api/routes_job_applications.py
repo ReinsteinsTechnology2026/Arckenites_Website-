@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import require_permission, require_role
 from app.crud.audit import write_audit_event
+from app.crud.student_section_access import student_section_enabled, require_student_section
 from app.database import get_db
 from app.models.audit_log import AuthEventType
 from app.models.job_application import JobApplication, JobApplicationReaction, JobApplicationStatus, JobReactionKind
@@ -35,7 +36,8 @@ def _section_enabled(db: Session, *, lock: bool = False) -> bool:
     return enabled is not False
 
 
-def _require_section_enabled(db: Session, *, lock: bool = False) -> None:
+def _require_section_enabled(db: Session, student_id: int, *, lock: bool = False) -> None:
+    require_student_section(db, student_id, "job_applications", lock=lock)
     if not _section_enabled(db, lock=lock):
         raise HTTPException(status_code=403, detail="Job Applications section is currently unavailable")
 
@@ -89,8 +91,8 @@ def _audit(db: Session, actor: User, event: AuthEventType, job: JobApplication, 
 
 
 @student_router.get("/availability")
-def student_job_availability(db: Session = Depends(get_db), _student: User = Depends(require_role("student"))):
-    return {"enabled": _section_enabled(db)}
+def student_job_availability(db: Session = Depends(get_db), student: User = Depends(require_role("student"))):
+    return {"enabled": student_section_enabled(db, student.id, "job_applications") and _section_enabled(db)}
 
 
 @student_router.get("", response_model=list[JobOut])
@@ -98,7 +100,7 @@ def list_student_jobs(
     offset: int = Query(default=0, ge=0), limit: int = Query(default=50, ge=1, le=100),
     db: Session = Depends(get_db), student: User = Depends(require_role("student")),
 ):
-    _require_section_enabled(db)
+    _require_section_enabled(db, student.id)
     jobs = db.scalars(select(JobApplication).where(*_visible())
                       .order_by(JobApplication.published_at.desc(), JobApplication.id.desc())
                       .offset(offset).limit(limit)).all()
@@ -107,7 +109,7 @@ def list_student_jobs(
 
 @student_router.get("/{job_id}", response_model=JobOut)
 def get_student_job(job_id: int, db: Session = Depends(get_db), student: User = Depends(require_role("student"))):
-    _require_section_enabled(db)
+    _require_section_enabled(db, student.id)
     return _summaries(db, [_job(db, job_id, student=True)], student.id)[0]
 
 
@@ -116,7 +118,7 @@ def set_reaction(
     job_id: int, payload: JobReactionInput, db: Session = Depends(get_db),
     student: User = Depends(require_role("student")),
 ):
-    _require_section_enabled(db, lock=True)
+    _require_section_enabled(db, student.id, lock=True)
     # Serializing on the parent row prevents concurrent requests from one
     # student creating two rows. The unique constraint is the final guard.
     job = _job(db, job_id, student=True, lock=True)
@@ -134,7 +136,7 @@ def set_reaction(
 
 @student_router.delete("/{job_id}/reaction", response_model=JobOut)
 def remove_reaction(job_id: int, db: Session = Depends(get_db), student: User = Depends(require_role("student"))):
-    _require_section_enabled(db, lock=True)
+    _require_section_enabled(db, student.id, lock=True)
     job = _job(db, job_id, student=True, lock=True)
     reaction = db.scalar(select(JobApplicationReaction).where(
         JobApplicationReaction.job_id == job_id,

@@ -16,7 +16,7 @@ from app.core.rate_limit import limiter
 from app.core.security import create_access_token
 from app.database import Base, get_db
 from app.main import app
-from app.models import AdminRole, AdminRolePermission, AuthAuditLog, AuthSession, Permission, RoleEnum, SystemSettings, User
+from app.models import AdminRole, AdminRolePermission, AuthAuditLog, AuthSession, Batch, BatchEnrollment, Permission, RoleEnum, SystemSettings, User
 from app.models.job_application import JobApplication, JobApplicationReaction
 
 
@@ -83,6 +83,12 @@ class JobApplicationTests(unittest.TestCase):
                      password_hash="unused", is_active=False, must_change_password=False),
             ]
             db.add_all(users + [SystemSettings(id=1)])
+            db.flush()
+            legacy_batch = Batch(name="Existing jobs test batch", job_applications_access_enabled=True)
+            db.add(legacy_batch)
+            db.flush()
+            for username in ("jobs-student-1", "jobs-student-2"):
+                db.add(BatchEnrollment(batch_id=legacy_batch.id, student_id=next(u.id for u in users if u.username == username)))
             db.commit()
             self.ids = {user.username: user.id for user in users}
         self.original_overrides = app.dependency_overrides.copy()

@@ -11,6 +11,7 @@ from app.core.uploads import MAX_FILES_PER_MESSAGE, MAX_FILE_SIZE_BYTES, get_upl
 from app.core.video import generate_batch_room_name
 from app.core.ws_manager import manager
 from app.crud.audit import write_audit_event
+from app.crud.student_section_access import require_student_section, student_section_enabled
 from app.crud.profile import to_public_profile
 from app.crud.user import email_conflict
 from app.crud.support import (
@@ -397,8 +398,14 @@ def my_materials(db: Session = Depends(get_db), user: User = Depends(require_rol
     ]
 
 
+@router.get("/me/interviews/availability")
+def my_interview_availability(db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
+    return {"enabled": student_section_enabled(db, user.id, "interview_schedule")}
+
+
 @router.get("/me/interviews", response_model=list[InterviewOut])
 def my_interviews(db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
+    require_student_section(db, user.id, "interview_schedule")
     rows = db.scalars(
         select(InterviewSchedule)
         .where(InterviewSchedule.student_id == user.id)

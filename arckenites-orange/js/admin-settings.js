@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const render = (enabled) => {
       savedValue = enabled;
       toggle.checked = enabled;
-      status.textContent = enabled ? 'Enabled — students can access eligible posts.' : 'Disabled — student access is unavailable.';
+      status.textContent = enabled ? 'Enabled — students in batches with access can see eligible posts.' : 'Disabled — Job Applications are paused for all students.';
     };
     try {
       const current = await ArckAPI.request('/admin/settings/job-applications-section');

@@ -1,7 +1,7 @@
 import enum
 from datetime import date, datetime, time
 
-from sqlalchemy import Date, DateTime, Enum, ForeignKey, Integer, String, Time, UniqueConstraint, func
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, Integer, String, Time, UniqueConstraint, false, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -56,6 +56,12 @@ class Batch(Base):
     class_days: Mapped[str | None] = mapped_column(String(100), nullable=True)  # e.g. "Mon,Wed,Fri"
     start_time: Mapped[time | None] = mapped_column(Time, nullable=True)
     end_time: Mapped[time | None] = mapped_column(Time, nullable=True)
+    job_applications_access_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
+    interview_schedule_access_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
+    job_applications_access_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    interview_schedule_access_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    job_applications_access_updated_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    interview_schedule_access_updated_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -63,6 +69,8 @@ class Batch(Base):
     )
 
     trainer: Mapped["User"] = relationship(foreign_keys=[trainer_id])
+    job_applications_access_updated_by: Mapped["User | None"] = relationship(foreign_keys=[job_applications_access_updated_by_id])
+    interview_schedule_access_updated_by: Mapped["User | None"] = relationship(foreign_keys=[interview_schedule_access_updated_by_id])
     program: Mapped["Program"] = relationship(foreign_keys=[program_id])
     enrollments: Mapped[list["BatchEnrollment"]] = relationship(
         back_populates="batch", cascade="all, delete-orphan"

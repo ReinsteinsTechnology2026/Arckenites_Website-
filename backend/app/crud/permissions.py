@@ -35,6 +35,7 @@ PERMISSION_CATALOG: list[dict] = [
     {"key": "batches.create", "module": "Batches", "action": "create", "description": "Create batches."},
     {"key": "batches.edit", "module": "Batches", "action": "edit", "description": "Edit batches, including scheduling classes."},
     {"key": "batches.delete", "module": "Batches", "action": "delete", "description": "Delete batches."},
+    {"key": "batches.student_sections_manage", "module": "Batches", "action": "student_sections_manage", "description": "Enable or disable student Job Applications and Interview Schedule access for a batch."},
 
     {"key": "lab_access.view", "module": "Lab Access", "action": "view", "description": "View per-student lab slot bookings and lock/unlock status."},
     {"key": "lab_access.manage", "module": "Lab Access", "action": "manage", "description": "Manually lock or unlock a student's lab access."},
@@ -116,7 +117,8 @@ _OPERATIONAL_MODULES = ["students", "trainers", "programs", "batches", "placemen
 # here — its access is computed (see user_has_permission), never read from
 # this table.
 DEFAULT_GRANTS: dict[str, list[str]] = {
-    "admin": [k for k in PERMISSION_KEYS if k.split(".")[0] in _OPERATIONAL_MODULES]
+    "admin": [k for k in PERMISSION_KEYS if k.split(".")[0] in _OPERATIONAL_MODULES and k != "batches.student_sections_manage"]
+    + ["batches.student_sections_manage"]
     + ["activity_logs.view"]
     + [k for k in PERMISSION_KEYS if k.split(".")[0] == "support"],
     # Support Admin gets enough to actually do support work — view, reply,
