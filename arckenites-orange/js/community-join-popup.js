@@ -36,7 +36,7 @@
         </div>
         <div class="community-join-footer">
           <a href="community-register.html" class="btn btn-accent community-join-cta">Register Now</a>
-          <a href="login.html" class="btn btn-primary-outline">Login</a>
+          <a href="login.html?portal=community" class="btn btn-primary-outline">Login</a>
           <button type="button" class="btn btn-link community-join-continue" data-join-close>Continue Exploring</button>
         </div>
       </div>`;

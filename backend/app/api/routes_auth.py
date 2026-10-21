@@ -80,7 +80,7 @@ def begin_or_finish_login(db: Session, request: Request, user: User, source: str
 def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)):
     ip, ua = _client_meta(request)
     settings_row = get_settings(db)
-    user = get_by_username(db, payload.username)
+    user = get_by_username(db, payload.username, payload.portal)
 
     if user is None:
         write_audit_event(

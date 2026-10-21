@@ -40,3 +40,11 @@ for (const [file, portal] of [['student-login.html', 'student'], ['staff-login.h
   const legacy = fs.readFileSync(path.join(site, file), 'utf8');
   assert.ok(legacy.includes(`login.html?portal=${portal}`), file);
 }
+
+assert.match(html, /href="login\.html\?portal=community">Community Login/);
+assert.match(script, /portal === 'community'/);
+for (const file of ['community.html', 'community-register.html', 'js/community-register.js', 'js/community-join-popup.js']) {
+  const source = fs.readFileSync(path.join(site, file), 'utf8');
+  assert.ok(source.includes('login.html?portal=community'), file);
+  assert.ok(!/login\.html["']/.test(source), file + ' must supply Community context');
+}

@@ -77,12 +77,11 @@ def _client_meta(request: Request) -> tuple[str, str]:
 
 
 def _username_taken(db: Session, email: str) -> bool:
-    return db.scalar(select(User.id).where(func.lower(User.username) == email)) is not None
+    return db.scalar(select(User.id).where(User.role == RoleEnum.community, func.lower(func.trim(User.username)) == email)) is not None
 
 
 def _email_registered(db: Session, email: str) -> bool:
-    """True when the email already belongs to any account, or to a completed
-    Community account (checked case-insensitively on both)."""
+    """Only Community identities block Community registration."""
     if _username_taken(db, email):
         return True
     return db.scalar(

@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const addLoginLink = () => {
     const a = document.createElement('a');
-    a.href = 'login.html';
+    a.href = 'login.html?portal=community';
     a.className = 'btn btn-primary-outline';
     a.textContent = 'Login';
     dupActions.appendChild(a);

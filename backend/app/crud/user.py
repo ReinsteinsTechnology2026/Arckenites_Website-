@@ -7,14 +7,13 @@ from app.models.user import RoleEnum, User
 
 
 def email_conflict(db: Session, email: str) -> str | None:
-    """Use the existing student-provisioning identity rules for a new email login."""
+    """Managed portal identity rules; Community is a separate account scope."""
     from app.models.admin_profile import AdminProfile
-    from app.models.community import CommunityProfile
     from app.models.staff import StaffProfile
     from app.models.student import StudentProfile
 
     normalized = email.strip().lower()
-    user = db.scalar(select(User).where(func.lower(func.trim(User.username)) == normalized).limit(1))
+    user = db.scalar(select(User).where(User.role != RoleEnum.community, func.lower(func.trim(User.username)) == normalized).limit(1))
     if user is not None:
         return "student" if user.role == RoleEnum.student else "portal_login"
     profile = db.scalar(select(StudentProfile).where(
@@ -22,45 +21,56 @@ def email_conflict(db: Session, email: str) -> str | None:
     ).limit(1))
     if profile is not None:
         return "student"
-    for model in (AdminProfile, StaffProfile, CommunityProfile):
+    for model in (AdminProfile, StaffProfile):
         if db.scalar(select(model.user_id).where(func.lower(func.trim(model.email)) == normalized).limit(1)) is not None:
             return "portal_login"
     return None
 
 
-def get_by_username(db: Session, username: str) -> User | None:
-    exact = db.scalar(select(User).where(User.username == username))
-    # Keep the exact path for legacy usernames and Admin accounts. Newly
-    # provisioned student and trainer email logins accept case/outer-space
-    # variations; the normalized unique index prevents two such identities.
-    if exact is not None:
-        return exact
-    if "@" not in username:
+def get_by_username(db: Session, username: str, portal: str | None = None) -> User | None:
+    """Resolve within the requested login audience, failing closed on ambiguity.
+
+    Context-free legacy clients work only when exactly one identity matches.
+    Never choose an account by password or prefer an exact-case email match.
+    """
+    roles = {"student": (RoleEnum.student,),
+             "staff": (RoleEnum.staff, RoleEnum.admin),
+             "community": (RoleEnum.community,)}
+    if portal is not None and portal not in roles:
         return None
-    matches = db.scalars(select(User).where(
-        User.role.in_((RoleEnum.student, RoleEnum.staff)),
-        func.lower(func.trim(User.username)) == username.strip().lower(),
-    )).all()
-    # Fail closed for ambiguous historical data before the migration runs.
+    query = select(User)
+    if portal is not None:
+        query = query.where(User.role.in_(roles[portal]))
+    if "@" in username:
+        query = query.where(func.lower(func.trim(User.username)) == username.strip().lower())
+    else:
+        query = query.where(User.username == username)
+    matches = db.scalars(query.limit(2)).all()
     return matches[0] if len(matches) == 1 else None
+
+
+def _username_exists(db: Session, username: str) -> bool:
+    # Allocation is an existence check, never an ambiguity-sensitive login.
+    return db.scalar(select(User.id).where(
+        func.lower(func.trim(User.username)) == username.strip().lower()).limit(1)) is not None
 
 
 def _generate_email_username(db: Session, full_name: str, fallback: str) -> str:
     """Builds the name@arckenites.com login id every account type now
     shares — e.g. "John Doe" -> johndoe@arckenites.com. A numeric suffix is
     only appended if that exact local-part is already taken by another
-    account (of any role — usernames are globally unique), keeping names
+    account (of any role — generated names avoid all existing accounts), keeping names
     readable in the common case."""
     slug = re.sub(r"[^a-z0-9]", "", full_name.lower()) or fallback
 
     candidate = f"{slug}@arckenites.com"
-    if get_by_username(db, candidate) is None:
+    if not _username_exists(db, candidate):
         return candidate
 
     n = 2
     while True:
         candidate = f"{slug}{n}@arckenites.com"
-        if get_by_username(db, candidate) is None:
+        if not _username_exists(db, candidate):
             return candidate
         n += 1
 
@@ -85,13 +95,13 @@ def generate_staff_username(db: Session, full_name: str) -> str:
     slug = re.sub(r"[^a-z0-9]", "", full_name.lower()) or "trainer"
 
     candidate = f"{slug}.staff@arckenites.com"
-    if get_by_username(db, candidate) is None:
+    if not _username_exists(db, candidate):
         return candidate
 
     n = 2
     while True:
         candidate = f"{slug}{n}.staff@arckenites.com"
-        if get_by_username(db, candidate) is None:
+        if not _username_exists(db, candidate):
             return candidate
         n += 1
 

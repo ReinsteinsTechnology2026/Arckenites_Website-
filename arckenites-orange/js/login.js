@@ -7,11 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const portal = params.get('portal');
   const chooser = document.getElementById('portalChooser');
   const loginPanel = document.getElementById('portalLogin');
-  const validPortal = portal === 'student' || portal === 'staff';
+  const validPortal = portal === 'student' || portal === 'staff' || portal === 'community';
   chooser.style.display = validPortal ? 'none' : '';
   loginPanel.style.display = validPortal ? '' : 'none';
   document.getElementById('loginSubtitle').textContent = validPortal
-    ? (portal === 'student' ? 'Sign in to your Student Portal.' : 'Sign in through Staff Login to continue.')
+    ? (portal === 'student' ? 'Sign in to your Student Portal.' : portal === 'community' ? 'Sign in to your Community Portal.' : 'Sign in through Staff Login to continue.')
     : 'Choose your portal to continue.';
   document.getElementById('portalBack').addEventListener('click', (event) => {
     event.preventDefault();

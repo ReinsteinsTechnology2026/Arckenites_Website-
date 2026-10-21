@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Integer, String, func
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Integer, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -23,12 +23,19 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    username: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    username: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    # Identity scope is derived from role: Community vs all managed portal
+    # roles. It cannot drift from authorization through a separate writable field.
     __table_args__ = (
         Index(
-            "uq_users_email_login_normalized", func.lower(func.trim(username)), unique=True,
+            "uq_users_email_login_normalized",
+            text("(CASE WHEN role = 'community' THEN 'community' ELSE 'portal' END)"),
+            func.lower(func.trim(username)), unique=True,
             postgresql_where=username.contains("@"), sqlite_where=username.contains("@"),
         ),
+        # Legacy non-email login names retain global exact uniqueness.
+        Index("uq_users_legacy_username", username, unique=True,
+              postgresql_where=~username.contains("@"), sqlite_where=~username.contains("@")),
     )
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str] = mapped_column(String(200), nullable=False)
