@@ -76,10 +76,27 @@ class ResetPreparationTests(unittest.TestCase):
 
     def test_current_schema_and_fk_inventory_fully_classified(self):
         self.assertEqual(self.metadata["table_count"], 50)
-        self.assertEqual(len(self.metadata["foreign_keys"]), 68)
-        self.assertEqual(len(self.metadata["model_indexes"]), 62)
-        # Includes uniqueness, primary keys and foreign keys for the MFA tables.
-        self.assertEqual(len(self.metadata["model_constraints"]), 139)
+        # c4e5f6a7b8c9 added two nullable batch audit FKs (commit a0cbca8).
+        self.assertEqual(len(self.metadata["foreign_keys"]), 70)
+        batch_audit_fks = {
+            (fk["source_column"], fk["target_table"], fk["target_column"],
+             fk["nullable"], fk["ondelete"])
+            for fk in self.metadata["foreign_keys"]
+            if fk["source_table"] == "batches" and fk["source_column"] in {
+                "job_applications_access_updated_by_id",
+                "interview_schedule_access_updated_by_id",
+            }
+        }
+        self.assertEqual(batch_audit_fks, {
+            ("job_applications_access_updated_by_id", "users", "id", True, "SET NULL"),
+            ("interview_schedule_access_updated_by_id", "users", "id", True, "SET NULL"),
+        })
+        # Community scoping retains both old index names and adds this index.
+        self.assertEqual(len(self.metadata["model_indexes"]), 63)
+        self.assertIn({"table": "users", "name": "uq_users_legacy_username",
+                       "unique": True, "columns": ["username"]}, self.metadata["model_indexes"])
+        # Includes the two batch audit foreign-key constraints above.
+        self.assertEqual(len(self.metadata["model_constraints"]), 141)
         self.assertEqual(self.metadata["unclassified_model_tables"], [])
         self.assertFalse(self.metadata["production_schema_verified"])
         self.assertEqual(set(self.metadata["tables"]) | {"alembic_version"}, ALL_TABLES)

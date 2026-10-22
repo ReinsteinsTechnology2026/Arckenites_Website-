@@ -247,7 +247,7 @@ class TestStudentDeletionIntegration(unittest.TestCase):
         from unittest.mock import patch
         from app.api import routes_auth
 
-        payload = SimpleNamespace(username=student.username, password="Integration#Test1")
+        payload = SimpleNamespace(username=student.username, password="Integration#Test1", portal="student")
         with patch.object(routes_auth, "get_settings", return_value=SimpleNamespace(maintenance_mode=False)), \
              patch.object(routes_auth, "write_audit_event"):
             with self.assertRaises(HTTPException) as ctx:

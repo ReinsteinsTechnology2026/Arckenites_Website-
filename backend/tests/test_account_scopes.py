@@ -181,7 +181,7 @@ class AccountScopeTests(unittest.TestCase):
 
 class ScopeMigrationTests(unittest.TestCase):
     def migration(self):
-        path = Path(__file__).parents[1] / "alembic/versions/d8e9f0a1b2c3_scope_community_email_login.py"
+        path = Path(__file__).parents[1] / "alembic/versions/c365dd2994ef_scope_community_email_login.py"
         spec = importlib.util.spec_from_file_location("scope_migration", path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)

@@ -66,25 +66,40 @@ uses an existence check so an ambiguous login result cannot be mistaken for avai
 
 ## Migration review and operational limits
 
-`d8e9f0a1b2c3` follows repository head `c4e5f6a7b8c9`. It changes indexes only;
+`c365dd2994ef` follows repository head `c4e5f6a7b8c9`. It changes indexes only;
 there is no user-data DML. It inspects actual unique constraints/indexes at application
 and rejects unexpected additional global username constraints rather than guessing.
 Downgrade refuses before DDL when cross-scope email duplicates exist. It does not merge,
 rename, or delete accounts to force a rollback.
 
-The migration was source-reviewed and tested with mocked Alembic operations; PostgreSQL
-index SQL was compiled from the model. No migration was executed and no production or
-configured database was contacted. Live schema drift and PostgreSQL migration/locking
-behavior therefore still need verification in a separately authorized disposable database.
+The migration was first source-reviewed and tested with mocked Alembic operations;
+PostgreSQL index SQL was compiled from the model. It was later run, together with the
+migration-graph, enum-transaction and related regression tests, against a disposable
+PostgreSQL 16.14 database: fresh `upgrade head`, `downgrade -1` and re-upgrade, plus
+upgrades from six selected earlier revisions including `c4e5f6a7b8c9`. Not every
+historical starting revision, other PostgreSQL versions, live schema drift, or locking
+behavior under production load has been verified. Production was never accessed or
+modified, and its migration state is unverified. Full offline SQL generation
+(`alembic upgrade head --sql`) remains unsupported (see below).
 Future rollout must coordinate schema and application changes and stop old workers before
 accepting duplicate emails: old code does not resolve accounts by context. No deployment,
 commit, or push is part of this change.
+
+### Offline SQL generation is unsupported
+
+Full Alembic offline SQL generation (`alembic upgrade head --sql`) is currently
+unsupported. Some migrations require live database inspection or data-dependent safety
+checks (for example `b3d6f1a9c4e2` checks that `lab_access` is empty, and `c365dd2994ef`
+inspects existing username constraints), and those checks cannot run without a database
+connection. Run migrations online against the intended database. To review the SQL,
+migrate a disposable database and inspect it with `pg_dump`. Do not bypass or remove the
+safety checks to make offline generation work.
 
 ## Changed files
 
 Backend: `app/models/user.py`, `app/crud/user.py`, `app/schemas/auth.py`,
 `app/api/routes_auth.py`, `app/api/routes_community_auth.py`,
-`alembic/versions/d8e9f0a1b2c3_scope_community_email_login.py`.
+`alembic/versions/c365dd2994ef_scope_community_email_login.py`.
 
 Frontend: `arckenites-orange/login.html`, `js/login.js`, `community.html`,
 `community-register.html`, `js/community-register.js`, `js/community-join-popup.js`.

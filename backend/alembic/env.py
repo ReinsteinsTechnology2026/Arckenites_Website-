@@ -23,6 +23,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        transaction_per_migration=True,
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -35,7 +36,14 @@ def run_migrations_online() -> None:
         poolclass=pool.NullPool,
     )
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        # Enum additions in earlier revisions must commit before later DDL
+        # uses the new values. A failed revision rolls back independently;
+        # completed revisions remain recorded and upgrades can resume.
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            transaction_per_migration=True,
+        )
         with context.begin_transaction():
             context.run_migrations()
 

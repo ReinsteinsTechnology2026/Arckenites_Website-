@@ -303,7 +303,7 @@ class TestDeactivatedStudentCannotLogIn(unittest.TestCase):
         inactive_student.locked_until = None
 
         db = MagicMock()
-        payload = SimpleNamespace(username="john.doe", password="whatever")
+        payload = SimpleNamespace(username="john.doe", password="whatever", portal="student")
 
         with patch.object(routes_auth, "get_settings", return_value=SimpleNamespace(maintenance_mode=False)), \
              patch.object(routes_auth, "get_by_username", return_value=inactive_student), \
