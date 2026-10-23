@@ -3,6 +3,7 @@ uvicorn[standard]==0.30.6
 sqlalchemy==2.0.52
 alembic==1.13.2
 psycopg[binary]==3.2.13
+tzdata==2025.2
 pydantic-settings==2.5.2
 bcrypt==4.2.0
 pyjwt==2.9.0

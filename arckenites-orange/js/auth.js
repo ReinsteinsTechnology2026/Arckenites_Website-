@@ -31,6 +31,7 @@ const ADMIN_PAGE_PERMISSIONS = {
   'admin-batches.html': 'batches.view',
   'admin-batch-detail.html': 'batches.view',
   'admin-class-schedule.html': 'batches.view',
+  'admin-trainer-scheduling.html': 'scheduling.view',
   'admin-meetings.html': 'meetings.view',
   'admin-support.html': 'support.view',
   'admin-support-detail.html': 'support.view',

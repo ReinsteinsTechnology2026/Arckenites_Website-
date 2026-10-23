@@ -222,6 +222,12 @@ def delete_staff(
             ("google_login_tickets", "user_id"),
             ("mfa_credentials", "user_id"), ("mfa_recovery_codes", "user_id"),
             ("mfa_challenges", "user_id"),
+            # Trainer-owned scheduling data goes with the account; assignment
+            # history is shared and still blocks deletion (deactivate instead).
+            ("trainer_availability_rules", "trainer_id"), ("trainer_availability_entries", "trainer_id"),
+            ("trainer_availability_entries", "created_by_id"), ("trainer_expertise", "trainer_id"),
+            ("scheduling_notices", "trainer_id"), ("scheduling_notices", "recipient_id"),
+            ("scheduling_notices", "created_by_id"),
         }
         for table in Base.metadata.sorted_tables:
             for column in table.c:

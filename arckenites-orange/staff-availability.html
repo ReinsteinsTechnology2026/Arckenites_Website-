@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('ak_theme') || 'dark');</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Availability | Arckenites</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet" href="css/style.css?v=21">
+<link rel="stylesheet" href="css/scheduling.css?v=1">
+
+</head>
+<body>
+
+<header class="dashboard-topbar">
+  <a class="navbar-brand" href="staff-dashboard.html">
+    <img src="assets/logo-wordmark.png" alt="Arckenites" class="brand-mark brand-mark--wordmark">
+    <span class="brand-text">Hub</span>
+  </a>
+  <div class="dashboard-topbar-user">
+    <button type="button" class="icon-btn theme-toggle-btn" aria-label="Switch to light theme" title="Switch to light theme"><i class="fa-solid fa-sun"></i></button>
+    <a href="staff-dashboard.html" class="btn btn-primary-outline"><i class="fa-solid fa-arrow-left"></i> My Batches</a>
+    <div class="admin-dropdown">
+      <button type="button" class="ak-avatar-btn" id="staffAvatarBtn" title="Go to Profile">
+        <span id="staffAvatarWrap"></span>
+      </button>
+      <button type="button" class="admin-profile-trigger" id="staffProfileTrigger" aria-label="Account menu">
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+      <div class="admin-dropdown-panel" id="staffProfilePanel">
+        <div class="admin-profile-meta">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button type="button" class="ak-avatar-btn" id="staffAvatarMenuBtn" title="Go to Profile">
+              <span id="staffAvatarWrapMenu"></span>
+            </button>
+            <div>
+              <strong id="staffProfileName">Trainer</strong>
+              <span>Trainer</span>
+            </div>
+          </div>
+        </div>
+        <a class="admin-dropdown-link" href="change-password.html"><i class="fa-solid fa-key"></i> Change Password</a>
+        <button type="button" class="admin-dropdown-link" id="staffProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="dashboard-main">
+  <div class="admin-server-banner" id="serverBanner">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    Cannot reach the Arckenites server. Check that the backend is running, then refresh this page.
+  </div>
+
+  <div class="admin-page-header">
+    <div>
+      <h1>My Availability</h1>
+      <p>Tell us when you can teach. Administrators use this calendar to assign batches that fit your schedule. <span id="tzNote"></span></p>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button type="button" class="btn btn-primary-outline" id="addWeeklyBtn"><i class="fa-solid fa-repeat"></i> Weekly hours</button>
+      <button type="button" class="btn btn-accent" id="addEntryBtn"><i class="fa-solid fa-plus"></i> Add availability / time off</button>
+    </div>
+  </div>
+
+  <section id="noticesPanel" class="admin-panel" style="display:none; margin-bottom:16px;" aria-labelledby="noticesTitle">
+    <div class="admin-panel-header"><h2 id="noticesTitle"><i class="fa-solid fa-bell"></i> Needs your attention</h2></div>
+    <ul class="sched-list" id="noticesList"></ul>
+  </section>
+
+  <div id="onboarding" class="sched-empty" style="display:none;">
+    <h3>Set up your availability</h3>
+    <p style="color:var(--muted); margin:0;">You haven't told us when you can teach yet, so you can't be recommended for new batches.</p>
+    <ol>
+      <li>Choose <b>Weekly hours</b> for your regular schedule (for example Monday–Friday, 9 AM–5 PM).</li>
+      <li>Add <b>time off</b> for holidays or leave, or extra one-off hours.</li>
+      <li>Mark some hours as <b>Preferred</b> so you are matched to the times you like best.</li>
+    </ol>
+    <button type="button" class="btn btn-accent" id="onboardWeeklyBtn">Set weekly hours</button>
+  </div>
+
+  <div class="sched-stats" id="stats" aria-live="polite"></div>
+  <div id="legend"></div>
+
+  <div class="sched-two">
+    <div id="calendar"></div>
+    <div style="display:grid; gap:16px;">
+      <section class="admin-panel" aria-labelledby="upTitle"><div class="admin-panel-header"><h2 id="upTitle">Upcoming sessions</h2></div>
+        <ul class="sched-list" id="upcomingList"><li class="muted">Loading…</li></ul></section>
+      <section class="admin-panel" aria-labelledby="rulesTitle"><div class="admin-panel-header"><h2 id="rulesTitle">Weekly hours</h2></div>
+        <ul class="sched-list" id="rulesList"><li class="muted">Loading…</li></ul></section>
+      <section class="admin-panel" aria-labelledby="entriesTitle"><div class="admin-panel-header"><h2 id="entriesTitle">Dates in view</h2></div>
+        <ul class="sched-list" id="entriesList"><li class="muted">Loading…</li></ul></section>
+    </div>
+  </div>
+</main>
+
+<div id="toasts" class="sched-toast" role="status" aria-live="polite"></div>
+
+<script src="js/api.js?v=4"></script>
+<script src="js/auth.js?v=7"></script>
+<script src="js/theme.js?v=1"></script>
+<script src="js/scheduling-ui.js?v=1"></script>
+<script src="js/scheduling-calendar.js?v=1"></script>
+<script src="js/staff-availability.js?v=1"></script>
+
+</body>
+</html>

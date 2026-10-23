@@ -77,6 +77,14 @@ class Settings(BaseSettings):
             return v.replace("postgres://", "postgresql+psycopg://", 1)
         return v
 
+    # Trainer scheduling. Availability, batch class times and class sessions are
+    # wall-clock times in this IANA zone (the repo has always stored them
+    # naive); availability exceptions are stored as UTC instants.
+    scheduling_timezone: str = "Asia/Kolkata"
+    scheduling_max_weekly_hours: float = 40.0
+    scheduling_default_session_minutes: int = 60
+    scheduling_slot_minutes: int = 30
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

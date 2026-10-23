@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.core.deps import require_permission
 from app.core.approved_programs import require_approved_program
 from app.core.notify import notify_batch_update
+from app.core.scheduling_service import enforce_legacy_assignment, enforce_session_slot, record_legacy_assignment
 from app.core.video import generate_batch_room_name
 from app.crud.audit import write_audit_event
 from app.database import get_db
@@ -176,6 +177,9 @@ def create_batch(
     )
     db.add(batch)
     db.flush()
+    if batch.trainer_id is not None:
+        enforce_legacy_assignment(db, batch, batch.trainer_id)
+        record_legacy_assignment(db, batch, None, batch.trainer_id, actor)
 
     for student in students:
         db.add(BatchEnrollment(batch_id=batch.id, student_id=student.id))
@@ -251,6 +255,7 @@ def update_batch(
     actor: User = Depends(require_permission("batches.edit")),
 ):
     batch = _get_batch_or_404(db, batch_id)
+    previous_trainer_id = batch.trainer_id
 
     if payload.name is not None:
         batch.name = payload.name
@@ -283,6 +288,18 @@ def update_batch(
         batch.start_time = payload.start_time
     if payload.end_time is not None:
         batch.end_time = payload.end_time
+
+    # Same server-side scheduling rules as the Trainer Scheduling page (no
+    # overlap with another confirmed batch, no booking over leave), applied
+    # when the trainer changes or the batch's timetable/status is edited.
+    # Edits that touch neither leave an already-conflicting batch alone.
+    schedule_changed = any(f is not None for f in (
+        payload.start_date, payload.end_date, payload.class_days, payload.start_time, payload.end_time, payload.status))
+    if batch.trainer_id is not None and (batch.trainer_id != previous_trainer_id or schedule_changed):
+        if batch.status in (BatchStatusEnum.upcoming, BatchStatusEnum.active):
+            db.flush()
+            enforce_legacy_assignment(db, batch, batch.trainer_id)
+    record_legacy_assignment(db, batch, previous_trainer_id, batch.trainer_id, actor)
 
     db.add(batch)
     db.commit()
@@ -403,6 +420,7 @@ def create_session(
     _actor: User = Depends(require_permission("batches.edit")),
 ):
     batch = _get_batch_or_404(db, batch_id)
+    enforce_session_slot(db, batch, payload.session_date, payload.start_time, payload.end_time)
     session = ClassSession(
         batch_id=batch_id, title=payload.title, session_date=payload.session_date,
         start_time=payload.start_time, end_time=payload.end_time,
@@ -451,6 +469,8 @@ def update_session(
         session.meeting_link = payload.meeting_link
     if payload.notes is not None:
         session.notes = payload.notes
+    if any(f is not None for f in (payload.session_date, payload.start_time, payload.end_time)):
+        enforce_session_slot(db, batch, session.session_date, session.start_time, session.end_time)
 
     db.add(session)
     db.commit()

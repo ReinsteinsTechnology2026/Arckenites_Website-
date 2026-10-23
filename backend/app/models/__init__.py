@@ -56,6 +56,13 @@ from app.models.support import (
     TicketStatusEnum,
 )
 from app.models.system_settings import SystemSettings
+from app.models.trainer_scheduling import (
+    BatchTrainerAssignment,
+    SchedulingNotice,
+    TrainerAvailabilityEntry,
+    TrainerAvailabilityRule,
+    TrainerExpertise,
+)
 from app.models.user import RoleEnum, User
 from app.models.file_cleanup import FileCleanupJob
 

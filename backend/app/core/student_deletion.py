@@ -33,6 +33,11 @@ OWNED = {
     "community_post_email_deliveries": "user_id",
     "mfa_credentials": "user_id", "mfa_recovery_codes": "user_id",
     "mfa_challenges": "user_id",
+    # Trainer scheduling data that belongs only to the trainer. Assignment
+    # history (batch_trainer_assignments) is deliberately NOT here: it is shared
+    # batch history, so deleting a trainer who appears in it is refused.
+    "trainer_availability_rules": "trainer_id", "trainer_availability_entries": "trainer_id",
+    "trainer_expertise": "trainer_id", "scheduling_notices": "trainer_id",
 }
 DETACH = {
     "auth_audit_log": ("user_id",),
@@ -51,6 +56,9 @@ DETACH = {
     "leads": ("created_by_id",),
     "system_settings": ("updated_by_id",),
     "batches": ("trainer_id",),
+    "trainer_availability_entries": ("created_by_id",),
+    # Notices about the trainer are deleted via OWNED (trainer_id); these detach first.
+    "scheduling_notices": ("recipient_id", "created_by_id"),
 }
 
 

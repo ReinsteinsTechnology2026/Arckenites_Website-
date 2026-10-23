@@ -69,6 +69,8 @@ still requires explicit bounded child operations. Do not rely on cascades or ORM
 | Mixed authentication | `auth_sessions`, `user_google_identities`, `google_login_tickets`, `mfa_credentials`, `mfa_recovery_codes`, `mfa_challenges` | Preserve protected/held users' links, sessions and MFA state; remove only eligible account-owned records. Back up the MFA encryption key separately. |
 | Training memberships | `program_enrollments`, `batch_enrollments`, `interview_schedules` | Eligible user-owned rows only; preserve catalog and any held-user association |
 | Training containers/resources | `batches`, `class_sessions`, `study_materials`, `class_videos` | Manual ownership approval: no reliable creator/owner is recorded for resources; trainer assignment alone is not ownership |
+| Trainer scheduling (migration `9d2f6b8c4e31`) | `trainer_availability_rules`, `trainer_availability_entries`, `trainer_expertise`, `scheduling_notices` | Account-owned by `trainer_id`: candidate only when the trainer account is a candidate; otherwise retained. Notice FKs to users are detached (nullable) before account removal. |
+| Trainer scheduling history | `batch_trainer_assignments` | **Manual** (unresolved): shared batch history naming a trainer, an admin actor and a batch. Its user FKs are SET NULL but are intentionally not in the reviewed detach list, so a candidate trainer/admin referenced here is reported as a blocker. |
 | Chat | `conversations`, `direct_messages`, `batch_messages`, `batch_chat_read_state` | Preserve mixed/protected/unknown history; fully operational direct threads can be candidates; batch history held while batch ownership is unresolved |
 | Support | `support_tickets`, `support_messages`, `support_attachments` | Keep entire threads with protected/held/unknown contributions; exclusively operational threads may be candidates |
 | Meetings | `meetings`, `meeting_participants`, `meeting_messages`, `meeting_notes`, `meeting_recordings` | Keep shared history; host is not sufficient proof of recording ownership; recordings and batch-linked meetings require review |
@@ -529,7 +531,8 @@ Before execution can be considered, resolve:
 
 1. Production schema/inventory and independent endpoint verification.
 2. Review inconsistent role/profile records and operational anomalies.
-3. Ownership/retention of batches, resources, leads, recordings, already-detached
+3. Ownership/retention of batches, resources, leads, recordings, trainer assignment history
+   (`batch_trainer_assignments`: keep with names detached, or remove with the batch?), already-detached
    history and mixed records. Keep security retention separate from “empty portal”.
 4. Approved encrypted off-host backups, secret recovery and successful isolated
    PostgreSQL/uploads restore; access-controlled staging for sensitive restored data.

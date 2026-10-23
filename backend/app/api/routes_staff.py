@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
+from app.core.scheduling_service import enforce_session_slot
 from app.core.deps import require_role
 from app.core.uploads import MAX_FILES_PER_MESSAGE, MAX_FILE_SIZE_BYTES, get_upload_path, read_upload_limited, save_upload
 from app.core.video import generate_batch_room_name
@@ -364,6 +365,7 @@ def create_my_batch_session(
     user: User = Depends(require_role("staff")),
 ):
     batch = _get_own_batch_or_404(db, batch_id, user)
+    enforce_session_slot(db, batch, payload.session_date, payload.start_time, payload.end_time)
     session = ClassSession(
         batch_id=batch_id, title=payload.title, session_date=payload.session_date,
         start_time=payload.start_time, end_time=payload.end_time, meeting_link=payload.meeting_link, notes=payload.notes,
@@ -404,6 +406,8 @@ def update_my_batch_session(
         session.meeting_link = payload.meeting_link
     if payload.notes is not None:
         session.notes = payload.notes
+    if any(f is not None for f in (payload.session_date, payload.start_time, payload.end_time)):
+        enforce_session_slot(db, session.batch, session.session_date, session.start_time, session.end_time)
 
     db.add(session)
     db.commit()

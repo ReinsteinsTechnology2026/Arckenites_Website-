@@ -10,6 +10,8 @@ from slowapi.middleware import SlowAPIMiddleware
 from starlette.responses import JSONResponse
 
 from app.api.routes_admin_batches import router as admin_batches_router
+from app.api.routes_admin_trainer_scheduling import router as admin_trainer_scheduling_router
+from app.api.routes_staff_availability import router as staff_availability_router
 from app.api.routes_admin_class_schedule import router as admin_class_schedule_router
 from app.api.routes_admin_contact_enquiries import router as admin_contact_enquiries_router
 from app.api.routes_admin_community import router as admin_community_router
@@ -48,6 +50,7 @@ from app.core.lab_vm_watchdog import run_lab_vm_watchdog
 from app.core.upload_cleanup import run_file_cleanup_worker
 from app.core.mfa import MfaUnavailable
 from app.core.rate_limit import limiter
+from app.core.scheduling_service import SchedulingError
 from app.crud.audit import write_audit_event
 from app.database import SessionLocal
 from app.models.audit_log import AuthEventType
@@ -76,6 +79,14 @@ async def student_provisioning_validation_error(request: Request, exc: RequestVa
     }
     field = str(exc.errors()[0]["loc"][-1]) if exc.errors() else ""
     return JSONResponse(status_code=422, content={"detail": messages.get(field, "Please check the student details and try again.")})
+
+
+@app.exception_handler(SchedulingError)
+async def scheduling_error_handler(request: Request, exc: SchedulingError):
+    # Business-rule failures from the trainer scheduling module: a plain-text
+    # "detail" (what ArckAPI shows) plus a machine-readable code and, for
+    # conflicts, the list of affected sessions. Never contains secrets.
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.message, "code": exc.code, **exc.extra})
 
 
 @app.exception_handler(MfaUnavailable)
@@ -128,6 +139,8 @@ app.include_router(admin_students_router, prefix="/api")
 app.include_router(admin_staff_router, prefix="/api")
 app.include_router(admin_batches_router, prefix="/api")
 app.include_router(admin_class_schedule_router, prefix="/api")
+app.include_router(admin_trainer_scheduling_router, prefix="/api")
+app.include_router(staff_availability_router, prefix="/api")
 app.include_router(admin_interviews_router, prefix="/api")
 app.include_router(lab_vm_agent_router, prefix="/api")
 app.include_router(admin_meetings_router, prefix="/api")

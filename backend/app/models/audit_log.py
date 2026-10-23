@@ -80,6 +80,14 @@ class AuthEventType(str, enum.Enum):
     meeting_recording_stopped = "meeting_recording_stopped"
     meeting_recording_deleted = "meeting_recording_deleted"
 
+    # Trainer scheduling: availability edits and batch-trainer assignment.
+    trainer_availability_changed = "trainer_availability_changed"
+    batch_trainer_assigned = "batch_trainer_assigned"
+    batch_trainer_changed = "batch_trainer_changed"
+    batch_trainer_unassigned = "batch_trainer_unassigned"
+    batch_trainer_override = "batch_trainer_override"
+    trainer_expertise_changed = "trainer_expertise_changed"
+
     # Community join flow — login/logout for a Community user reuse the
     # generic login_success/login_failure/logout events above (routes_auth.py
     # doesn't branch by role), so only the registration-specific steps get

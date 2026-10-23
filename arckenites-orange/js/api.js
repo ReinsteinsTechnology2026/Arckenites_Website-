@@ -94,6 +94,7 @@ const ArckAPI = {
       // (e.g. duplicate-registration responses). Additive only; never secrets.
       err.code = data && data.code;
       err.hint = data && data.hint;
+      err.data = data; // full error body (e.g. scheduling conflict lists); never secrets
       throw err;
     }
 

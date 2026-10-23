@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" class="auth-pending">
+<head>
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('ak_theme') || 'dark');</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trainer Scheduling | Arckenites Hub</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet" href="css/style.css?v=21">
+<link rel="stylesheet" href="css/scheduling.css?v=1">
+
+</head>
+<body>
+
+<div class="admin-auth-loader" id="adminAuthLoader"><div class="loader-mark"><img src="assets/logo.png" alt="Arckenites"></div></div>
+
+<div class="admin-shell">
+
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-sidebar-brand">
+      <img src="assets/logo-wordmark.png" alt="Arckenites" class="admin-brand-wordmark">
+      <span>Hub</span>
+    </div>
+
+    <nav class="admin-sidebar-nav">
+      <a href="admin-dashboard.html" class="admin-sidebar-link" title="Dashboard">
+        <i class="fa-solid fa-gauge-high"></i><span class="label">Dashboard</span>
+      </a>
+
+      <div class="admin-sidebar-group is-open">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="true">
+          <span>Management</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><a href="admin-students.html" class="admin-sidebar-link" title="Students"><i class="fa-solid fa-user-graduate"></i><span class="label">Students</span></a></li>
+          <li><a href="admin-staff.html" class="admin-sidebar-link" title="Trainers"><i class="fa-solid fa-chalkboard-user"></i><span class="label">Trainers</span></a></li>
+          <li><a href="admin-programs.html" class="admin-sidebar-link" title="Programs"><i class="fa-solid fa-diagram-project"></i><span class="label">Programs</span></a></li>
+          <li><a href="admin-batches.html" class="admin-sidebar-link" title="Batches"><i class="fa-solid fa-people-group"></i><span class="label">Batches</span></a></li>
+          <li><a href="admin-class-schedule.html" class="admin-sidebar-link" title="Class Schedule"><i class="fa-solid fa-calendar-days"></i><span class="label">Class Schedule</span></a></li>
+          <li><a href="admin-trainer-scheduling.html" class="admin-sidebar-link is-active" aria-current="page" title="Trainer Scheduling"><i class="fa-solid fa-user-clock"></i><span class="label">Trainer Scheduling</span></a></li>
+          <li><a href="admin-meetings.html" class="admin-sidebar-link" title="Meetings"><i class="fa-solid fa-video"></i><span class="label">Meetings</span></a></li>
+          <li><a href="admin-support.html" class="admin-sidebar-link" title="Support Tickets"><i class="fa-solid fa-headset"></i><span class="label">Support Tickets</span></a></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>Permissions</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>Database</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><a href="admin-students.html?view=database" class="admin-sidebar-link" title="Student Database"><i class="fa-solid fa-database"></i><span class="label">Student Database</span></a></li>
+          <li><a href="admin-staff.html" class="admin-sidebar-link" title="Staff Database"><i class="fa-solid fa-database"></i><span class="label">Staff Database</span></a></li>
+          <li><a href="admin-leads.html" class="admin-sidebar-link" title="Leads Database"><i class="fa-solid fa-address-book"></i><span class="label">Leads Database</span></a></li>
+          <li><a href="admin-community.html" class="admin-sidebar-link" title="Community Database"><i class="fa-solid fa-people-roof"></i><span class="label">Community Database</span></a></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>Placement</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Placement Candidates — coming soon"><i class="fa-solid fa-user-tie"></i><span class="label">Placement Candidates</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Companies — coming soon"><i class="fa-solid fa-building"></i><span class="label">Companies</span><span class="soon-badge">Soon</span></button></li>
+          <li><a href="admin-job-applications.html" class="admin-sidebar-link" title="Job Applications"><i class="fa-solid fa-briefcase"></i><span class="label">Job Applications</span></a></li>
+          <li><a href="admin-interviews.html" class="admin-sidebar-link" title="Interviews"><i class="fa-solid fa-comments"></i><span class="label">Interviews</span></a></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Placement Statistics — coming soon"><i class="fa-solid fa-chart-pie"></i><span class="label">Placement Statistics</span><span class="soon-badge">Soon</span></button></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>Website</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Website Content — coming soon"><i class="fa-solid fa-file-lines"></i><span class="label">Website Content</span><span class="soon-badge">Soon</span></button></li>
+          <li><button type="button" class="admin-sidebar-link is-disabled" disabled title="Careers — coming soon"><i class="fa-solid fa-suitcase"></i><span class="label">Careers</span><span class="soon-badge">Soon</span></button></li>
+          <li><a href="admin-contact-enquiries.html" class="admin-sidebar-link" title="Contact Enquiries"><i class="fa-solid fa-envelope"></i><span class="label">Contact Enquiries</span></a></li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-group">
+        <button type="button" class="admin-sidebar-group-header" aria-expanded="false">
+          <span>System</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <ul class="admin-sidebar-group-list">
+          <li><a href="admin-users.html" class="admin-sidebar-link" title="Admin Users"><i class="fa-solid fa-user-shield"></i><span class="label">Admin Users</span></a></li>
+          <li><a href="admin-roles.html" class="admin-sidebar-link" title="Roles &amp; Permissions"><i class="fa-solid fa-key"></i><span class="label">Roles &amp; Permissions</span></a></li>
+          <li><a href="admin-activity-logs.html" class="admin-sidebar-link" title="Activity Logs"><i class="fa-solid fa-clock-rotate-left"></i><span class="label">Activity Logs</span></a></li>
+          <li><a href="admin-settings.html" class="admin-sidebar-link" title="Settings"><i class="fa-solid fa-sliders"></i><span class="label">Settings</span></a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="admin-sidebar-logout">
+      <div class="admin-dropdown admin-sidebar-account">
+        <button type="button" class="admin-profile-trigger" id="adminProfileTrigger">
+          <span class="label">Organizational Settings</span>
+          <i class="fa-solid fa-chevron-up"></i>
+        </button>
+        <div class="admin-dropdown-panel" id="adminProfilePanel">
+          <div class="admin-profile-meta">
+            <strong id="adminProfileName">Admin</strong>
+            <span id="adminProfileRole">admin</span>
+          </div>
+          <a class="admin-dropdown-link" href="change-password.html"><i class="fa-solid fa-key"></i> Change Password</a>
+          <button type="button" class="admin-dropdown-link" id="adminProfileLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+        </div>
+      </div>
+      <button type="button" class="admin-sidebar-link" id="adminSidebarLogout" title="Logout" style="display:none;">
+        <i class="fa-solid fa-right-from-bracket"></i><span class="label">Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
+
+  <div class="admin-shell-main">
+    <header class="admin-topbar">
+      <div class="admin-topbar-left">
+        <button type="button" class="icon-btn admin-mobile-toggle" id="adminMobileToggle" aria-label="Open menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <button type="button" class="icon-btn" id="adminSidebarCollapseBtn" aria-label="Collapse sidebar">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+      </div>
+
+      <div class="admin-topbar-actions">
+        <button type="button" class="icon-btn" id="chatTopbarTrigger" aria-label="Messages">
+          <i class="fa-solid fa-comments"></i>
+          <span class="admin-notif-badge" id="chatBadge" style="display:none;">0</span>
+        </button>
+
+        <button type="button" class="icon-btn theme-toggle-btn" aria-label="Switch to light theme" title="Switch to light theme"><i class="fa-solid fa-sun"></i></button>
+        <span class="admin-avatar" id="adminAvatarInitials">A</span>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <div class="admin-server-banner" id="adminServerBanner">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        Cannot reach the Arckenites server. Check that the backend is running, then refresh this page.
+      </div>
+
+      <div class="admin-page-header">
+        <div>
+          <h1>Trainer Scheduling</h1>
+          <p>See who is free, compare calendars, and assign each batch to a suitable trainer. <span id="tzNote"></span></p>
+        </div>
+      </div>
+
+      <section id="alertsPanel" class="admin-panel" style="display:none; margin-bottom:16px;" aria-labelledby="alertsTitle">
+        <div class="admin-panel-header"><h2 id="alertsTitle"><i class="fa-solid fa-triangle-exclamation"></i> Needs attention</h2></div>
+        <ul class="sched-list" id="alertsList"></ul>
+      </section>
+
+      <div class="sched-tabs" role="tablist" aria-label="Trainer scheduling sections">
+        <button type="button" role="tab" id="tabCalendars" aria-selected="true" aria-controls="paneCalendars">Trainer calendars</button>
+        <button type="button" role="tab" id="tabBatches" aria-selected="false" aria-controls="paneBatches">Batch allocation</button>
+        <button type="button" role="tab" id="tabHistory" aria-selected="false" aria-controls="paneHistory">Assignment history</button>
+      </div>
+
+      <div id="paneCalendars" role="tabpanel" aria-labelledby="tabCalendars">
+        <div class="sched-admin">
+          <section class="admin-panel" style="margin-top:0;" aria-label="Trainers">
+            <div class="sched-filters">
+              <label class="sr-only" for="fSearch">Search trainers</label>
+              <input class="form-control" id="fSearch" type="search" placeholder="Search trainer name…" autocomplete="off">
+              <label class="sr-only" for="fProgram">Course expertise</label>
+              <select class="form-select" id="fProgram"><option value="">Any course expertise</option></select>
+              <div class="row2">
+                <div><label class="form-label" for="fFrom" style="font-size:.75rem;">Period from</label><input class="form-control" type="date" id="fFrom"></div>
+                <div><label class="form-label" for="fTo" style="font-size:.75rem;">to</label><input class="form-control" type="date" id="fTo"></div>
+              </div>
+              <details>
+                <summary style="cursor:pointer;font-size:.85rem;font-weight:600;">Filter by date &amp; time</summary>
+                <div style="display:grid;gap:8px;margin-top:8px;">
+                  <input class="form-control" type="date" id="fSlotDate" aria-label="Slot date">
+                  <div class="row2"><input class="form-control" type="time" id="fSlotStart" aria-label="Slot start"><input class="form-control" type="time" id="fSlotEnd" aria-label="Slot end"></div>
+                  <select class="form-select" id="fAvail" aria-label="Availability in that slot">
+                    <option value="any">Any availability</option><option value="free">Free in that slot</option>
+                    <option value="booked">Already booked</option><option value="unavailable">Leave / unavailable</option>
+                    <option value="not_declared">Not declared available</option></select>
+                  <input class="form-control" type="number" min="0" step="1" id="fMinFree" placeholder="Minimum free hours in period" aria-label="Minimum free hours">
+                </div>
+              </details>
+              <button type="button" class="btn btn-accent" id="compareBtn" disabled>Compare selected (0)</button>
+            </div>
+            <ul class="sched-list" id="trainerList" aria-live="polite"><li class="muted">Loading…</li></ul>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-top:1px solid var(--border-c);font-size:.82rem;">
+              <button type="button" class="sched-btn" id="trPrev">Previous</button><span id="trPage"></span><button type="button" class="sched-btn" id="trNext">Next</button>
+            </div>
+          </section>
+
+          <section aria-live="polite">
+            <div id="trainerPanelEmpty" class="sched-empty"><h3>Select a trainer</h3><p style="margin:0;color:var(--muted);">Choose a trainer on the left to see their calendar, or tick several and compare them side by side.</p></div>
+            <div id="trainerPanel" style="display:none;">
+              <div class="sched-toolbar">
+                <h2 id="tpName" style="margin:0;font-size:1.25rem;"></h2>
+                <div class="spacer"></div>
+                <button type="button" class="sched-btn" id="tpExpertise">Course expertise</button>
+                <button type="button" class="sched-btn" id="tpRequest">Request availability update</button>
+              </div>
+              <p id="tpPrograms" style="color:var(--muted);margin:0 0 12px;font-size:.88rem;"></p>
+              <div class="sched-stats" id="tpStats"></div>
+              <div id="legend"></div>
+              <div id="tpCalendar"></div>
+            </div>
+            <div id="comparePanel" style="display:none;">
+              <div class="sched-toolbar">
+                <h2 style="margin:0;font-size:1.25rem;">Comparing trainers</h2><div class="spacer"></div>
+                <button type="button" class="sched-btn" id="cmpPrev" aria-label="Previous week"><i class="fa-solid fa-chevron-left"></i></button>
+                <button type="button" class="sched-btn" id="cmpToday">This week</button>
+                <button type="button" class="sched-btn" id="cmpNext" aria-label="Next week"><i class="fa-solid fa-chevron-right"></i></button>
+                <button type="button" class="sched-btn" id="cmpClose">Close comparison</button>
+              </div>
+              <div id="cmpLegend"></div>
+              <div class="sched-compare" id="cmpBody"></div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div id="paneBatches" role="tabpanel" aria-labelledby="tabBatches" hidden>
+        <div class="sched-admin">
+          <section class="admin-panel" style="margin-top:0;" aria-label="Batches">
+            <div class="sched-filters">
+              <label class="sr-only" for="bSearch">Search batches</label>
+              <input class="form-control" id="bSearch" type="search" placeholder="Search batch name…" autocomplete="off">
+              <label style="font-size:.85rem;"><input type="checkbox" id="bNeeds"> Only batches without a trainer</label>
+            </div>
+            <ul class="sched-list" id="batchList" aria-live="polite"><li class="muted">Loading…</li></ul>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-top:1px solid var(--border-c);font-size:.82rem;">
+              <button type="button" class="sched-btn" id="bPrev">Previous</button><span id="bPage"></span><button type="button" class="sched-btn" id="bNext">Next</button>
+            </div>
+          </section>
+          <section id="recPanel" aria-live="polite">
+            <div class="sched-empty"><h3>Pick a batch</h3><p style="margin:0;color:var(--muted);">Select a batch to see suitable trainers, ranked with the reasons. Nothing is assigned until you confirm.</p></div>
+          </section>
+        </div>
+      </div>
+
+      <div id="paneHistory" role="tabpanel" aria-labelledby="tabHistory" hidden>
+        <div class="admin-panel" style="margin-top:0;">
+          <div class="admin-panel-header" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;">
+            <h2 id="histTitle">Assignment history</h2>
+            <span style="font-size:.82rem;color:var(--muted);">Full audit records: <a href="admin-activity-logs.html">Activity Logs</a> (module “scheduling”)</span>
+          </div>
+          <table class="admin-activity-table">
+            <thead><tr><th>When</th><th>Batch</th><th>Change</th><th>By</th><th>Override</th></tr></thead>
+            <tbody id="histBody"><tr><td colspan="5" class="admin-panel-empty">Loading…</td></tr></tbody>
+          </table>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-top:1px solid var(--border-c);font-size:.82rem;">
+            <button type="button" class="sched-btn" id="hPrev">Previous</button><span id="hPage"></span><button type="button" class="sched-btn" id="hNext">Next</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="chat-backdrop" id="chatBackdrop"></div>
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-panel-header">
+    <button type="button" class="icon-btn chat-back" id="chatBack" style="display:none;" aria-label="Back to conversations"><i class="fa-solid fa-arrow-left"></i></button>
+    <strong id="chatTitle">Messages</strong>
+    <button type="button" class="icon-btn" id="chatClose" aria-label="Close chat"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="chat-body">
+    <div class="chat-list-view" id="chatListView">
+      <div class="chat-search-row">
+        <input type="text" class="form-control" id="chatSearchInput" placeholder="Search by username or name&hellip;" autocomplete="off">
+      </div>
+      <div id="chatSearchResults" class="chat-search-results" style="display:none;"></div>
+      <div class="chat-conversation-list" id="chatConversationList">
+        <div class="admin-panel-empty">Loading&hellip;</div>
+      </div>
+    </div>
+    <div class="chat-thread-view" id="chatThreadView" style="display:none;">
+      <div class="chat-messages" id="chatMessages"></div>
+      <form class="chat-input-row" id="chatForm">
+        <input type="text" class="form-control" id="chatInput" placeholder="Type a message&hellip;" autocomplete="off">
+        <button type="submit" class="btn btn-accent" id="chatSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js?v=4"></script>
+<script src="js/auth.js?v=9"></script>
+<script src="js/theme.js?v=1"></script>
+<script src="js/scheduling-ui.js?v=1"></script>
+<script src="js/scheduling-calendar.js?v=1"></script>
+<script src="js/admin-trainer-scheduling.js?v=1"></script>
+<script src="js/chat.js?v=1"></script>
+
+<div id="toasts" class="sched-toast" role="status" aria-live="polite"></div>
+</body>
+</html>

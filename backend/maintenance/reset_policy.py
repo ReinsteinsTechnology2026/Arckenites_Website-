@@ -20,10 +20,15 @@ OWNED = {
     "lab_slot_bookings": "student_id", "lab_access_overrides": "student_id",
     "lab_vm_access": "student_id", "batch_chat_read_state": "user_id",
     "community_post_email_deliveries": "user_id",
+    "trainer_availability_rules": "trainer_id", "trainer_availability_entries": "trainer_id",
+    "trainer_expertise": "trainer_id", "scheduling_notices": "trainer_id",
     "mfa_credentials": "user_id", "mfa_recovery_codes": "user_id",
     "mfa_challenges": "user_id",
 }
-MANUAL = {"batches", "class_sessions", "study_materials", "class_videos", "leads"}
+# batch_trainer_assignments is shared batch history (trainer, admin actor, batch). Whether it is
+# kept or removed with a deleted trainer/batch is an unresolved retention decision, so it is held.
+MANUAL = {"batches", "class_sessions", "study_materials", "class_videos", "leads",
+          "batch_trainer_assignments"}
 ALL_TABLES = PRESERVE | AUDIT | set(OWNED) | MANUAL | {
     "users", "community_registrations", "contact_enquiries", "community_posts",
     "conversations", "direct_messages", "batch_messages", "support_tickets",

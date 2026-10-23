@@ -35,6 +35,9 @@ PERMISSION_CATALOG: list[dict] = [
     {"key": "batches.create", "module": "Batches", "action": "create", "description": "Create batches."},
     {"key": "batches.edit", "module": "Batches", "action": "edit", "description": "Edit batches, including scheduling classes."},
     {"key": "batches.delete", "module": "Batches", "action": "delete", "description": "Delete batches."},
+    {"key": "scheduling.view", "module": "Scheduling", "action": "view", "description": "View trainer availability, workload and assignment history."},
+    {"key": "scheduling.manage", "module": "Scheduling", "action": "manage", "description": "Assign or change a batch's trainer, manage trainer expertise and request availability changes."},
+    {"key": "scheduling.override", "module": "Scheduling", "action": "override", "description": "Override an availability, leave or workload conflict when assigning a trainer (a reason is recorded)."},
     {"key": "batches.student_sections_manage", "module": "Batches", "action": "student_sections_manage", "description": "Enable or disable student Job Applications and Interview Schedule access for a batch."},
 
     {"key": "lab_access.view", "module": "Lab Access", "action": "view", "description": "View per-student lab slot bookings and lock/unlock status."},
@@ -111,13 +114,13 @@ PERMISSION_CATALOG: list[dict] = [
 
 PERMISSION_KEYS: frozenset[str] = frozenset(p["key"] for p in PERMISSION_CATALOG)
 
-_OPERATIONAL_MODULES = ["students", "trainers", "programs", "batches", "placement", "lab_access", "meetings", "leads"]
+_OPERATIONAL_MODULES = ["students", "trainers", "programs", "batches", "placement", "lab_access", "meetings", "leads", "scheduling"]
 
 # Default grants for the three editable system roles. Super Admin is not
 # here — its access is computed (see user_has_permission), never read from
 # this table.
 DEFAULT_GRANTS: dict[str, list[str]] = {
-    "admin": [k for k in PERMISSION_KEYS if k.split(".")[0] in _OPERATIONAL_MODULES and k != "batches.student_sections_manage"]
+    "admin": [k for k in PERMISSION_KEYS if k.split(".")[0] in _OPERATIONAL_MODULES and k not in ("batches.student_sections_manage", "scheduling.override")]
     + ["batches.student_sections_manage"]
     + ["activity_logs.view"]
     + [k for k in PERMISSION_KEYS if k.split(".")[0] == "support"],
