@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 <link rel="stylesheet" href="css/style.css?v=21">
+<link rel="stylesheet" href="css/scheduling.css?v=1">
 
 </head>
 <body>
@@ -63,6 +64,22 @@
       <h1 id="staffGreeting">Welcome back</h1>
       <p>Manage your training schedule and assigned batches.</p>
     </div></section>
+    <section class="admin-panel" id="trainerCalendarSection" aria-labelledby="trainerCalendarTitle" style="margin-bottom:32px;">
+      <div class="admin-panel-header" style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+        <h2 id="trainerCalendarTitle"><i class="fa-solid fa-calendar-check"></i> Trainer Availability Calendar</h2>
+        <a href="staff-availability.html" class="btn btn-primary-outline">Manage availability</a>
+      </div>
+      <div id="trainerCalendarLegend"></div>
+      <div id="trainerCalendar"></div>
+    </section>
+
+    <h1>My Batches</h1>
+    <p>Select a batch to manage its schedule, chat, meetings, and materials.</p>
+
+    <div id="batchCardsGrid" class="batch-card-grid">
+      <div class="admin-panel-empty">Loading&hellip;</div>
+    </div>
+
     <h1>My Meetings</h1>
     <p>Meetings you're hosting or invited to.</p>
     <div class="admin-panel" style="margin-bottom:32px;">
@@ -70,13 +87,6 @@
         <thead><tr><th>Meeting</th><th>Host</th><th>Date</th><th>Time</th><th>Status</th><th></th></tr></thead>
         <tbody id="myMeetingsBody"><tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
       </table>
-    </div>
-
-    <h1>My Batches</h1>
-    <p>Select a batch to manage its schedule, chat, meetings, and materials.</p>
-
-    <div id="batchCardsGrid" class="batch-card-grid">
-      <div class="admin-panel-empty">Loading&hellip;</div>
     </div>
   </div>
 
@@ -177,7 +187,8 @@
 <script src="js/api.js?v=3"></script>
 <script src="js/auth.js?v=7"></script>
 <script src="js/theme.js?v=1"></script>
-<script src="js/staff-dashboard.js?v=5"></script>
+<script src="js/scheduling-calendar.js?v=1"></script>
+<script src="js/staff-dashboard.js?v=6"></script>
 <script src="js/mfa-controls.js?v=2"></script>
 <script src="js/chat.js?v=1"></script>
 

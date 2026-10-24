@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0b0d11">
 <title>Arckenites Portal | Choose Your Access</title>
-<meta name="description" content="Choose your Arckenites student or staff portal and continue to your account.">
+<meta name="description" content="Choose your Arckenites student or trainer portal and continue to your account.">
 <link rel="icon" href="assets/favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,12 +47,19 @@
           </span>
           <span class="portal-choice-action">Student Login <span aria-hidden="true">→</span></span>
         </a>
-        <a class="portal-choice portal-choice-staff" href="login.html?portal=staff">
+        <a class="portal-choice portal-choice-staff" href="login.html?portal=staff&amp;as=trainer">
           <span class="portal-choice-main">
-            <span class="portal-choice-icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
-            <span class="portal-choice-copy"><strong>Staff &amp; Admin Portal</strong><span>Access your workspace.</span></span>
+            <span class="portal-choice-icon"><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i></span>
+            <span class="portal-choice-copy"><strong>Trainer Portal</strong><span>Manage your batches and availability.</span></span>
           </span>
-          <span class="portal-choice-action">Staff Login <span aria-hidden="true">→</span></span>
+          <span class="portal-choice-action">Trainer Login <span aria-hidden="true">→</span></span>
+        </a>
+        <a class="portal-choice portal-choice-staff" href="login.html?portal=staff&amp;as=admin">
+          <span class="portal-choice-main">
+            <span class="portal-choice-icon"><i class="fa-solid fa-user-shield" aria-hidden="true"></i></span>
+            <span class="portal-choice-copy"><strong>Admin Portal</strong><span>Administer the platform.</span></span>
+          </span>
+          <span class="portal-choice-action">Admin Login <span aria-hidden="true">→</span></span>
         </a>
         <a class="portal-community" href="login.html?portal=community">Community Login</a>
         <a class="portal-community" href="community-register.html">Join the Arckenites Community <span aria-hidden="true">→</span></a>

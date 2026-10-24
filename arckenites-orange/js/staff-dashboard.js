@@ -258,6 +258,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
+  /* ---------- Availability calendar (read-only; edit on staff-availability.html) ---------- */
+  document.getElementById('trainerCalendarLegend').innerHTML = SchedCal.legendHtml();
+  SchedCal.mount(document.getElementById('trainerCalendar'), {
+    editable: false,
+    load: (s, e) => ArckAPI.request(`/staff/me/availability?start=${s}&end=${e}`),
+  });
+
   await loadBatches();
   await loadMyMeetings();
 
