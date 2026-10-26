@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   chooser.style.display = validPortal ? 'none' : '';
   loginPanel.style.display = validPortal ? '' : 'none';
   document.getElementById('loginSubtitle').textContent = validPortal
-    ? (portal === 'student' ? 'Sign in to your Student Portal.' : portal === 'community' ? 'Sign in to your Community Portal.' : params.get('as') === 'admin' ? 'Sign in to your Admin Portal.' : 'Sign in to your Trainer Portal.')
+    ? (portal === 'student' ? 'Sign in to your Student Portal.' : portal === 'community' ? 'Sign in to your Community Portal.' : params.get('as') === 'admin' ? 'Sign in to your Admin Portal.' : params.get('as') === 'trainer' ? 'Sign in to your Trainer Portal.' : 'Sign in to your Admin or Trainer Portal.')
     : 'Choose your portal to continue.';
   document.getElementById('portalBack').addEventListener('click', (event) => {
     event.preventDefault();
