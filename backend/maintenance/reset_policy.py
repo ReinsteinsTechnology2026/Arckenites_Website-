@@ -27,8 +27,10 @@ OWNED = {
 }
 # batch_trainer_assignments is shared batch history (trainer, admin actor, batch). Whether it is
 # kept or removed with a deleted trainer/batch is an unresolved retention decision, so it is held.
+# Inauguration feedback contains contact details and is held until its retention
+# policy is decided; a reset preview must not silently delete submissions.
 MANUAL = {"batches", "class_sessions", "study_materials", "class_videos", "leads",
-          "batch_trainer_assignments"}
+          "batch_trainer_assignments", "inauguration_feedback"}
 ALL_TABLES = PRESERVE | AUDIT | set(OWNED) | MANUAL | {
     "users", "community_registrations", "contact_enquiries", "community_posts",
     "conversations", "direct_messages", "batch_messages", "support_tickets",

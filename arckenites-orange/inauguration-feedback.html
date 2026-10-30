@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inauguration Session — Feedback &amp; Reviews | New Era Technologies</title>
+<meta name="description" content="Share your feedback on the New Era Technologies Inauguration Session and leave a Google Review.">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#080A0D">
+<style>html,body{background:#080A0D;color-scheme:dark}</style>
+<link rel="icon" href="assets/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/inauguration-feedback.css?v=5">
+</head>
+<body>
+
+<a class="skip-link" href="#feedbackForm">Skip to the feedback form</a>
+
+<header class="fb-header">
+  <img src="assets/logo-wordmark.png" alt="Arckenites" class="fb-logo" width="2171" height="724">
+  <p class="fb-brand">NEW ERA TECHNOLOGIES</p>
+  <h1>Inauguration Session — Feedback &amp; Reviews</h1>
+  <p class="fb-subtitle">Thank you for being part of our journey! Your feedback helps us improve and create better learning experiences.</p>
+</header>
+
+<main class="fb-main">
+  <section class="fb-card" id="formCard" aria-labelledby="formTitle">
+    <h2 id="formTitle">Share your feedback</h2>
+    <p class="fb-note">Fields marked <span class="req" aria-hidden="true">*</span><span class="sr-only">with an asterisk</span> are required.</p>
+
+    <form id="feedbackForm" novalidate>
+      <div class="fb-alert" id="formError" role="alert" hidden></div>
+
+      <div class="fb-field">
+        <label for="fbName">1. Name <span class="req" aria-hidden="true">*</span></label>
+        <input type="text" id="fbName" name="name" autocomplete="name" maxlength="200" required aria-describedby="err-name">
+        <p class="fb-error" id="err-name" role="alert"></p>
+      </div>
+
+      <fieldset class="fb-field" aria-describedby="err-domain">
+        <legend>2. Your Domain <span class="req" aria-hidden="true">*</span></legend>
+        <div class="fb-options" data-group="domain">
+          <label class="fb-opt"><input type="radio" name="domain" value="IT"><span>IT</span></label>
+          <label class="fb-opt"><input type="radio" name="domain" value="Cloud"><span>Cloud</span></label>
+          <label class="fb-opt"><input type="radio" name="domain" value="Networking"><span>Networking</span></label>
+          <label class="fb-opt"><input type="radio" name="domain" value="Cybersecurity"><span>Cybersecurity</span></label>
+          <label class="fb-opt"><input type="radio" name="domain" value="Others"><span>Others</span></label>
+        </div>
+        <div class="fb-sub" id="domainOtherWrap" hidden>
+          <label for="fbDomainOther">Please specify your domain <span class="req" aria-hidden="true">*</span></label>
+          <input type="text" id="fbDomainOther" name="domain_other" maxlength="200" aria-describedby="err-domain_other">
+          <p class="fb-error" id="err-domain_other" role="alert"></p>
+        </div>
+        <p class="fb-error" id="err-domain" role="alert"></p>
+      </fieldset>
+
+      <fieldset class="fb-field" aria-describedby="err-overall_session">
+        <legend>3. Overall Session <span class="req" aria-hidden="true">*</span></legend>
+        <div class="fb-options">
+          <label class="fb-opt"><input type="radio" name="overall_session" value="Excellent"><span>Excellent</span></label>
+          <label class="fb-opt"><input type="radio" name="overall_session" value="Very Good"><span>Very Good</span></label>
+          <label class="fb-opt"><input type="radio" name="overall_session" value="Good"><span>Good</span></label>
+          <label class="fb-opt"><input type="radio" name="overall_session" value="Average"><span>Average</span></label>
+        </div>
+        <p class="fb-error" id="err-overall_session" role="alert"></p>
+      </fieldset>
+
+      <fieldset class="fb-field" aria-describedby="err-usefulness">
+        <legend>4. Session Usefulness <span class="req" aria-hidden="true">*</span></legend>
+        <div class="fb-options">
+          <label class="fb-opt"><input type="radio" name="usefulness" value="Very Useful"><span>Very Useful</span></label>
+          <label class="fb-opt"><input type="radio" name="usefulness" value="Useful"><span>Useful</span></label>
+          <label class="fb-opt"><input type="radio" name="usefulness" value="Average"><span>Average</span></label>
+          <label class="fb-opt"><input type="radio" name="usefulness" value="Not Useful"><span>Not Useful</span></label>
+        </div>
+        <p class="fb-error" id="err-usefulness" role="alert"></p>
+      </fieldset>
+
+      <fieldset class="fb-field" aria-describedby="err-learned_something">
+        <legend>5. Did You Learn Something New? <span class="req" aria-hidden="true">*</span></legend>
+        <div class="fb-options">
+          <label class="fb-opt"><input type="radio" name="learned_something" value="Yes"><span>Yes</span></label>
+          <label class="fb-opt"><input type="radio" name="learned_something" value="No"><span>No</span></label>
+        </div>
+        <p class="fb-error" id="err-learned_something" role="alert"></p>
+      </fieldset>
+
+      <fieldset class="fb-field" aria-describedby="err-liked_topic">
+        <legend>6. Topic You Liked Most <span class="req" aria-hidden="true">*</span></legend>
+        <div class="fb-options">
+          <label class="fb-opt"><input type="radio" name="liked_topic" value="AI"><span>AI</span></label>
+          <label class="fb-opt"><input type="radio" name="liked_topic" value="Cloud"><span>Cloud</span></label>
+          <label class="fb-opt"><input type="radio" name="liked_topic" value="Cybersecurity"><span>Cybersecurity</span></label>
+          <label class="fb-opt"><input type="radio" name="liked_topic" value="Networking"><span>Networking</span></label>
+          <label class="fb-opt"><input type="radio" name="liked_topic" value="Other"><span>Other</span></label>
+        </div>
+        <div class="fb-sub" id="topicOtherWrap" hidden>
+          <label for="fbTopicOther">Which topic? (optional)</label>
+          <input type="text" id="fbTopicOther" name="liked_topic_other" maxlength="200">
+        </div>
+        <p class="fb-error" id="err-liked_topic" role="alert"></p>
+      </fieldset>
+
+      <fieldset class="fb-field" aria-describedby="err-attend_future">
+        <legend>7. Would You Attend Future Sessions? <span class="req" aria-hidden="true">*</span></legend>
+        <div class="fb-options">
+          <label class="fb-opt"><input type="radio" name="attend_future" value="Yes"><span>Yes</span></label>
+          <label class="fb-opt"><input type="radio" name="attend_future" value="Maybe"><span>Maybe</span></label>
+          <label class="fb-opt"><input type="radio" name="attend_future" value="No"><span>No</span></label>
+        </div>
+        <p class="fb-error" id="err-attend_future" role="alert"></p>
+      </fieldset>
+
+      <div class="fb-field">
+        <label for="fbSuggestion">8. One Suggestion <span class="fb-optional">(optional)</span></label>
+        <textarea id="fbSuggestion" name="suggestion" rows="4" maxlength="2000"></textarea>
+      </div>
+
+      <fieldset class="fb-field" aria-describedby="err-contact_preference">
+        <legend>9. Would You Like Us to Contact You to Discuss Our Courses? <span class="req" aria-hidden="true">*</span></legend>
+        <div class="fb-options fb-options--stack">
+          <label class="fb-opt"><input type="radio" name="contact_preference" value="yes"><span>Yes, please contact me</span></label>
+          <label class="fb-opt"><input type="radio" name="contact_preference" value="maybe"><span>Maybe, I would like more information</span></label>
+          <label class="fb-opt"><input type="radio" name="contact_preference" value="no"><span>No, thank you</span></label>
+        </div>
+        <p class="fb-error" id="err-contact_preference" role="alert"></p>
+      </fieldset>
+
+      <div class="fb-field" id="contactWrap" hidden>
+        <label for="fbPhone">10. Contact Number <span class="req" aria-hidden="true">*</span></label>
+        <input type="tel" id="fbPhone" name="contact_number" inputmode="tel" autocomplete="tel" placeholder="e.g. 98765 43210" maxlength="20" aria-describedby="phoneHelp err-contact_number">
+        <p class="fb-help" id="phoneHelp">10-digit Indian mobile number. +91 is optional.</p>
+        <p class="fb-error" id="err-contact_number" role="alert"></p>
+      </div>
+
+      <button type="submit" class="fb-btn fb-btn--primary" id="submitBtn">Submit Feedback</button>
+    </form>
+  </section>
+
+  <section class="fb-card fb-thanks" id="thanksCard" tabindex="-1" hidden aria-live="polite">
+    <div class="fb-check" aria-hidden="true">&#10003;</div>
+    <h2>Thank you for your valuable feedback!</h2>
+    <p>Your response has been recorded.</p>
+  </section>
+
+  <section class="fb-card fb-review" id="reviewCard" aria-labelledby="reviewTitle">
+    <div class="fb-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+    <h2 id="reviewTitle">Share Your Experience with Arckenites</h2>
+    <p>Tell us about the sessions you attended, what you learned, and how the experience helped you. Your feedback helps us improve our future sessions and learning experience.</p>
+    <a class="fb-btn fb-btn--review" id="reviewLink" href="https://g.page/r/CVsd_O-2e-jSEBM/review" target="_blank" rel="noopener noreferrer">Write a Google Review<span class="sr-only"> (opens in a new tab)</span></a>
+  </section>
+</main>
+
+<footer class="fb-footer">
+  <p class="fb-footer-brand">NEW ERA TECHNOLOGIES</p>
+  <p>Thank you for being part of our journey.</p>
+  <p><a href="index.html">Visit our website</a></p>
+  <p class="fb-copy">&copy; <span id="year"></span> New Era Technologies</p>
+</footer>
+
+<script src="js/api.js?v=1"></script>
+<script src="js/inauguration-feedback.js?v=1"></script>
+</body>
+</html>

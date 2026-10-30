@@ -3,36 +3,13 @@
 # Production deployment for Arckenites. Runs on the self-hosted runner for
 # every push to main (.github/workflows/deploy.yml).
 #
-# ORDER, AND WHY IT IS SAFE
-#   The backend service is stopped BEFORE any file or schema change, and is
-#   started only AFTER migrations and the RBAC sync have succeeded. So:
-#     - old code never runs against a new schema (it is stopped first), and
-#     - new code never runs against an old schema (it starts last).
-#   An explicit `systemctl stop` is not undone by a Restart= policy, so the
-#   service cannot come back on the new code during the migration window.
-#
-#   1. fetch origin/main for both repositories         (nothing changed yet)
-#   2. stop the backend service                         (no old code serving)
-#   3. reset the application and frontend repositories to the fetched commit
-#   4. pip install -r requirements.txt
-#   5. alembic upgrade head                             (additive migrations)
-#   6. seed.py --rbac-only                              (permission catalog)
-#   7. start the backend service
-#   8. health checks
-#
-# FAILURE HANDLING
-#   No database change is ever reversed automatically, and no migration is
-#   downgraded. Recovery depends on where the failure happened:
-#     - before step 2:  nothing was changed. The service is untouched.
-#     - steps 2-3:      the service is restarted on the code still on disk.
-#     - step 3-4:       code is restored to the previously deployed commit,
-#                       dependencies are reinstalled from it, and the service
-#                       is restarted. No database change had been made.
-#     - steps 5-6:      migrations had started, so the service is LEFT STOPPED.
-#                       An operator must check the schema before any restart.
-#     - steps 7-8:      migrations had finished, so the previous code is NOT
-#                       restored (it would run against the new schema). The
-#                       service is left running for inspection.
+# The workflow tests the exact main commit before invoking this script. The
+# production checkout must be clean and on main; a dirty checkout is refused.
+# Code advances only by fast-forward merge. No reset, stash, or forced checkout
+# can discard local work. The API is stopped before the backup and migrations.
+# A verified custom-format database backup is created outside the checkout.
+# Once migrations start, failure leaves the API stopped for operator review;
+# neither schema downgrade nor code rollback runs automatically.
 #
 # Paths can be overridden with ARCK_* variables for testing. Production uses
 # the defaults and sets none of them.
@@ -46,11 +23,14 @@ SERVICE="${ARCK_SERVICE:-arckenites-backend}"
 HEALTH_URL="${ARCK_HEALTH_URL:-http://127.0.0.1:8000/api/health}"
 READY_URL="${ARCK_READY_URL:-http://127.0.0.1:8000/api/ready}"
 SITE_URL="${ARCK_SITE_URL:-https://arckenites.com}"
+BACKUP_DIR="${ARCK_BACKUP_DIR:-/srv/arckenites/backups}"
+BACKUP_SCRIPT="${ARCK_BACKUP_SCRIPT:-$BACKEND_DIR/maintenance/backup_database.py}"
 
 # Where we are, so the failure handler knows what has and has not changed.
 PHASE="preflight"
 OLD_APP_SHA=""
 OLD_FRONTEND_SHA=""
+BACKUP_FILE=""
 
 log() { echo "[deploy] $*"; }
 
@@ -75,26 +55,19 @@ on_error() {
         preflight)
             log "Nothing was changed. The service was not stopped."
             ;;
-        stopping|stopped)
+        stopping|stopped|backup)
             log "Restarting $SERVICE on the code that is still on disk."
             sudo -n systemctl start "$SERVICE" || log "Could not start $SERVICE. Check it manually."
             ;;
         code)
-            log "Restoring the previously deployed code. No database change had been made."
-            git -C "$APP_DIR" reset --hard "$OLD_APP_SHA" || log "Could not restore application code."
-            if [[ "${FRONTEND_SEPARATE:-false}" == true ]]; then
-                git -C "$FRONTEND_DIR" reset --hard "$OLD_FRONTEND_SHA" || log "Could not restore frontend code."
-            fi
-            if (cd "$BACKEND_DIR" && "$VENV/pip" install -r requirements.txt); then
-                sudo -n systemctl start "$SERVICE" || log "Could not start $SERVICE. Check it manually."
-            else
-                log "Dependency restore failed. $SERVICE is left STOPPED."
-            fi
+            log "Code or dependencies may have changed. $SERVICE is left STOPPED for operator review."
+            log "Previous application commit: $OLD_APP_SHA; backup: $BACKUP_FILE"
             ;;
         migrating)
             log "Migrations had started. $SERVICE is left STOPPED."
             log "Check the schema before any restart: (cd $BACKEND_DIR && $VENV/alembic current)"
-            log "Do not downgrade automatically. Decide the next step with the schema state in hand."
+            log "Verified pre-migration backup: $BACKUP_FILE"
+            log "Do not downgrade or restore automatically. Decide with the schema state in hand."
             ;;
         *)
             log "Migrations had completed. $SERVICE is left in its current state for inspection."
@@ -111,6 +84,11 @@ echo "Starting Arckenites deployment"
 echo "================================"
 
 cd "$APP_DIR"
+[[ "$(git branch --show-current)" == main ]] || { log "Production checkout must be on main."; exit 1; }
+[[ -z "$(git status --porcelain --untracked-files=all)" ]] || { log "Application checkout has local changes; refusing to overwrite them."; exit 1; }
+[[ -d "$BACKEND_DIR" && -x "$VENV/python" && -x "$VENV/pip" ]] || { log "Backend environment is missing."; exit 1; }
+[[ -f "$BACKUP_SCRIPT" ]] || { log "Database backup helper is missing."; exit 1; }
+command -v pg_dump >/dev/null && command -v pg_restore >/dev/null || { log "PostgreSQL backup tools are missing."; exit 1; }
 log "Fetching latest code for both repositories..."
 git fetch origin main
 NEW_APP_SHA="$(git rev-parse origin/main)"
@@ -128,6 +106,8 @@ FRONTEND_GIT_ROOT="$(git -C "$FRONTEND_DIR" rev-parse --show-toplevel)"
 FRONTEND_SEPARATE=false
 if [[ "$FRONTEND_GIT_ROOT" != "$APP_GIT_ROOT" ]]; then
     FRONTEND_SEPARATE=true
+    [[ "$(git -C "$FRONTEND_DIR" branch --show-current)" == main ]] || { log "Frontend checkout must be on main."; exit 1; }
+    [[ -z "$(git -C "$FRONTEND_DIR" status --porcelain --untracked-files=all)" ]] || { log "Frontend checkout has local changes; refusing to overwrite them."; exit 1; }
     git -C "$FRONTEND_DIR" fetch origin main
     NEW_FRONTEND_SHA="$(git -C "$FRONTEND_DIR" rev-parse origin/main)"
     OLD_FRONTEND_SHA="$(git -C "$FRONTEND_DIR" rev-parse HEAD)"
@@ -136,6 +116,13 @@ if [[ "$FRONTEND_GIT_ROOT" != "$APP_GIT_ROOT" ]]; then
         exit 1
     fi
 fi
+git -C "$APP_DIR" merge-base --is-ancestor "$OLD_APP_SHA" "$NEW_APP_SHA" || { log "Application update is not a fast-forward."; exit 1; }
+if [[ "$FRONTEND_SEPARATE" == true ]]; then
+    git -C "$FRONTEND_DIR" merge-base --is-ancestor "$OLD_FRONTEND_SHA" "$NEW_FRONTEND_SHA" || { log "Frontend update is not a fast-forward."; exit 1; }
+fi
+case "$(realpath -m "$BACKUP_DIR")/" in
+    "$(realpath -m "$APP_DIR")/"*) log "Backup directory must be outside the application checkout."; exit 1 ;;
+esac
 log "Deploying application $NEW_APP_SHA (currently $OLD_APP_SHA)"
 
 PHASE="stopping"
@@ -143,12 +130,19 @@ log "Stopping $SERVICE so no old code runs during the schema change..."
 sudo -n systemctl stop "$SERVICE"
 PHASE="stopped"
 
+PHASE="backup"
+umask 077
+install -d -m 700 "$BACKUP_DIR"
+BACKUP_FILE="$BACKUP_DIR/arckenites-$(date -u +%Y%m%dT%H%M%SZ)-${NEW_APP_SHA:0:12}.dump"
+log "Creating and verifying the pre-migration database backup..."
+(cd "$BACKEND_DIR" && PYTHONPATH="$BACKEND_DIR" "$VENV/python" "$BACKUP_SCRIPT" "$BACKUP_FILE")
+
 PHASE="code"
 log "Updating application code..."
-git -C "$APP_DIR" reset --hard "$NEW_APP_SHA"
+git -C "$APP_DIR" merge --ff-only "$NEW_APP_SHA"
 log "Updating frontend code..."
 if [[ "$FRONTEND_SEPARATE" == true ]]; then
-    git -C "$FRONTEND_DIR" reset --hard "$NEW_FRONTEND_SHA"
+    git -C "$FRONTEND_DIR" merge --ff-only "$NEW_FRONTEND_SHA"
 fi
 
 log "Installing backend dependencies..."
@@ -201,5 +195,6 @@ echo "Application: $NEW_APP_SHA"
 echo "Frontend: OK"
 echo "Backend: OK"
 echo "Database migrations: OK"
+echo "Verified pre-migration backup: $BACKUP_FILE"
 echo "Production API: OK"
 echo "================================"
