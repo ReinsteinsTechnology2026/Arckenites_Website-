@@ -100,8 +100,20 @@ async def mfa_unavailable_handler(request: Request, exc: MfaUnavailable):
                   "Contact an administrator; no changes were made."})
 
 
+FEEDBACK_RATE_LIMIT_MESSAGE = "You have sent feedback several times in a short while. Please wait a minute and try again."
+
+
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    if request.url.path.startswith("/api/feedback/"):
+        # Public feedback is stateless (Google Sheets only): no database access here. This is an
+        # ordinary response, so the CORS middleware adds its headers and the page can show the message.
+        return JSONResponse(
+            status_code=429,
+            headers={"Retry-After": "60"},
+            content={"detail": FEEDBACK_RATE_LIMIT_MESSAGE},
+        )
+
     # Best-effort: the request body may not be JSON (or may already be
     # consumed) at this point — a failed peek just means username stays None.
     username = None
@@ -114,13 +126,18 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     ip = request.client.host if request.client else "unknown"
     ua = request.headers.get("user-agent", "unknown")
 
-    db = SessionLocal()
+    # The audit row is best-effort: if the database is unavailable the caller must still get this
+    # 429 (a crash here would become a 500 without CORS headers, which browsers show as "cannot reach server").
     try:
-        write_audit_event(
-            db, AuthEventType.rate_limited, ip, ua, username_attempted=username, detail="login rate limit exceeded"
-        )
-    finally:
-        db.close()
+        db = SessionLocal()
+        try:
+            write_audit_event(
+                db, AuthEventType.rate_limited, ip, ua, username_attempted=username, detail="login rate limit exceeded"
+            )
+        finally:
+            db.close()
+    except Exception as audit_exc:
+        logging.getLogger("rate_limit").error("rate-limit audit write failed error_type=%s", type(audit_exc).__name__)
 
     return JSONResponse(status_code=429, content={"detail": "Too many requests. Please try again shortly."})
 

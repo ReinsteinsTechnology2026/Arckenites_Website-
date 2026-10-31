@@ -42,11 +42,15 @@ jobs:
       - name: Static checks
         run: |
           bash -n deploy.sh
-          find arckenites-orange/js -name '*.js' -print0 | xargs -0 -n1 node --check
-          if [ -d inauguration/js ]; then
-            find inauguration/js -name '*.js' -print0 | xargs -0 -n1 node --check
-          fi
-          for test in backend/tests/*.test.cjs; do node "$test"; done
+          find arckenites-orange/js inauguration/js -name '*.js' -print0 | xargs -0 -n1 node --check
+          node backend/tests/admin_program_ui.test.cjs
+          node backend/tests/admin_dashboard_security.test.cjs
+          node backend/tests/inauguration_endpoint.test.cjs
+          node backend/tests/public_newsletter.test.cjs
+          node backend/tests/mfa_controls_ui.test.cjs
+          node backend/tests/job_applications_ui.test.cjs
+          node backend/tests/inauguration_feedback_ui.test.cjs
+          node backend/tests/feedback_apps_script.test.cjs
           python -m compileall -q backend/app backend/tests
       - name: Validate migration graph without a database
         working-directory: backend

@@ -16,7 +16,6 @@ from app.models.community_post import (
     CommunityPostVisibility,
 )
 from app.models.contact_enquiry import ContactEnquiry
-from app.models.inauguration_feedback import InaugurationFeedback
 from app.models.google_identity import GoogleLoginTicket, UserGoogleIdentity
 from app.models.mfa import MfaCredential, MfaRecoveryCode, MfaChallenge
 from app.models.interview_schedule import InterviewModeEnum, InterviewSchedule, InterviewStatusEnum
@@ -87,7 +86,6 @@ __all__ = [
     "SystemSettings",
     "ClassSession",
     "ContactEnquiry",
-    "InaugurationFeedback",
     "BatchMessage",
     "BatchChatReadState",
     "Batch",

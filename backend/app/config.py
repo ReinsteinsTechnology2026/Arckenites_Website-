@@ -36,6 +36,19 @@ class Settings(BaseSettings):
     # hardcode this in frontend JS; every meeting join URL is built from it.
     meet_domain: str = "meet.arckenites.com"
 
+    # Inauguration feedback is stored ONLY in a Google Sheet (app/core/feedback_sheets.py). The
+    # Apps Script Web App URL and the shared secret are server-side only and are never sent to
+    # the browser. The spreadsheet id lives inside the Apps Script, never in this app or in any
+    # request. If either value is blank the feedback endpoint answers 503 instead of pretending to save.
+    feedback_sheets_webapp_url: str = ""
+    feedback_sheets_shared_secret: str = ""
+    # Kept below the page's own 25 s request limit so the visitor gets a clear error to retry.
+    feedback_sheets_timeout_seconds: float = 10.0
+
+    @property
+    def feedback_sheets_configured(self) -> bool:
+        return bool(self.feedback_sheets_webapp_url and self.feedback_sheets_shared_secret)
+
     # Outbound email for the notification-toggle feature (app/core/notify.py).
     # Gmail SMTP by default: smtp_username is the sending Gmail address,
     # smtp_password is a 16-char Google App Password (NOT the account

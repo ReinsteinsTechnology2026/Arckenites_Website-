@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 # Indian mobile: optional +91 / 91 / 0 prefix, then 10 digits starting 6-9.
 _IN_MOBILE_RE = re.compile(r"^[6-9]\d{9}$")
+# Client-generated id for one submission attempt series; the sheet de-duplicates on it.
+_UUID_RE = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 
 
 def normalize_indian_mobile(raw: str) -> str | None:
@@ -17,6 +19,7 @@ def normalize_indian_mobile(raw: str) -> str | None:
 
 
 class InaugurationFeedbackRequest(BaseModel):
+    submission_id: str = Field(min_length=36, max_length=36)
     name: str = Field(min_length=1, max_length=200)
     domain: Literal["IT", "Cloud", "Networking", "Cybersecurity", "Others"]
     domain_other: str | None = Field(default=None, max_length=200)
@@ -37,6 +40,13 @@ class InaugurationFeedbackRequest(BaseModel):
             return None
         value = value.strip()
         return value or None
+
+    @field_validator("submission_id")
+    @classmethod
+    def check_submission_id(cls, value: str) -> str:
+        if not _UUID_RE.match(value):
+            raise ValueError("Invalid submission id.")
+        return value.lower()
 
     @model_validator(mode="after")
     def check_conditionals(self):

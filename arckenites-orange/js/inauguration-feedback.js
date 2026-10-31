@@ -1,5 +1,6 @@
 // Inauguration feedback page: validation, conditional fields, and the real
-// POST to /api/feedback/inauguration. Success is only shown on a 2xx response.
+// POST to /api/feedback/inauguration. Success is only shown on a 2xx response, which the
+// server sends only after Google Sheets confirms the row (the sheet is the only store).
 // Pure helpers are exported for backend/tests/inauguration_feedback_ui.test.cjs.
 (function () {
   'use strict';
@@ -48,6 +49,7 @@
     var wantsContact = v.contact_preference === 'yes' || v.contact_preference === 'maybe';
     var text = function (s) { return String(s || '').trim() || null; };
     return {
+      submission_id: v.submission_id,
       name: String(v.name || '').trim(),
       domain: v.domain,
       domain_other: v.domain === 'Others' ? text(v.domain_other) : null,
@@ -63,8 +65,23 @@
     };
   }
 
+
+  // One id per submission attempt series. It is kept across failed attempts so a retry cannot
+  // create a second spreadsheet row (the sheet de-duplicates on it), and replaced after success.
+  function newSubmissionId(cryptoObj) {
+    var c = cryptoObj || (typeof crypto !== 'undefined' ? crypto : null);
+    if (c && typeof c.randomUUID === 'function') return c.randomUUID();
+    var b = new Uint8Array(16);
+    if (c && typeof c.getRandomValues === 'function') c.getRandomValues(b);
+    else for (var i = 0; i < 16; i++) b[i] = Math.floor(Math.random() * 256);
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    var h = Array.prototype.map.call(b, function (x) { return (x + 256).toString(16).slice(1); }).join('');
+    return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
+  }
+
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { validate: validate, buildPayload: buildPayload, normalizeIndianMobile: normalizeIndianMobile };
+    module.exports = { validate: validate, buildPayload: buildPayload, normalizeIndianMobile: normalizeIndianMobile, newSubmissionId: newSubmissionId };
   }
   if (typeof document === 'undefined') return;
 
@@ -73,6 +90,7 @@
   var submitBtn = document.getElementById('submitBtn');
   var formError = document.getElementById('formError');
   var submitting = false;
+  var submissionId = newSubmissionId();
 
   document.getElementById('year').textContent = new Date().getFullYear();
 
@@ -83,6 +101,7 @@
 
   function values() {
     return {
+      submission_id: submissionId,
       name: form.elements.name.value,
       domain: radio('domain'),
       domain_other: form.elements.domain_other.value,
@@ -152,8 +171,9 @@
     }
 
     setBusy(true);
-    ArckAPI.request('/feedback/inauguration', { method: 'POST', body: buildPayload(v), auth: false })
+    ArckAPI.request('/feedback/inauguration', { method: 'POST', body: buildPayload(v), auth: false, timeoutMs: 25000 })
       .then(function () {
+        submissionId = newSubmissionId();
         form.reset();
         syncConditional();
         document.getElementById('formCard').hidden = true;
