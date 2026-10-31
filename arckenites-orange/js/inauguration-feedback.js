@@ -179,6 +179,8 @@
         document.getElementById('formCard').hidden = true;
         var thanks = document.getElementById('thanksCard');
         thanks.hidden = false;
+        // Display only: not a form field, never part of the payload, and following is optional.
+        document.getElementById('socialCard').hidden = false;
         thanks.focus();
         thanks.scrollIntoView({ behavior: 'smooth', block: 'center' });
       })
