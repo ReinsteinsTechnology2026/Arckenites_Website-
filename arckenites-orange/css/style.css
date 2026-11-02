@@ -1248,7 +1248,7 @@ body.is-database-view .col-database{ display:table-cell; }
 
 .chat-conv-item{
   display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; padding:14px 20px;
-  border:none; border-bottom:1px solid var(--border-c); background:none; text-align:left; cursor:pointer; transition:var(--transition);
+  border:none; border-bottom:1px solid var(--border-c); background:none; color:var(--ink); text-align:left; cursor:pointer; transition:var(--transition);
 }
 .chat-conv-item:hover{ background:color-mix(in srgb, var(--ink) 4%, transparent); }
 .chat-conv-item-main{ min-width:0; display:flex; flex-direction:column; gap:3px; }
