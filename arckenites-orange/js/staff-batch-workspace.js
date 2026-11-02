@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const members = await ArckAPI.request(`/staff/me/batches/${batchId}/members`);
       body.className = members.students.length ? '' : 'admin-panel-empty';
       body.innerHTML = members.students.length
-        ? `<div style="display:flex; flex-direction:column; gap:14px;">${members.students.map((s) => `
+        ? `<div class="workspace-student-list">${members.students.map((s) => `
             <div class="ak-identity">${ArckAPI.avatarHtml(s.full_name, s.photo_url, 40)}<span class="ak-identity-name">${escapeHtml(s.full_name)}</span></div>
           `).join('')}</div>`
         : 'No students allocated to this batch yet.';

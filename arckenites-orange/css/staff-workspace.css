@@ -1,0 +1,231 @@
+/* ============================================================
+   TRAINER BATCH WORKSPACE — premium dashboard layer
+   Loaded only by staff-batch-workspace.html, after style.css. Every rule is
+   scoped to body.workspace-page so the shared calendar/tab/panel styles used
+   by the student and admin dashboards are untouched. Colours, radii and
+   shadows all come from the :root tokens in style.css (both themes).
+   ============================================================ */
+
+.workspace-page{
+  background-color:var(--primary-darker);
+  background-image:radial-gradient(900px 380px at 88% -8%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 70%);
+  background-repeat:no-repeat;
+}
+
+/* ---------- Top header ---------- */
+.workspace-page .dashboard-topbar{
+  position:sticky; top:0; z-index:900; min-height:56px; padding:8px clamp(14px, 2.4vw, 32px);
+  background:color-mix(in srgb, var(--sidebar-bg) 88%, transparent);
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+}
+.workspace-page .dashboard-topbar .navbar-brand{ gap:0; align-items:center; }
+.workspace-page .dashboard-topbar .brand-mark{ height:30px; }
+/* two logo files, one per theme: the white-lettered original on dark, the charcoal-lettered copy on light */
+.workspace-page .workspace-logo--on-light{ display:none; }
+:root[data-theme="light"] .workspace-page .workspace-logo--on-dark{ display:none; }
+:root[data-theme="light"] .workspace-page .workspace-logo--on-light{ display:block; }
+.workspace-page .dashboard-topbar .brand-text{
+  font-size:.95rem; font-weight:700; letter-spacing:.02em; margin-left:12px; padding-left:12px; line-height:1;
+  border-left:1px solid var(--border-c);
+}
+.workspace-page .dashboard-topbar-user{ gap:10px; }
+.workspace-page .dashboard-topbar .icon-btn{ width:36px; height:36px; }
+.workspace-page .dashboard-topbar .admin-dropdown{
+  display:flex; align-items:center; gap:2px; padding:3px 8px 3px 3px;
+  border:1px solid var(--border-c); border-radius:999px; background:var(--surface);
+}
+.workspace-page .dashboard-topbar .admin-profile-trigger{ padding:4px; color:var(--muted); font-size:.7rem; }
+.workspace-page .dashboard-topbar .admin-profile-trigger:hover{ color:var(--ink); }
+.workspace-page .dashboard-topbar .admin-dropdown-panel{ top:calc(100% + 12px); }
+/* style.css colours every span in the topbar muted, which greyed out the initials; set them explicitly (dark text on orange, white on the darker light-theme orange) */
+.workspace-page .dashboard-topbar .ak-avatar--initials{ color:#17100B; font-weight:700; }
+:root[data-theme="light"] .workspace-page .dashboard-topbar .ak-avatar--initials{
+  color:#fff; background:linear-gradient(135deg, #B84B00 0%, #8F3A00 100%);
+}
+
+/* ---------- Page frame ---------- */
+.workspace-page .dashboard-main{ padding-top:clamp(16px, 2vw, 24px); padding-bottom:104px; }
+
+/* ---------- Batch header ---------- */
+.workspace-breadcrumb{ display:flex; align-items:center; gap:8px; font-size:.78rem; color:var(--muted-2); margin-bottom:8px; }
+.workspace-page .workspace-back{ margin:0; font-size:.78rem; font-weight:500; color:var(--muted); }
+.workspace-breadcrumb-sep{ opacity:.5; }
+.workspace-breadcrumb-current{ color:var(--ink); font-weight:600; }
+.workspace-page .workspace-header{ margin-bottom:16px; }
+.workspace-page .workspace-header h1{ font-size:clamp(1.3rem, 2.2vw, 1.7rem); line-height:1.2; margin:0 0 10px; }
+.workspace-page .workspace-header-meta{ gap:8px; font-size:.8rem; }
+.workspace-meta-chip{
+  display:inline-flex; align-items:center; gap:8px; padding:4px 12px; border-radius:999px;
+  background:var(--surface); border:1px solid var(--border-c); color:var(--muted); font-weight:500; line-height:1.5;
+}
+.workspace-meta-chip::before{
+  font-family:"Font Awesome 6 Free"; font-weight:900; font-size:.72rem; color:var(--primary);
+}
+.workspace-meta-chip--program::before{ content:"\f19d"; }
+.workspace-meta-chip--students::before{ content:"\f0c0"; }
+.workspace-page .workspace-header-meta .admin-activity-badge{ padding:4px 12px; font-size:.75rem; border:1px solid color-mix(in srgb, currentColor 28%, transparent); }
+
+/* ---------- Section navigation (segmented tabs) ---------- */
+.workspace-page .workspace-tabs{
+  display:flex; width:fit-content; max-width:100%; gap:2px; padding:4px; margin-bottom:16px;
+  border:1px solid var(--border-c); border-radius:14px; background:var(--surface);
+  overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch;
+}
+.workspace-page .workspace-tabs::-webkit-scrollbar{ display:none; }
+.workspace-page .workspace-tab{
+  flex:0 0 auto; gap:8px; padding:8px 14px; border:1px solid transparent; border-radius:10px;
+  font-size:.83rem; font-weight:600; color:var(--muted); position:relative;
+}
+.workspace-page .workspace-tab i{ font-size:.8rem; color:var(--muted-2); transition:var(--transition); }
+.workspace-page .workspace-tab:hover{ color:var(--ink); background:color-mix(in srgb, var(--ink) 6%, transparent); }
+.workspace-page .workspace-tab:hover i{ color:var(--primary); }
+.workspace-page .workspace-tab:focus-visible{ outline:2px solid var(--primary); outline-offset:1px; }
+.workspace-page .workspace-tab.is-active{
+  color:var(--primary); background:color-mix(in srgb, var(--primary) 14%, var(--surface-raised));
+  border-color:color-mix(in srgb, var(--primary) 38%, transparent);
+}
+.workspace-page .workspace-tab.is-active i{ color:var(--primary); }
+.workspace-page .workspace-tabs::before,
+.workspace-page .workspace-tabs::after{
+  content:"\f053"; font-family:"Font Awesome 6 Free"; font-weight:900; font-size:.7rem; color:var(--primary);
+  position:sticky; flex:0 0 30px; align-self:stretch; display:flex; align-items:center; z-index:2;
+  opacity:0; pointer-events:none; transition:opacity .18s ease;
+}
+.workspace-page .workspace-tabs::before{ left:0; margin-right:-30px; justify-content:flex-start; padding-left:8px; background:linear-gradient(270deg, transparent, var(--surface) 65%); }
+.workspace-page .workspace-tabs::after{ content:"\f054"; right:0; margin-left:-30px; justify-content:flex-end; padding-right:8px; background:linear-gradient(90deg, transparent, var(--surface) 65%); }
+.workspace-page .workspace-tabs.has-more-start::before,
+.workspace-page .workspace-tabs.has-more-end::after{ opacity:1; }
+.workspace-page #workspaceSupportTab{ margin-left:6px; }
+.workspace-page #workspaceSupportTab::before{
+  content:""; position:absolute; left:-5px; top:25%; bottom:25%; width:1px; background:var(--border-c);
+}
+
+/* ---------- Panels ---------- */
+.workspace-page .admin-panel{ margin-top:0; border-radius:16px; }
+.workspace-panel-gap{ margin-bottom:16px; }
+.workspace-page .admin-panel-header{ padding:14px 18px; }
+.workspace-page .admin-panel-header h2,
+.workspace-page .calendar-toolbar-title{
+  display:flex; align-items:center; gap:10px; margin:0; font-size:.98rem; font-weight:700;
+}
+.workspace-page .admin-panel-header h2 i,
+.workspace-page .calendar-toolbar-title i{
+  width:30px; height:30px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+  border-radius:9px; font-size:.78rem; color:var(--primary); background:color-mix(in srgb, var(--primary) 14%, transparent);
+}
+.workspace-help{ margin:0 0 16px; color:var(--muted); font-size:.88rem; line-height:1.55; max-width:62ch; }
+.workspace-page .admin-panel-empty{ padding:32px 20px; font-size:.86rem; }
+
+/* ---------- Schedule / calendar ---------- */
+.workspace-page .calendar-toolbar{
+  display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:12px; padding:12px 18px;
+}
+.workspace-page .calendar-toolbar-nav{ gap:6px; }
+.workspace-page .calendar-toolbar-nav h3{ min-width:136px; font-size:.95rem; font-weight:700; }
+.workspace-page .calendar-toolbar .icon-btn{ width:32px; height:32px; font-size:.78rem; background:var(--surface-raised); }
+.workspace-page .calendar-toolbar .icon-btn:hover{ background:var(--primary); }
+.workspace-page #calTodayBtn{
+  padding:7px 16px; font-size:.8rem; border-radius:9px; background:none; box-shadow:none; color:var(--primary);
+  border:1px solid color-mix(in srgb, var(--primary) 45%, transparent);
+}
+.workspace-page #calTodayBtn:hover{ background:var(--primary); color:#17100B; transform:none; box-shadow:none; }
+:root[data-theme="light"] .workspace-page #calTodayBtn:hover{ color:#fff; }
+
+.workspace-page .calendar-weekday{ padding:8px 4px; font-size:.68rem; letter-spacing:.06em; background:var(--surface-raised); }
+.workspace-page .calendar-day{ min-height:88px; padding:6px 6px 6px; gap:3px; min-width:0; }
+.workspace-page .calendar-day:hover{ background:color-mix(in srgb, var(--primary) 5%, transparent); }
+.workspace-page .calendar-day.is-other-month{ opacity:.4; }
+.workspace-page .calendar-day.is-today{ background:color-mix(in srgb, var(--primary) 8%, transparent); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--primary) 40%, transparent); }
+.workspace-page .calendar-day-number{ width:22px; height:22px; font-size:.74rem; color:var(--muted); }
+.workspace-page .calendar-day.is-today .calendar-day-number{ color:#17100B; }
+:root[data-theme="light"] .workspace-page .calendar-day.is-today .calendar-day-number{ color:#fff; }
+.workspace-page .calendar-event-chip{
+  display:block; width:100%; border:0; border-left:3px solid var(--primary); border-radius:4px 6px 6px 4px;
+  padding:2px 6px; font-size:.67rem; line-height:1.45; cursor:pointer;
+  background:color-mix(in srgb, var(--primary) 14%, transparent); color:var(--ink);
+}
+.workspace-page .calendar-event-chip:hover{ background:color-mix(in srgb, var(--primary) 26%, transparent); }
+.workspace-page .calendar-event-more{ padding:0 4px; font-size:.64rem; font-weight:600; color:var(--primary); }
+
+/* ---------- Students ---------- */
+.workspace-student-list{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:10px; }
+.workspace-page #workspaceStudentsBody .ak-identity{
+  padding:10px 12px; border:1px solid var(--border-c); border-radius:12px; background:var(--surface-raised); transition:var(--transition);
+}
+.workspace-page #workspaceStudentsBody .ak-identity:hover{ border-color:color-mix(in srgb, var(--primary) 45%, var(--border-c)); }
+.workspace-page #workspaceStudentsBody .ak-identity-name{ font-size:.87rem; color:var(--ink); }
+
+/* ---------- Batch chat ---------- */
+/* keeps the send row clear of the floating Messages button on first view */
+.workspace-page .batch-chat-body{ height:clamp(320px, calc(100vh - 470px), 560px); }
+.workspace-page .batch-chat-messages{ padding:16px 18px; gap:8px; background:color-mix(in srgb, var(--primary-darker) 40%, var(--surface)); }
+.workspace-page .batch-chat-input-row{ gap:10px; padding:12px 14px; background:var(--surface); }
+.workspace-page .batch-chat-input-row .form-control{ border-radius:999px; padding-inline:18px; }
+.workspace-page .batch-chat-input-row .btn{ width:42px; height:42px; border-radius:50%; }
+
+/* ---------- Meeting ---------- */
+.workspace-meeting-card{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px 24px; padding:22px 20px; }
+.workspace-meeting-card .workspace-help{ margin:0; flex:1 1 320px; }
+.workspace-meeting-card .btn{ flex:0 0 auto; }
+
+/* ---------- Forms, buttons, tables (shared by Class Details + modal) ---------- */
+.workspace-page .form-label{ font-size:.78rem; font-weight:600; color:var(--muted); margin-bottom:6px; }
+.workspace-page .form-control{ min-height:42px; border-radius:10px; font-size:.88rem; }
+.workspace-page .admin-form-grid{ gap:14px; }
+.workspace-page .admin-form-actions{ margin-top:16px; }
+.workspace-page .btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:10px; font-size:.86rem; padding:9px 18px; }
+.workspace-page .admin-activity-table{
+  border:1px solid var(--border-c); border-radius:12px; border-collapse:separate; border-spacing:0; overflow:hidden;
+}
+.workspace-page .admin-activity-table th{ padding:10px 16px; font-size:.68rem; }
+.workspace-page .admin-activity-table td{ padding:12px 16px; font-size:.84rem; }
+.workspace-page .admin-activity-table tr:last-child td{ border-bottom:none; }
+.workspace-page .admin-activity-table a{ color:var(--primary); font-weight:600; }
+.workspace-page .modal{ border-radius:18px; }
+.workspace-page .modal-header{ padding:16px 20px; }
+.workspace-page .modal-body{ padding:20px; }
+
+/* ---------- Floating chat button ---------- */
+.workspace-page .chat-float{ bottom:20px; right:20px; width:52px; height:52px; font-size:1.2rem; }
+.workspace-page .chat-float .admin-notif-badge{ top:-2px; right:-2px; border:2px solid var(--primary-darker); box-sizing:content-box; }
+
+/* ---------- Responsive ---------- */
+@media (max-width:991px){
+  .workspace-page .calendar-day{ min-height:76px; }
+}
+@media (max-width:767px){
+  .workspace-page .dashboard-main{ padding-inline:14px; padding-bottom:88px; }
+  .workspace-page .workspace-tabs{
+    width:auto; margin-inline:-14px; padding-inline:14px; border-radius:0; border-inline:0;
+  }
+  .workspace-page .workspace-tab{ padding:8px 12px; }
+  .workspace-page .calendar-toolbar{
+    grid-template-columns:1fr auto; grid-template-areas:"title today" "nav nav"; padding:12px 14px;
+  }
+  .workspace-page .calendar-toolbar-title{ grid-area:title; }
+  .workspace-page #calTodayBtn{ grid-area:today; }
+  .workspace-page .calendar-toolbar-nav{ grid-area:nav; justify-content:space-between; }
+  .workspace-page .calendar-toolbar-nav h3{ flex:1; }
+  .workspace-page .calendar-day{ min-height:62px; font-size:inherit; }
+  .workspace-page .admin-panel-header{ padding:12px 14px; }
+  .workspace-meeting-card{ padding:18px 14px; }
+  .workspace-page .chat-float{ bottom:16px; right:16px; width:48px; height:48px; }
+}
+@media (max-width:575px){
+  /* Cells get too narrow for text chips: show each class as a dot, tap the day for the rest. */
+  .workspace-page .calendar-day{ min-height:50px; padding:4px 2px; flex-direction:row; flex-wrap:wrap; align-content:flex-start; justify-content:center; gap:2px 3px; }
+  /* side margins of (50% - 10px) make the 20px number fill its own flex line, so dots wrap beneath it */
+  .workspace-page .calendar-day-number{ flex:0 0 20px; margin-inline:calc(50% - 10px); width:20px; height:20px; font-size:.7rem; }
+  .workspace-page .calendar-event-chip{
+    width:8px; height:8px; padding:0; border:0; border-radius:50%; font-size:0; line-height:0; background:var(--primary);
+  }
+  .workspace-page .calendar-event-more{ display:none; }
+  .workspace-page .calendar-weekday{ font-size:.6rem; letter-spacing:0; padding:7px 0; }
+  .workspace-page .workspace-meta-chip{ padding:3px 10px; }
+  .workspace-student-list{ grid-template-columns:1fr; }
+}
+@media (max-width:359px){
+  .workspace-page .dashboard-topbar .brand-text{ margin-left:8px; padding-left:8px; }
+  .workspace-page .calendar-toolbar-nav h3{ min-width:0; font-size:.88rem; }
+  .workspace-page .calendar-day{ min-height:44px; }
+}
