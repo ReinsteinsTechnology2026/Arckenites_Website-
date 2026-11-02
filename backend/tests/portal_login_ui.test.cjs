@@ -14,8 +14,8 @@ const wordmarkImage = fs.statSync(path.join(site, 'assets/portal-wordmark.webp')
 
 assert.match(html, /id="portalChooser"/);
 assert.match(html, /href="login\.html\?portal=student"[^>]*>[\s\S]*?Student Login/);
-assert.match(html, /href="login\.html\?portal=staff"[^>]*>[\s\S]*?Staff Login/);
-assert.match(html, /Staff &amp; Admin Portal/);
+assert.match(html, /href="login\.html\?portal=staff"[^>]*>[\s\S]*?Admin &amp; Trainer Login/);
+assert.match(html, /Admin &amp; Trainer Portal/);
 assert.match(html, /href="community-register\.html"/);
 assert.match(html, /id="portalBack"/);
 for (const id of ['loginForm', 'loginUsername', 'loginPassword', 'mfaLoginPanel', 'mfaLoginForm']) {

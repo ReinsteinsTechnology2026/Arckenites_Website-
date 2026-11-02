@@ -57,6 +57,11 @@ DETACH = {
     "system_settings": ("updated_by_id",),
     "batches": ("trainer_id",),
     "trainer_availability_entries": ("created_by_id",),
+    # Class occurrences and recordings are retained (no recording is deleted
+    # automatically); only the deleted person's identity is detached from them.
+    "class_session_runs": ("trainer_id", "approval_decided_by"),
+    "class_recordings": ("revoked_by", "deleted_by"),
+    "recording_events": ("actor_user_id",),
     # Notices about the trainer are deleted via OWNED (trainer_id); these detach first.
     "scheduling_notices": ("recipient_id", "created_by_id"),
 }

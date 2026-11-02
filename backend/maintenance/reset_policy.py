@@ -27,8 +27,15 @@ OWNED = {
 }
 # batch_trainer_assignments is shared batch history (trainer, admin actor, batch). Whether it is
 # kept or removed with a deleted trainer/batch is an unresolved retention decision, so it is held.
+# class_session_runs / class_recordings / recording_events / background_jobs hold class occurrences,
+# recording approvals and recording metadata. Recordings are retained until a retention policy is
+# approved, so none of these is ever proposed for deletion by a reset.
+# Inauguration feedback contains contact details and is held until its retention
+# policy is decided; a reset preview must not silently delete submissions.
 MANUAL = {"batches", "class_sessions", "study_materials", "class_videos", "leads",
-          "batch_trainer_assignments"}
+          "batch_trainer_assignments", "class_session_runs", "class_recordings",
+          "recording_events", "background_jobs", "media_webhook_events",
+          "inauguration_feedback"}
 ALL_TABLES = PRESERVE | AUDIT | set(OWNED) | MANUAL | {
     "users", "community_registrations", "contact_enquiries", "community_posts",
     "conversations", "direct_messages", "batch_messages", "support_tickets",

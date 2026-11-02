@@ -25,6 +25,7 @@ from app.database import get_db
 from app.models.audit_log import AuthAuditLog, AuthEventType
 from app.models.batch import Batch, BatchEnrollment
 from app.models.batch_chat import BatchChatReadState, BatchMessage
+from app.core.class_videos import video_out, visible_videos_select
 from app.models.batch_resources import ClassVideo, StudyMaterial
 from app.models.class_session import ClassSession
 from app.models.interview_schedule import InterviewSchedule
@@ -367,18 +368,12 @@ async def send_my_batch_chat(
 @router.get("/me/videos", response_model=list[ClassVideoOut])
 def my_videos(db: Session = Depends(get_db), user: User = Depends(require_role("student"))):
     rows = db.execute(
-        select(ClassVideo)
+        visible_videos_select()
         .join(BatchEnrollment, BatchEnrollment.batch_id == ClassVideo.batch_id)
         .where(BatchEnrollment.student_id == user.id)
         .order_by(ClassVideo.created_at.desc())
     ).scalars().all()
-    return [
-        ClassVideoOut(
-            id=r.id, batch_id=r.batch_id, batch_name=r.batch.name, title=r.title,
-            video_url=r.video_url, description=r.description, created_at=r.created_at,
-        )
-        for r in rows
-    ]
+    return [video_out(db, r, r.batch.name) for r in rows]
 
 
 @router.get("/me/materials", response_model=list[StudyMaterialOut])

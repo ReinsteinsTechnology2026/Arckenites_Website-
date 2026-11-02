@@ -693,20 +693,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const videos = await ArckAPI.request('/students/me/videos');
       videosBody.innerHTML = videos.length
-        ? videos.map((v) => `
+        ? videos.map((v) => {
+            const recording = ArckClassVideos.isRecording(v);
+            const date = recording && v.session_date ? v.session_date : v.created_at.slice(0, 10);
+            const note = !recording && v.description ? `<div style="color:var(--muted-2); font-size:.8rem;">${escapeHtml(v.description)}</div>` : '';
+            return `
             <tr>
               <td>${escapeHtml(v.batch_name)}</td>
-              <td>${escapeHtml(v.title)}</td>
-              <td><a href="${escapeHtml(v.video_url)}" target="_blank" rel="noopener">Open</a></td>
-              <td>${v.description ? escapeHtml(v.description) : '—'}</td>
-              <td>${formatDate(v.created_at.slice(0, 10))}</td>
-            </tr>
-          `).join('')
-        : '<tr><td colspan="5" class="admin-panel-empty">No class videos posted yet.</td></tr>';
+              <td>${escapeHtml(v.title)}${note}</td>
+              <td>${formatDate(date)}</td>
+              <td>${recording && v.trainer_name ? escapeHtml(v.trainer_name) : '—'}</td>
+              <td>${recording ? ArckClassVideos.formatDuration(v.duration_seconds) : '—'}</td>
+              <td>${recording ? ArckClassVideos.watchButtonHtml(v) : ArckClassVideos.linkCellHtml(v)}</td>
+            </tr>`;
+          }).join('')
+        : '<tr><td colspan="6" class="admin-panel-empty">No class videos have been published for your batches yet. Recorded classes appear here automatically.</td></tr>';
     } catch (_) {
-      videosBody.innerHTML = '<tr><td colspan="5" class="admin-panel-empty">Couldn\'t load class videos.</td></tr>';
+      videosBody.innerHTML = '<tr><td colspan="6" class="admin-panel-empty">Couldn\'t load class videos.</td></tr>';
     }
   };
+
+  // New recordings are published in the background, so refresh while the panel is open.
+  setInterval(() => {
+    const panel = document.querySelector('section[data-panel="videos"]');
+    if (!document.hidden && panel && panel.style.display !== 'none') loadVideos();
+  }, 60000);
 
   /* ---------- Meetings ---------- */
   const MEETING_STATUS_LABEL = { SCHEDULED: 'Scheduled', LIVE: 'Live', COMPLETED: 'Completed', CANCELLED: 'Cancelled' };

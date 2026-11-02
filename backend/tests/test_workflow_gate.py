@@ -23,3 +23,11 @@ class TestWorkflowGate(unittest.TestCase):
         self.assertIn('cp deploy.sh "$RUNNER_TEMP/arckenites-deploy.sh"', deploy)
         self.assertIn('"$NEW_APP_SHA" != "$ARCK_EXPECTED_SHA"',
                       DEPLOY_SCRIPT.read_text(encoding="utf-8"))
+
+    def test_deploy_preserves_checkout_and_backs_up_before_migration(self):
+        source = DEPLOY_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn('git status --porcelain --untracked-files=all', source)
+        self.assertIn('git -C "$APP_DIR" merge --ff-only "$NEW_APP_SHA"', source)
+        self.assertIn('maintenance/backup_database.py', source)
+        self.assertLess(source.index('PHASE="backup"'), source.index('PHASE="migrating"'))
+        self.assertNotRegex(source, r'(?m)^\s*git\b[^\n]*\breset\b')

@@ -5,6 +5,7 @@ from app.models.batch import Batch, BatchEnrollment, BatchStatusEnum, BatchTypeE
 from app.models.batch_chat import BatchChatReadState, BatchMessage
 from app.models.batch_resources import ClassVideo, StudyMaterial
 from app.models.chat import Conversation, DirectMessage
+from app.models.class_run import BackgroundJob, ClassRecording, ClassSessionRun, MediaWebhookEvent, RecordingEvent
 from app.models.class_session import ClassSession
 from app.models.community import CommunityProfile, CommunityRegistration, CommunityRegistrationStatus
 from app.models.community_post import (
@@ -16,6 +17,7 @@ from app.models.community_post import (
     CommunityPostVisibility,
 )
 from app.models.contact_enquiry import ContactEnquiry
+from app.models.inauguration_feedback import InaugurationFeedback
 from app.models.google_identity import GoogleLoginTicket, UserGoogleIdentity
 from app.models.mfa import MfaCredential, MfaRecoveryCode, MfaChallenge
 from app.models.interview_schedule import InterviewModeEnum, InterviewSchedule, InterviewStatusEnum
@@ -85,7 +87,13 @@ __all__ = [
     "DirectMessage",
     "SystemSettings",
     "ClassSession",
+    "ClassSessionRun",
+    "ClassRecording",
+    "RecordingEvent",
+    "BackgroundJob",
+    "MediaWebhookEvent",
     "ContactEnquiry",
+    "InaugurationFeedback",
     "BatchMessage",
     "BatchChatReadState",
     "Batch",

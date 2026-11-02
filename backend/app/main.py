@@ -21,6 +21,9 @@ from app.api.routes_admin_leads import router as admin_leads_router
 from app.api.routes_admin_interviews import router as admin_interviews_router
 from app.api.routes_lab_vm_agent import router as lab_vm_agent_router
 from app.api.routes_admin_meetings import router as admin_meetings_router
+from app.api.routes_class_runs import router as class_runs_router
+from app.api.routes_media_webhooks import router as media_webhooks_router
+from app.api.routes_recordings import router as recordings_router
 from app.api.routes_meetings import router as meetings_router
 from app.api.routes_admin_programs import router as admin_programs_router
 from app.api.routes_admin_staff import router as admin_staff_router
@@ -37,6 +40,8 @@ from app.api.routes_community_posts import router as community_posts_router
 from app.api.routes_google_auth import router as google_auth_router
 from app.api.routes_mfa import router as mfa_router
 from app.api.routes_contact import router as contact_router
+from app.api.routes_inauguration_feedback import router as inauguration_feedback_router
+from app.core.feedback_sheets import request_stop as stop_feedback_sheets_worker, run_feedback_sheets_worker
 from app.api.routes_dashboard import router as dashboard_router
 from app.api.routes_health import router as health_router
 from app.api.routes_profile import router as profile_router
@@ -145,6 +150,13 @@ app.include_router(admin_interviews_router, prefix="/api")
 app.include_router(lab_vm_agent_router, prefix="/api")
 app.include_router(admin_meetings_router, prefix="/api")
 app.include_router(meetings_router, prefix="/api")
+# The new LiveKit class flow stays unavailable in production until recording
+# infrastructure and its end-to-end tests are approved. Existing Jitsi meeting
+# routes above are separate and retain their current behavior.
+if settings.env != "production" or settings.recording_enabled:
+    app.include_router(class_runs_router, prefix="/api")
+    app.include_router(media_webhooks_router, prefix="/api")
+    app.include_router(recordings_router, prefix="/api")
 app.include_router(admin_programs_router, prefix="/api")
 app.include_router(admin_contact_enquiries_router, prefix="/api")
 app.include_router(admin_leads_router, prefix="/api")
@@ -163,6 +175,7 @@ app.include_router(staff_router, prefix="/api")
 app.include_router(profile_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(contact_router, prefix="/api")
+app.include_router(inauguration_feedback_router, prefix="/api")
 app.include_router(community_auth_router, prefix="/api")
 app.include_router(community_posts_router, prefix="/api")
 app.include_router(google_auth_router, prefix="/api")
@@ -186,6 +199,19 @@ async def _start_community_post_email_worker() -> None:
     background. Admin publish requests never wait on email delivery; the
     queue is in the database, so a restart resumes where it left off."""
     asyncio.create_task(run_community_post_email_worker())
+
+
+@app.on_event("startup")
+async def _start_feedback_sheets_worker() -> None:
+    """Retries inauguration-feedback rows whose Google Sheet copy is still
+    pending. The queue is the database row status, so a restart resumes it."""
+    asyncio.create_task(run_feedback_sheets_worker())
+
+
+@app.on_event("shutdown")
+async def _stop_feedback_sheets_worker() -> None:
+    """Stop the retry worker taking new rows; a row mid-request is left PENDING and retried on next start."""
+    stop_feedback_sheets_worker()
 
 
 @app.on_event("startup")

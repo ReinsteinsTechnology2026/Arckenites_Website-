@@ -544,10 +544,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       video_url: document.getElementById('videoUrl').value.trim(),
       description: document.getElementById('videoDescription').value.trim() || null,
     }),
-    renderRow: (r) => `
+    renderRow: (r) => ArckClassVideos.isRecording(r) ? `
       <tr>
         <td>${escapeHtml(r.title)}</td>
-        <td><a href="${escapeHtml(r.video_url)}" target="_blank" rel="noopener">Watch</a></td>
+        <td>${ArckClassVideos.watchButtonHtml(r)}</td>
+        <td>Recorded class · ${ArckClassVideos.formatDuration(r.duration_seconds)}</td>
+        <td></td>
+      </tr>
+    ` : `
+      <tr>
+        <td>${escapeHtml(r.title)}</td>
+        <td>${ArckClassVideos.linkCellHtml(r, 'Watch')}</td>
         <td>${r.description ? escapeHtml(r.description) : '—'}</td>
         <td><button type="button" class="table-action-btn is-danger" data-remove-id="${r.id}" title="Delete"><i class="fa-solid fa-trash"></i></button></td>
       </tr>

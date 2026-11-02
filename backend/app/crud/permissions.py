@@ -48,6 +48,13 @@ PERMISSION_CATALOG: list[dict] = [
     {"key": "meetings.edit", "module": "Meetings", "action": "edit", "description": "Edit meeting details and settings."},
     {"key": "meetings.manage", "module": "Meetings", "action": "manage", "description": "Start, end, and manage a live meeting (participants, recording)."},
     {"key": "meetings.delete", "module": "Meetings", "action": "delete", "description": "Cancel or delete meetings and recordings."},
+    # Class recordings. Deliberately NOT in _OPERATIONAL_MODULES: a plain
+    # Admin does not get these by default (Super Admin always passes).
+    # There is intentionally NO approve permission: only the class trainer
+    # can approve recording; no administrator can override that.
+    {"key": "recordings.view", "module": "Recordings", "action": "view", "description": "View class recordings, their status and the storage dashboard."},
+    {"key": "recordings.manage", "module": "Recordings", "action": "manage", "description": "Retry, republish or revoke access to class recordings."},
+    {"key": "recordings.delete", "module": "Recordings", "action": "delete", "description": "Delete class recordings."},
 
     {"key": "placement.view", "module": "Placement", "action": "view", "description": "View placement interviews."},
     {"key": "placement.create", "module": "Placement", "action": "create", "description": "Schedule placement interviews."},

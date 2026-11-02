@@ -75,9 +75,9 @@ class ResetPreparationTests(unittest.TestCase):
         return result
 
     def test_current_schema_and_fk_inventory_fully_classified(self):
-        self.assertEqual(self.metadata["table_count"], 55)  # +5 trainer scheduling tables (9d2f6b8c4e31)
+        self.assertEqual(self.metadata["table_count"], 61)  # includes inauguration_feedback (f1a2b3c4d5e6)
         # c4e5f6a7b8c9 added two nullable batch audit FKs (commit a0cbca8).
-        self.assertEqual(len(self.metadata["foreign_keys"]), 83)
+        self.assertEqual(len(self.metadata["foreign_keys"]), 97)  # +13 from d4e8a1b7c356, +1 class_videos.recording_id (e5f9b2c8d471)
         batch_audit_fks = {
             (fk["source_column"], fk["target_table"], fk["target_column"],
              fk["nullable"], fk["ondelete"])
@@ -92,11 +92,12 @@ class ResetPreparationTests(unittest.TestCase):
             ("interview_schedule_access_updated_by_id", "users", "id", True, "SET NULL"),
         })
         # Community scoping retains both old index names and adds this index.
-        self.assertEqual(len(self.metadata["model_indexes"]), 71)
+        # +2: inauguration_feedback.submission_id (unique) and .sheets_sync_status (Sheets mirror).
+        self.assertEqual(len(self.metadata["model_indexes"]), 85)
         self.assertIn({"table": "users", "name": "uq_users_legacy_username",
                        "unique": True, "columns": ["username"]}, self.metadata["model_indexes"])
         # Includes the two batch audit foreign-key constraints above.
-        self.assertEqual(len(self.metadata["model_constraints"]), 169)
+        self.assertEqual(len(self.metadata["model_constraints"]), 202)
         self.assertEqual(self.metadata["unclassified_model_tables"], [])
         self.assertFalse(self.metadata["production_schema_verified"])
         self.assertEqual(set(self.metadata["tables"]) | {"alembic_version"}, ALL_TABLES)

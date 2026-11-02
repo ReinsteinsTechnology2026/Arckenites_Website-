@@ -29,12 +29,92 @@ class Settings(BaseSettings):
     mfa_encryption_key: str = ""
 
     @property
+    def livekit_configured(self) -> bool:
+        return bool(self.livekit_url and self.livekit_api_key and self.livekit_api_secret)
+
+    @property
+    def livekit_server_api_url(self) -> str:
+        if self.livekit_api_url:
+            return self.livekit_api_url
+        return self.livekit_url.replace("wss://", "https://", 1).replace("ws://", "http://", 1)
+
+    @property
     def google_configured(self) -> bool:
         return bool(self.google_client_id and self.google_client_secret and self.google_redirect_uri)
 
     # Self-hosted Jitsi deployment backing the Meetings module — never
     # hardcode this in frontend JS; every meeting join URL is built from it.
     meet_domain: str = "meet.arckenites.com"
+
+    # Self-hosted class recording (app/core/class_runs.py). Off until the
+    # media server and the staging directory are actually provisioned, so an
+    # unconfigured server can never tell a trainer that a class is recording.
+    recording_enabled: bool = False
+    # Bump when the consent wording shown to the trainer changes; an approval
+    # for an older wording is rejected so a stale page cannot grant consent.
+    recording_consent_version: str = "2026-10-v1"
+    # Local staging root for finalized recordings. Must be an absolute path on
+    # persistent storage OUTSIDE the application checkout.
+    recording_staging_dir: str = ""
+    recording_min_free_gb: float = 20.0
+    # How long a trainer may be disconnected before the class is ended.
+    # Rejoining inside this window cancels the pending termination.
+    trainer_reconnect_grace_seconds: int = 60
+    # The room opens this many minutes before the scheduled start so the
+    # trainer can enter early. Nothing is recorded and no attendance is
+    # created by opening the room.
+    class_room_open_lead_minutes: int = 5
+    # Most a trainer may extend a class past its scheduled end, in total.
+    class_extension_max_minutes: int = 60
+    # Background job queue (app/core/job_queue.py).
+    job_lease_seconds: int = 120
+    job_poll_seconds: float = 2.0
+    # OneDrive publishing stays off until access and the destination have been
+    # verified (backend/maintenance/check_onedrive_access.py).
+    onedrive_upload_enabled: bool = False
+    # The destination, set only after check_onedrive_access confirmed it. With
+    # application permissions there is no "my drive": a specific drive id is required.
+    onedrive_drive_id: str = ""
+    onedrive_folder_path: str = "ArckenitesRecordings"
+    # Graph requires upload chunks to be a multiple of 320 KiB.
+    onedrive_chunk_bytes: int = 320 * 1024 * 32
+    # DEVELOPMENT ONLY: publish a verified recording straight from local
+    # staging so playback can be exercised before OneDrive access exists.
+    # Ignored unless ENV is development/test; entries are labelled LOCAL_STAGING.
+    recording_publish_from_staging: bool = False
+    # Self-hosted LiveKit. Blank = media server not configured. The API key and
+    # secret are server-side only and are never sent to a browser; browsers get
+    # short-lived, room-scoped join tokens instead.
+    livekit_url: str = ""            # browser signalling URL, wss://...
+    livekit_api_url: str = ""        # server-to-server URL; derived from livekit_url when blank
+    livekit_api_key: str = ""
+    livekit_api_secret: str = ""
+    livekit_token_ttl_seconds: int = 900
+    # Egress writes to this path INSIDE the Egress container; it must be the
+    # container-side mount of recording_staging_dir.
+    livekit_egress_output_prefix: str = "/out"
+    livekit_recording_layout: str = "speaker"
+    livekit_recording_preset: str = "H264_720P_30"
+    # A room outlives an empty moment this long, which must exceed the trainer
+    # reconnect grace period or a brief drop would close the room and recording.
+    livekit_room_empty_timeout_seconds: int = 600
+    # Presence webhooks older than this are ignored (egress events never are).
+    media_webhook_presence_max_age_seconds: int = 600
+    recording_max_start_attempts: int = 2
+
+    # Inauguration feedback -> Google Sheet mirror (app/core/feedback_sheets.py). The Apps
+    # Script Web App URL and the shared secret are server-side only. The spreadsheet id
+    # lives inside the Apps Script, never in this app or in any request. Blank = mirror off;
+    # feedback is still saved and stays PENDING until it is configured.
+    feedback_sheets_webapp_url: str = ""
+    feedback_sheets_shared_secret: str = ""
+    feedback_sheets_timeout_seconds: float = 15.0
+    feedback_sheets_max_attempts: int = 15
+    feedback_sheets_retry_interval_seconds: int = 60
+
+    @property
+    def feedback_sheets_configured(self) -> bool:
+        return bool(self.feedback_sheets_webapp_url and self.feedback_sheets_shared_secret)
 
     # Outbound email for the notification-toggle feature (app/core/notify.py).
     # Gmail SMTP by default: smtp_username is the sending Gmail address,

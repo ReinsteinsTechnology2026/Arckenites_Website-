@@ -1,0 +1,20 @@
+# LiveKit server configuration (no secrets: keys come from LIVEKIT_KEYS).
+port: 7880
+log_level: info
+rtc:
+  tcp_port: 7881
+  port_range_start: 50000
+  port_range_end: 50100
+  # Local development on one machine. For a real deployment set the node's
+  # public IP (use_external_ip: true or node_ip) and open the UDP range.
+  use_external_ip: false
+redis:
+  address: redis:6379
+# Signed webhooks to the Arckenites backend. The backend verifies the signature,
+# so this URL needs no secret. From inside Docker, the host is host.docker.internal.
+webhook:
+  api_key: ${LIVEKIT_API_KEY}
+  urls:
+    - http://host.docker.internal:8000/api/media/webhooks/livekit
+room:
+  empty_timeout: 600

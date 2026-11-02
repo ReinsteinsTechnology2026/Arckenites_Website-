@@ -364,15 +364,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ---------- Class Details Updation: Class Videos ---------- */
   const videosBody = document.getElementById('videosTableBody');
-  const videoRowHtml = (v) => `
+  // Recordings are published and managed by Arckenites: the trainer can watch
+  // them but not delete them, and there is no link to open.
+  const videoRowHtml = (v) => {
+    const recording = ArckClassVideos.isRecording(v);
+    return `
     <tr>
       <td>${escapeHtml(v.title)}</td>
-      <td><a href="${escapeHtml(v.video_url)}" target="_blank" rel="noopener">Open</a></td>
-      <td>${v.description ? escapeHtml(v.description) : '—'}</td>
-      <td>${formatDate(v.created_at.slice(0, 10))}</td>
-      <td><button type="button" class="table-action-btn is-danger" data-delete-video="${v.id}" title="Delete"><i class="fa-solid fa-trash"></i></button></td>
-    </tr>
-  `;
+      <td>${recording ? ArckClassVideos.watchButtonHtml(v) : ArckClassVideos.linkCellHtml(v)}</td>
+      <td>${recording ? `Recorded class · ${ArckClassVideos.formatDuration(v.duration_seconds)}` : (v.description ? escapeHtml(v.description) : '—')}</td>
+      <td>${formatDate((recording && v.session_date ? v.session_date : v.created_at.slice(0, 10)))}</td>
+      <td>${recording ? '' : `<button type="button" class="table-action-btn is-danger" data-delete-video="${v.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>`}</td>
+    </tr>`;
+  };
   const loadVideos = async () => {
     try {
       const videos = await ArckAPI.request(`/staff/me/batches/${batchId}/videos`);
