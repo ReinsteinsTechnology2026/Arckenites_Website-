@@ -1,0 +1,69 @@
+/* ============================================================
+   ARCKENITES IT ACADEMY — INNER PUBLIC PAGES (Stage 2)
+   Loaded only by: about, courses, trainers, placements, careers,
+   contact. Always used together with home-brochure.css (.bk-*).
+   Every selector here is prefixed .pg- so nothing can reach the
+   portal, the certification pages or any other public page.
+   ============================================================ */
+
+.pg-hero-tag{ margin: 0 0 10px; font-size: .78rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--secondary); }
+.pg-hero-tag span{ color: var(--muted-2); padding: 0 .35em; }
+
+/* Honest "not available yet" note */
+.pg-note{ display: flex; gap: 14px; align-items: flex-start; max-width: 780px; margin: 0 auto; padding: 18px 22px; border: 1px dashed rgba(255,106,0,.45); border-radius: var(--radius-md); background: rgba(255,106,0,.05); color: var(--muted); font-size: .92rem; }
+.pg-note i{ color: var(--primary); margin-top: 3px; }
+.pg-note strong{ color: var(--ink); }
+
+/* Closing call-to-action band */
+.pg-cta{ text-align: center; padding: 40px 28px; border: 1px solid rgba(255,106,0,.35); border-radius: var(--radius-lg); background: linear-gradient(135deg, rgba(255,106,0,.12), rgba(255,106,0,.02)); }
+.pg-cta h3{ color: var(--ink); font-weight: 700; font-size: 1.5rem; margin: 0 0 8px; }
+.pg-cta p{ color: var(--muted); margin: 0 auto 22px; max-width: 560px; }
+.pg-cta .btn + .btn{ margin-left: 8px; }
+
+/* Three-step "Learn / Solve / Master" row */
+.pg-pillar{ text-align: center; }
+.pg-pillar .bk-icon{ margin: 0 auto 16px; }
+
+/* Plain lead paragraph */
+.pg-lead{ color: var(--muted); font-size: 1.02rem; max-width: 640px; }
+
+/* Contact quick links (inside the existing contact info column) */
+.pg-link{ color: inherit; text-decoration: none; }
+.pg-link:hover{ color: var(--primary); text-decoration: underline; }
+
+@media (max-width: 575.98px){
+  .pg-cta{ padding: 30px 18px; }
+  .pg-cta .btn{ display: block; width: 100%; }
+  .pg-cta .btn + .btn{ margin: 10px 0 0; }
+}
+
+/* Spacing around the closing call-to-action band */
+.pg-cta-wrap{ padding: 56px 0 72px; }
+
+/* Phones: Bootstrap's g-5 gutter (3rem) makes a row stick out 12px past the
+   container's 12px padding. Match the horizontal gutter to the padding. */
+@media (max-width: 575.98px){
+  .row.pg-gutter-fit{ --bs-gutter-x: 1.5rem; }
+}
+
+/* ------------------------------------------------------------
+   Local CSS illustration used by courses.html in place of the
+   dead DevOps catalog photo: terminal + deployment pipeline +
+   cloud + automation. No external image, no portal/cert assets.
+   Sized like the catalog's <img> (100% x 190px).
+   ------------------------------------------------------------ */
+.pg-art{ position: relative; width: 100%; height: 190px; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 16px; padding: 18px 20px; background: radial-gradient(120% 90% at 85% 0%, rgba(255,106,0,.22), transparent 60%), linear-gradient(145deg, #0B0E13, #151B23); border-bottom: 1px solid var(--border-c); }
+.pg-art__term{ border: 1px solid var(--border-c); border-radius: 10px; background: rgba(8,10,13,.85); padding: 10px 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .68rem; line-height: 1.55; color: #c9d1d9; }
+.pg-art__term code{ display: block; color: inherit; background: none; padding: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: inherit; }
+.pg-art__term .pg-art__ok{ color: #4ADE9B; }
+.pg-art__dots{ display: flex; gap: 5px; margin-bottom: 6px; }
+.pg-art__dots i{ width: 7px; height: 7px; border-radius: 50%; background: #3a424d; }
+.pg-art__dots i:first-child{ background: var(--primary); }
+.pg-art__pipe{ display: flex; align-items: center; }
+.pg-art__node{ flex: 0 0 34px; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; background: rgba(255,106,0,.14); border: 1px solid rgba(255,106,0,.45); color: var(--primary); font-size: .9rem; }
+.pg-art__node--end{ background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 0 0 4px rgba(255,106,0,.18); }
+.pg-art__link{ flex: 1; height: 2px; background: repeating-linear-gradient(90deg, rgba(255,138,31,.8) 0 6px, transparent 6px 10px); }
+
+/* Course catalog: duration and fee are unverified and hidden until the owner confirms them.
+   (The shared js/script.js still renders them; courses.html also removes the node.) */
+.pg-catalog .course-list-card .course-meta{ display: none; }

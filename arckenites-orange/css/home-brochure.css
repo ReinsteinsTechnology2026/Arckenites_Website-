@@ -1,0 +1,121 @@
+/* ============================================================
+   ARCKENITES IT ACADEMY — HOME PAGE BROCHURE SECTIONS
+   Loaded ONLY by index.html, after style.css. Every selector is
+   prefixed .bk- so nothing here can affect the portal, the
+   certification program page, or other public pages.
+   Uses the existing design tokens from style.css (:root).
+   ============================================================ */
+
+.bk-section{ padding: 84px 0; position: relative; }
+.bk-section--alt{ background: var(--surface); border-top: 1px solid var(--border-c); border-bottom: 1px solid var(--border-c); }
+
+.bk-head{ text-align: center; max-width: 720px; margin: 0 auto 48px; }
+.bk-head h2{ font-size: clamp(1.7rem, 3.6vw, 2.4rem); font-weight: 700; color: var(--ink); margin: 14px 0 10px; line-height: 1.2; }
+.bk-head p{ color: var(--muted); margin: 0; }
+.bk-accent{ background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* ---------- Hero additions ---------- */
+.bk-tagline{ margin: 18px 0 6px; font-size: .78rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--secondary); }
+.bk-tagline span{ color: var(--muted-2); padding: 0 .35em; }
+.bk-pillars{ display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 22px; padding: 0; list-style: none; }
+.bk-pillars li{ display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid var(--border-c); border-radius: 999px; background: rgba(255,255,255,.03); color: var(--ink); font-size: .85rem; font-weight: 500; }
+.bk-pillars i{ color: var(--primary); }
+.bk-cta-row{ display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* ---------- Generic card ---------- */
+.bk-card{ height: 100%; background: var(--surface-raised); border: 1px solid var(--border-c); border-radius: var(--radius-lg); padding: 24px; transition: var(--transition); }
+.bk-card:hover{ transform: translateY(-4px); border-color: rgba(255,106,0,.5); box-shadow: var(--shadow-hover); }
+.bk-card h3, .bk-card h4, .bk-card h5{ color: var(--ink); font-weight: 600; margin: 0 0 8px; }
+.bk-card p{ color: var(--muted); margin: 0; font-size: .92rem; }
+.bk-icon{ width: 48px; height: 48px; display: grid; place-items: center; border-radius: 12px; margin-bottom: 16px; background: rgba(255,106,0,.12); border: 1px solid rgba(255,106,0,.28); color: var(--primary); font-size: 1.2rem; }
+
+/* ---------- Platforms ---------- */
+.bk-platform{ display: flex; align-items: center; gap: 12px; padding: 14px 16px; height: 100%; background: var(--surface-raised); border: 1px solid var(--border-c); border-radius: var(--radius-md); color: var(--ink); font-weight: 500; font-size: .92rem; transition: var(--transition); }
+.bk-platform:hover{ border-color: rgba(255,106,0,.5); transform: translateY(-2px); }
+.bk-platform i{ width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center; border-radius: 10px; background: rgba(255,106,0,.12); color: var(--primary); }
+.bk-subhead{ margin: 48px 0 18px; text-align: center; color: var(--ink); font-size: 1.15rem; font-weight: 600; }
+.bk-chips{ display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.bk-chips li{ padding: 9px 16px; border: 1px solid var(--border-c); border-radius: 999px; color: var(--ink); background: var(--surface-raised); font-size: .88rem; }
+
+/* ---------- Programs ---------- */
+.bk-programs-title{ display: flex; align-items: center; gap: 10px; margin: 0 0 18px; font-size: .8rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--secondary); }
+.bk-programs-title::after{ content: ""; flex: 1; height: 1px; background: var(--border-c); }
+.bk-program{ display: flex; flex-direction: column; }
+.bk-program .bk-code{ font-size: 1.1rem; font-weight: 700; color: var(--ink); }
+.bk-program .bk-kind{ color: var(--muted); font-size: .9rem; margin-bottom: 16px; }
+.bk-program .bk-link{ margin-top: auto; color: var(--primary); font-weight: 600; font-size: .88rem; text-decoration: none; }
+.bk-program .bk-link:hover{ color: var(--secondary); }
+.bk-program .bk-link i{ margin-left: 6px; transition: transform .18s ease; }
+.bk-program .bk-link:hover i{ transform: translateX(3px); }
+.bk-note{ margin: 28px 0 0; text-align: center; color: var(--muted-2); font-size: .85rem; }
+.bk-note a{ color: var(--primary); }
+
+/* ---------- Why ---------- */
+.bk-why{ display: flex; gap: 16px; align-items: flex-start; }
+.bk-why .bk-icon{ margin: 0; flex: 0 0 48px; }
+
+/* ---------- Lab ---------- */
+.bk-lab-lead{ font-size: 1.02rem; color: var(--muted); max-width: 560px; }
+.bk-lab-list{ display: grid; gap: 14px; margin: 26px 0 30px; padding: 0; list-style: none; }
+.bk-lab-list li{ display: flex; gap: 14px; align-items: flex-start; }
+.bk-lab-list .bk-icon{ margin: 0; flex: 0 0 44px; width: 44px; height: 44px; }
+.bk-lab-list strong{ display: block; color: var(--ink); font-weight: 600; }
+.bk-lab-list span{ color: var(--muted); font-size: .9rem; }
+.bk-lab-visual{ border: 1px solid var(--border-c); border-radius: var(--radius-lg); background: linear-gradient(145deg, #0D1015, #161B22); padding: 22px; box-shadow: var(--shadow-soft); }
+.bk-term-bar{ display: flex; gap: 6px; margin-bottom: 14px; }
+.bk-term-bar i{ width: 10px; height: 10px; border-radius: 50%; background: #3a424d; }
+.bk-term-bar i:first-child{ background: var(--primary); }
+.bk-term-line{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .82rem; color: #c9d1d9; margin: 0 0 8px; }
+.bk-term-line b{ color: var(--secondary); font-weight: 600; }
+.bk-vm-badges{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.bk-vm-badges span{ font-size: .75rem; padding: 5px 10px; border-radius: 999px; border: 1px solid rgba(255,106,0,.3); color: var(--secondary); }
+
+/* ---------- Products ---------- */
+.bk-product .bk-name{ font-size: 1.25rem; font-weight: 700; letter-spacing: .02em; color: var(--ink); }
+.bk-product .bk-tag{ display: inline-block; margin: 6px 0 12px; font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--secondary); }
+.bk-product .bk-link{ display: inline-block; margin-top: 16px; color: var(--primary); font-weight: 600; font-size: .88rem; text-decoration: none; }
+.bk-product .bk-link:hover{ color: var(--secondary); }
+
+/* ---------- Enrollment timeline ---------- */
+.bk-steps{ list-style: none; margin: 0; padding: 0; counter-reset: bkstep; display: grid; gap: 0; max-width: 780px; margin-inline: auto; position: relative; }
+.bk-steps::before{ content: ""; position: absolute; left: 23px; top: 12px; bottom: 12px; width: 2px; background: linear-gradient(var(--primary), var(--border-c)); }
+.bk-steps li{ position: relative; display: flex; gap: 18px; align-items: flex-start; padding: 12px 0; }
+.bk-steps .bk-num{ flex: 0 0 48px; width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; background: var(--primary-darker); border: 2px solid var(--primary); color: var(--primary); font-weight: 700; z-index: 1; }
+.bk-steps .bk-step-body{ flex: 1; background: var(--surface-raised); border: 1px solid var(--border-c); border-radius: var(--radius-md); padding: 14px 18px; color: var(--ink); font-weight: 500; }
+.bk-steps .bk-step-body small{ display: block; margin-top: 4px; color: var(--muted); font-weight: 400; font-size: .82rem; }
+.bk-callout{ max-width: 780px; margin: 30px auto 0; padding: 16px 20px; border-left: 3px solid var(--primary); background: rgba(255,106,0,.07); border-radius: 0 var(--radius-md) var(--radius-md) 0; color: var(--muted); font-size: .9rem; }
+
+/* ---------- Portal ---------- */
+.bk-feature{ display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--surface-raised); border: 1px solid var(--border-c); border-radius: var(--radius-md); color: var(--ink); font-size: .92rem; height: 100%; }
+.bk-feature i{ color: var(--primary); width: 22px; text-align: center; }
+
+/* ---------- Perks ---------- */
+.bk-perk{ display: flex; align-items: center; gap: 12px; padding: 14px; height: 100%; background: var(--surface-raised); border: 1px solid var(--border-c); border-radius: var(--radius-md); color: var(--ink); font-size: .88rem; font-weight: 500; }
+.bk-perk i{ flex: 0 0 38px; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; background: rgba(255,106,0,.12); color: var(--primary); }
+.bk-unique{ margin: 32px 0 0; padding: 22px 26px; border: 1px solid rgba(255,106,0,.35); border-radius: var(--radius-lg); background: linear-gradient(135deg, rgba(255,106,0,.1), rgba(255,106,0,.02)); color: var(--ink); }
+.bk-unique strong{ color: var(--secondary); }
+
+/* ---------- Contact strip (inside existing CTA section) ---------- */
+.bk-contact{ display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 26px; margin: 30px 0 0; padding: 0; list-style: none; font-size: .92rem; font-weight: 500; }
+.bk-contact a{ color: inherit; text-decoration: none; }
+.bk-contact a:hover{ text-decoration: underline; }
+.bk-contact i{ margin-right: 8px; }
+
+@media (max-width: 575.98px){
+  .bk-section{ padding: 60px 0; }
+  .bk-steps::before{ left: 19px; }
+  .bk-steps .bk-num{ flex-basis: 40px; width: 40px; height: 40px; }
+  .bk-cta-row .btn{ width: 100%; }
+}
+@media (prefers-reduced-motion: reduce){
+  .bk-card, .bk-platform, .bk-program .bk-link i{ transition: none; }
+  .bk-card:hover, .bk-platform:hover{ transform: none; }
+}
+
+/* ---------- Value bar (replaces the removed homepage statistics) ---------- */
+.bk-valuebar{ padding: 34px 0; }
+.bk-valueitem{ display: flex; align-items: center; justify-content: center; gap: 14px; text-align: left; }
+.bk-valueitem i{ flex: 0 0 46px; width: 46px; height: 46px; display: grid; place-items: center; border-radius: 12px; background: rgba(255,106,0,.12); border: 1px solid rgba(255,106,0,.28); color: var(--primary); font-size: 1.1rem; }
+.bk-valueitem strong{ display: block; color: var(--ink); font-weight: 600; font-size: 1.02rem; }
+.bk-valueitem span{ color: var(--muted); font-size: .9rem; }
+@media (max-width: 767.98px){ .bk-valueitem{ justify-content: flex-start; } }
