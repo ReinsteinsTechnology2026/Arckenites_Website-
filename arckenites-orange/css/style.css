@@ -1670,3 +1670,7 @@ body.is-database-view .col-database{ display:table-cell; }
 
 .portal-file-list li{flex-wrap:wrap;}
 .portal-file-list video{flex-basis:100%;width:100%;max-height:320px;background:#000;}
+
+/* The hidden attribute must win over the display rules above, so students and
+   other read-only viewers do not see upload controls they cannot use. */
+.portal-file-box [hidden]{ display:none !important; }

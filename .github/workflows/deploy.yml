@@ -52,6 +52,7 @@ jobs:
           node backend/tests/public_newsletter.test.cjs
           node backend/tests/mfa_controls_ui.test.cjs
           node backend/tests/job_applications_ui.test.cjs
+          node backend/tests/portal_files_readonly_controls.test.cjs
           python -m compileall -q backend/app backend/tests
       - name: Validate migration graph without a database
         working-directory: backend
