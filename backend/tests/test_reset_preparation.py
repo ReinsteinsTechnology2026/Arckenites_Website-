@@ -75,9 +75,9 @@ class ResetPreparationTests(unittest.TestCase):
         return result
 
     def test_current_schema_and_fk_inventory_fully_classified(self):
-        self.assertEqual(self.metadata["table_count"], 55)  # +5 trainer scheduling tables (9d2f6b8c4e31)
+        self.assertEqual(self.metadata["table_count"], 56)  # + portal file metadata (c6d8a2f4e107)
         # c4e5f6a7b8c9 added two nullable batch audit FKs (commit a0cbca8).
-        self.assertEqual(len(self.metadata["foreign_keys"]), 83)
+        self.assertEqual(len(self.metadata["foreign_keys"]), 84)
         batch_audit_fks = {
             (fk["source_column"], fk["target_table"], fk["target_column"],
              fk["nullable"], fk["ondelete"])
@@ -92,14 +92,31 @@ class ResetPreparationTests(unittest.TestCase):
             ("interview_schedule_access_updated_by_id", "users", "id", True, "SET NULL"),
         })
         # Community scoping retains both old index names and adds this index.
-        self.assertEqual(len(self.metadata["model_indexes"]), 71)
+        self.assertEqual(len(self.metadata["model_indexes"]), 72)
         self.assertIn({"table": "users", "name": "uq_users_legacy_username",
                        "unique": True, "columns": ["username"]}, self.metadata["model_indexes"])
         # Includes the two batch audit foreign-key constraints above.
-        self.assertEqual(len(self.metadata["model_constraints"]), 169)
+        self.assertEqual(len(self.metadata["model_constraints"]), 171)
         self.assertEqual(self.metadata["unclassified_model_tables"], [])
         self.assertFalse(self.metadata["production_schema_verified"])
         self.assertEqual(set(self.metadata["tables"]) | {"alembic_version"}, ALL_TABLES)
+
+    def test_remote_file_metadata_requires_manual_review_and_serializes_uuid_ids(self):
+        from uuid import uuid4
+        from app.models.portal_file import PortalFile
+        file_id=uuid4()
+        with self.engine.begin() as conn:
+            conn.execute(PortalFile.__table__.insert(), {
+                'id':file_id,'scope':'materials','target_id':1,'uploader_id':105,
+                'drive_id':'fixture-drive','folder':'Portal','remote_name':'fixture.txt',
+                'remote_item_id':'fixture-item','file_name':'fixture.txt','file_type':'text/plain',
+                'size_bytes':1,'state':'READY'})
+        plan=preview(self.rows(),self.metadata['foreign_keys'])
+        self.assertEqual(plan['proposed_actions']['portal_files'][str(file_id)],'manual')
+        self.assertTrue(any('portal_files' in blocker for blocker in plan['blockers']))
+        output=Path(self.temp.name)/'portal-reset-review.json'
+        write_report(output,{'plan':plan})
+        self.assertEqual(json.loads(output.read_text())['plan']['proposed_actions']['portal_files'][str(file_id)],'manual')
 
     def test_job_announcements_and_reactions_are_preserved_in_reset_preview(self):
         with self.engine.begin() as conn:
