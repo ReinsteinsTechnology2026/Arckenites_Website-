@@ -1649,3 +1649,24 @@ body.is-database-view .col-database{ display:table-cell; }
 .job-reaction{border:1px solid var(--border-c);border-radius:999px;background:transparent;color:var(--ink);padding:7px 11px;cursor:pointer;font:inherit}
 .job-reaction:hover,.job-reaction.is-selected{border-color:var(--primary);background:color-mix(in srgb,var(--primary) 12%,transparent)}
 .job-reaction:disabled{opacity:.6;cursor:wait}
+
+/* Private shared-file collections in study materials and conversations. */
+.portal-file-box{ margin:16px 0; border:1px solid var(--border-c); border-radius:var(--radius-md); min-width:0; background:var(--surface); }
+.portal-file-box summary{ padding:12px 16px; cursor:pointer; font-weight:600; font-size:.9rem; overflow-wrap:anywhere; }
+.portal-file-content{ padding:0 16px 16px; }
+.portal-file-status{ font-size:.85rem; color:var(--muted); margin:0 0 10px; }
+.portal-file-status.is-error{ color:var(--danger); }
+.portal-file-controls{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+.portal-file-controls label{ display:flex; flex-direction:column; gap:6px; font-size:.8rem; flex:1 1 180px; min-width:0; }
+.portal-file-controls input{ max-width:100%; min-width:0; font:inherit; }
+.portal-file-list{ list-style:none; padding:0; margin:12px 0 0; max-height:240px; overflow-y:auto; }
+.portal-file-list li{ display:flex; align-items:center; gap:10px; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-c); }
+.portal-file-download{ background:none; border:0; color:var(--ink); text-align:left; text-decoration:underline; cursor:pointer; font:inherit; font-size:.85rem; overflow-wrap:anywhere; min-width:0; }
+.portal-file-list .btn{ flex-shrink:0; }
+#chatThreadView > .portal-file-box{ flex-shrink:0; margin:8px 12px; max-height:220px; overflow:auto; }
+@media(max-width:600px){ .portal-file-controls > .btn{ flex:1 1 auto; } }
+.batch-chat-body > .portal-file-box{ flex-shrink:0; margin:8px 12px; max-height:180px; overflow:auto; }
+.batch-chat-body > .batch-chat-messages{ min-height:80px; }
+
+.portal-file-list li{flex-wrap:wrap;}
+.portal-file-list video{flex-basis:100%;width:100%;max-height:320px;background:#000;}

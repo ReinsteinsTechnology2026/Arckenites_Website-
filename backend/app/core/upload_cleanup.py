@@ -45,7 +45,14 @@ def process_file_cleanup() -> int:
                 else:
                     used = db.scalar(select(User.id).where(User.photo_path == job.storage_reference).limit(1))
                 if used is None:
-                    cleanup_path(job.storage_kind, job.storage_reference).unlink(missing_ok=True)
+                    if job.storage_kind == 'support' and job.storage_reference.startswith('portal:'):
+                        from uuid import UUID
+                        from app.models.portal_file import PortalFile
+                        row = db.get(PortalFile, UUID(job.storage_reference.removeprefix('portal:')))
+                        if row is not None and row.scope == 'support':
+                            row.state = 'DELETING'
+                    else:
+                        cleanup_path(job.storage_kind, job.storage_reference).unlink(missing_ok=True)
                 db.delete(job)
             except (OSError, ValueError):
                 job.last_attempt_at = datetime.now(timezone.utc)
@@ -58,6 +65,8 @@ async def run_file_cleanup_worker():
     while True:
         try:
             await asyncio.to_thread(process_file_cleanup)
+            from app.core.portal_storage import process_portal_cleanup
+            await asyncio.to_thread(process_portal_cleanup)
         except Exception as exc:
             logger.error("Upload cleanup worker failed error_type=%s", type(exc).__name__)
         await asyncio.sleep(30)

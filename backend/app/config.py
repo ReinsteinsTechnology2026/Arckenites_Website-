@@ -36,6 +36,14 @@ class Settings(BaseSettings):
     # hardcode this in frontend JS; every meeting join URL is built from it.
     meet_domain: str = "meet.arckenites.com"
 
+    # Private portal file storage; independent of any recording-capture feature.
+    portal_onedrive_enabled: bool = False
+    portal_onedrive_folder_path: str = "ArckenitesPortalFiles"
+    onedrive_drive_id: str = ""
+    onedrive_upload_enabled: bool = False
+    onedrive_folder_path: str = "ArckenitesRecordings"
+    onedrive_chunk_bytes: int = 320 * 1024 * 32
+
     # Outbound email for the notification-toggle feature (app/core/notify.py).
     # Gmail SMTP by default: smtp_username is the sending Gmail address,
     # smtp_password is a 16-char Google App Password (NOT the account

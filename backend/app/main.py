@@ -44,6 +44,7 @@ from app.api.routes_sessions import router as sessions_router
 from app.api.routes_staff import router as staff_router
 from app.api.routes_students import router as students_router
 from app.api.routes_video import router as video_router
+from app.api.routes_portal_files import router as portal_files_router
 from app.config import settings
 from app.core.community_posts import run_community_post_email_worker
 from app.core.lab_vm_watchdog import run_lab_vm_watchdog
@@ -161,6 +162,7 @@ app.include_router(sessions_router, prefix="/api")
 app.include_router(students_router, prefix="/api")
 app.include_router(staff_router, prefix="/api")
 app.include_router(profile_router, prefix="/api")
+app.include_router(portal_files_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(contact_router, prefix="/api")
 app.include_router(community_auth_router, prefix="/api")

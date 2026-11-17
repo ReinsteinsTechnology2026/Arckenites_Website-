@@ -544,6 +544,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const batches = await ArckAPI.request('/students/me/batches');
       myBatches = batches;
+      if (window.PortalFiles) {
+        for (const [id, scope, title] of [
+          ['materialsTableBody', 'materials', 'Uploaded materials'],
+          ['videosTableBody', 'videos', 'Uploaded class recordings']
+        ]) {
+          const table = document.getElementById(id);
+          for (const batch of batches) PortalFiles.mount(table && table.closest('.admin-panel'), scope, batch.id, title + ' — ' + batch.name);
+        }
+      }
+
       batchMeetingsList.innerHTML = batches.length
         ? batches.map((b) => `
             <div class="batch-student-row">
@@ -590,6 +600,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const openBatchChat = async (batchId, batchName) => {
     currentChatBatchId = batchId;
+    if (window.PortalFiles) {
+      const parent = document.getElementById('batchChatMessages').parentElement;
+      parent.querySelectorAll('[data-portal-files]').forEach(el => el.remove());
+      PortalFiles.mount(parent, 'batch-chat', batchId, 'Batch shared documents');
+    }
+
     document.getElementById('batchChatModalTitle').textContent = `${batchName} — Chat`;
     batchChatMessages.innerHTML = '<div class="admin-panel-empty">Loading&hellip;</div>';
     batchChatModalBackdrop.classList.add('is-open');
