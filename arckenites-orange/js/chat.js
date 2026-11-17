@@ -104,6 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const openThread = async (peerId, peerName, conversationId = null, archived = false) => {
     activePeerId = peerId;
+    threadView.querySelectorAll('[data-portal-files]').forEach(el => el.remove());
+    if (window.PortalFiles) PortalFiles.mount(threadView, archived ? 'conversation' : 'chat', archived ? conversationId : peerId, 'Shared documents');
     titleEl.textContent = archived ? `${peerName} (read only)` : peerName;
     form.style.display = archived ? 'none' : '';
     backBtn.style.display = '';

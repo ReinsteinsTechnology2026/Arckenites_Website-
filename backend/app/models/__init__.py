@@ -147,3 +147,5 @@ __all__ = [
     "TicketCategoryEnum",
     "SenderTypeEnum",
 ]
+
+from app.models.portal_file import PortalFile

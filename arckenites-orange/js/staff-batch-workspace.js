@@ -13,6 +13,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!user) return;
 
   const batchId = Number(new URLSearchParams(window.location.search).get('id'));
+  if (window.PortalFiles && batchId > 0) {
+    for (const [id, scope, title] of [
+      ['materialsTableBody', 'materials', 'Uploaded study materials'],
+      ['videosTableBody', 'videos', 'Uploaded class recordings']
+    ]) {
+      const table = document.getElementById(id);
+      PortalFiles.mount(table && table.closest('.admin-panel'), scope, batchId, title);
+    }
+    const chat = document.getElementById('batchChatMessages');
+    PortalFiles.mount(chat && chat.parentElement, 'batch-chat', batchId, 'Batch shared documents');
+  }
+
   if (!batchId) {
     document.getElementById('workspaceBatchName').textContent = 'Batch not found';
     return;

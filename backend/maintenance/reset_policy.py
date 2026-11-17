@@ -25,10 +25,12 @@ OWNED = {
     "mfa_credentials": "user_id", "mfa_recovery_codes": "user_id",
     "mfa_challenges": "user_id",
 }
+# portal_files holds ownership of remote objects; any reset requires a separate
+# cloud-retention/worker plan. Never automatically discard those references.
 # batch_trainer_assignments is shared batch history (trainer, admin actor, batch). Whether it is
 # kept or removed with a deleted trainer/batch is an unresolved retention decision, so it is held.
 MANUAL = {"batches", "class_sessions", "study_materials", "class_videos", "leads",
-          "batch_trainer_assignments"}
+          "batch_trainer_assignments", "portal_files"}
 ALL_TABLES = PRESERVE | AUDIT | set(OWNED) | MANUAL | {
     "users", "community_registrations", "contact_enquiries", "community_posts",
     "conversations", "direct_messages", "batch_messages", "support_tickets",
@@ -45,6 +47,13 @@ def preview(rows, foreign_keys):
     accounts with consistent roles and profiles are candidates. A retained parent pulls its
     dependent content into the retained set. Unknown identities are held.
     """
+    # Auth sessions and cloud-file records use UUID primary keys. Normalize
+    # identifiers for deterministic, JSON-safe proposal keys without changing
+    # integer user IDs or proposing any action on remote storage.
+    from uuid import UUID
+    rows = {table: [{key: str(value) if isinstance(value, UUID) else value
+                     for key, value in row.items()} for row in records]
+            for table, records in rows.items()}
     actions = {table: {} for table in rows}
     blockers = []
     role_slugs = {r["id"]: r.get("slug") for r in rows.get("admin_roles", [])}

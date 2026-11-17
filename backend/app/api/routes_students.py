@@ -521,7 +521,14 @@ async def upload_ticket_attachment(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Maximum {MAX_FILES_PER_MESSAGE} attachments per message.")
 
     contents = await read_upload_limited(file, MAX_FILE_SIZE_BYTES)
-    storage_reference, file_name, file_type, file_size = save_upload(file, contents)
+    from app.config import settings
+    if settings.portal_onedrive_enabled:
+        from app.core.portal_documents import save_support_document
+        from starlette.concurrency import run_in_threadpool
+        storage_reference, file_name, file_type, file_size = await run_in_threadpool(
+            save_support_document, db, user, ticket.id, file, contents)
+    else:
+        storage_reference, file_name, file_type, file_size = save_upload(file, contents)
 
     attachment = SupportAttachment(
         ticket_id=ticket.id, message_id=message.id, file_name=file_name,
@@ -547,6 +554,9 @@ def download_ticket_attachment(
     if attachment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attachment not found")
 
+    if attachment.storage_reference.startswith('portal:'):
+        from app.core.portal_documents import support_document_response
+        return support_document_response(db, attachment)
     path = get_upload_path(attachment.storage_reference)
     return FileResponse(path, media_type=attachment.file_type, filename=attachment.file_name)
 
