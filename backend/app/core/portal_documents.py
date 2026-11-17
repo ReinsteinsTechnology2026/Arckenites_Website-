@@ -16,8 +16,12 @@ def store_document(db, user, scope, target, file, data=None):
     store = document_store()
     if not store.readiness()[0]:
         raise HTTPException(503, 'File uploads are not enabled. Contact your administrator.')
-    name = (file.filename or 'upload').replace(chr(92), '/').split('/')[-1][:255]
-    ext = Path(name).suffix.lower()
+    raw_name = (file.filename or 'upload').replace(chr(92), '/').split('/')[-1]
+    suffix = Path(raw_name).suffix
+    ext = suffix.lower()
+    # Shorten the stem, never the extension, so a long name is not
+    # misreported as an unsupported file type.
+    name = raw_name if len(raw_name) <= 255 else raw_name[:-len(suffix) or None][:max(255 - len(suffix), 1)] + suffix
     is_video = scope == 'videos'
     if is_video and ext != '.mp4':
         raise HTTPException(400, 'Class recordings must be MP4 files.')
