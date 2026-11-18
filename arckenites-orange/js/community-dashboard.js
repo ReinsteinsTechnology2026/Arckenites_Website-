@@ -22,12 +22,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ---------- Sidebar: mobile off-canvas ---------- */
   const sidebar = document.getElementById('communitySidebar');
-  const backdrop = document.getElementById('adminSidebarBackdrop');
-  const openMobileSidebar = () => { sidebar.classList.add('is-mobile-open'); backdrop.classList.add('is-visible'); };
-  const closeMobileSidebar = () => { sidebar.classList.remove('is-mobile-open'); backdrop.classList.remove('is-visible'); };
-  document.getElementById('adminMobileToggle').addEventListener('click', openMobileSidebar);
-  backdrop.addEventListener('click', closeMobileSidebar);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMobileSidebar(); });
+  // Drawer open/close, Escape, focus trap and aria live in js/portal-shell.js.
+  const closeMobileSidebar = () => { if (window.PortalShell) PortalShell.closeDrawer(); };
 
   /* ---------- Sidebar: in-page section links ---------- */
   const anchorLinks = sidebar.querySelectorAll('[data-anchor]');

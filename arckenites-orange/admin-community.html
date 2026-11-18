@@ -14,10 +14,10 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=21">
+<link rel="stylesheet" href="css/style.css?v=25">
 
 </head>
-<body>
+<body class="portal-page">
 
 <div class="admin-auth-loader" id="adminAuthLoader"><div class="loader-mark"><img src="assets/logo.png" alt="Arckenites"></div></div>
 
@@ -110,7 +110,7 @@
     <div class="admin-sidebar-logout">
       <div class="admin-dropdown admin-sidebar-account">
         <button type="button" class="admin-profile-trigger" id="adminProfileTrigger">
-          <span class="label">Organizational Settings</span>
+          <i class="fa-solid fa-gear admin-account-icon" aria-hidden="true"></i><span class="label">Organizational Settings</span>
           <i class="fa-solid fa-chevron-up"></i>
         </button>
         <div class="admin-dropdown-panel" id="adminProfilePanel">
@@ -179,7 +179,8 @@
           </div>
         </div>
 
-        <table class="admin-activity-table">
+        <div class="table-scroll">
+<table class="admin-activity-table">
           <thead>
             <tr><th>ID</th><th>Name</th><th>Mobile</th><th>Email</th><th>Email Status</th><th>Status</th><th>Joined</th><th>Action</th></tr>
           </thead>
@@ -187,15 +188,17 @@
             <tr><td colspan="8" class="admin-panel-empty">Loading&hellip;</td></tr>
           </tbody>
         </table>
+</div>
       </div>
     </main>
   </div>
 </div>
 
 <script src="js/api.js?v=2"></script>
-<script src="js/auth.js?v=9"></script>
+<script src="js/auth.js?v=10"></script>
 <script src="js/theme.js?v=1"></script>
-<script src="js/admin-community.js?v=1"></script>
+<script src="js/portal-shell.js?v=1"></script>
+<script src="js/admin-community.js?v=2"></script>
 
 </body>
 </html>

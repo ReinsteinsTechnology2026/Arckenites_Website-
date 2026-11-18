@@ -17,19 +17,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     .split(' ').filter(Boolean).slice(0, 2).map((part) => part[0].toUpperCase()).join('') || 'A';
   document.getElementById('adminProfileName').textContent = user.full_name;
   document.getElementById('adminProfileRole').textContent = user.role;
-  document.querySelectorAll('.admin-sidebar-group-header').forEach((header) => header.addEventListener('click', () => {
-    const open = header.closest('.admin-sidebar-group').classList.toggle('is-open');
-    header.setAttribute('aria-expanded', String(open));
-  }));
-  const sidebar = document.getElementById('adminSidebar');
-  const backdrop = document.getElementById('adminSidebarBackdrop');
-  document.getElementById('adminSidebarCollapseBtn').addEventListener('click', () => sidebar.classList.toggle('is-collapsed'));
-  document.getElementById('adminMobileToggle').addEventListener('click', () => { sidebar.classList.add('is-mobile-open'); backdrop.classList.add('is-visible'); });
-  backdrop.addEventListener('click', () => { sidebar.classList.remove('is-mobile-open'); backdrop.classList.remove('is-visible'); });
-  document.getElementById('adminProfileTrigger').addEventListener('click', (event) => {
-    event.stopPropagation(); document.getElementById('adminProfilePanel').classList.toggle('is-open');
-  });
-  document.addEventListener('click', () => document.getElementById('adminProfilePanel').classList.remove('is-open'));
   document.getElementById('adminSidebarLogout').addEventListener('click', () => ArckAuth.logout());
   document.getElementById('adminProfileLogout').addEventListener('click', () => ArckAuth.logout());
   if (!canCreate) document.getElementById('newJobBtn').style.display = 'none';

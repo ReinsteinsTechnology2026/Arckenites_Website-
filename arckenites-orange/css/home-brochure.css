@@ -106,6 +106,8 @@
   .bk-steps::before{ left: 19px; }
   .bk-steps .bk-num{ flex-basis: 40px; width: 40px; height: 40px; }
   .bk-cta-row .btn{ width: 100%; }
+  /* 2-up tiles are ~140px wide here: stack icon above label so long words (Cybersecurity, Management) fit unbroken. */
+  .bk-platform{ flex-direction: column; align-items: flex-start; gap: 8px; }
 }
 @media (prefers-reduced-motion: reduce){
   .bk-card, .bk-platform, .bk-program .bk-link i{ transition: none; }

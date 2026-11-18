@@ -14,10 +14,10 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=24">
+<link rel="stylesheet" href="css/style.css?v=25">
 
 </head>
-<body>
+<body class="portal-page">
 
 <header class="dashboard-topbar">
   <a class="navbar-brand" href="staff-dashboard.html">
@@ -135,10 +135,12 @@
           <div class="login-error" id="materialFormError" style="display:none; margin-top:16px;"></div>
           <div class="admin-form-actions"><button type="submit" class="btn btn-accent" id="materialSubmitBtn">Upload</button></div>
         </form>
-        <table class="admin-activity-table" style="margin-top:20px;">
+        <div class="table-scroll table-scroll--spaced">
+<table class="admin-activity-table">
           <thead><tr><th>Title</th><th>Link</th><th>Description</th><th>Uploaded</th><th>Actions</th></tr></thead>
           <tbody id="materialsTableBody"><tr><td colspan="5" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
         </table>
+</div>
       </div>
     </div>
 
@@ -155,10 +157,12 @@
           <div class="login-error" id="videoFormError" style="display:none; margin-top:16px;"></div>
           <div class="admin-form-actions"><button type="submit" class="btn btn-accent" id="videoSubmitBtn">Upload</button></div>
         </form>
-        <table class="admin-activity-table" style="margin-top:20px;">
+        <div class="table-scroll table-scroll--spaced">
+<table class="admin-activity-table">
           <thead><tr><th>Title</th><th>Link</th><th>Description</th><th>Uploaded</th><th>Actions</th></tr></thead>
           <tbody id="videosTableBody"><tr><td colspan="5" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
         </table>
+</div>
       </div>
     </div>
   </section>
@@ -226,7 +230,7 @@
 
 <script src="js/api.js?v=2"></script>
 <script src="js/portal-files.js?v=1"></script>
-<script src="js/auth.js?v=7"></script>
+<script src="js/auth.js?v=10"></script>
 <script src="js/theme.js?v=1"></script>
 <script src="js/video-conference.js?v=1"></script>
 <script src="js/staff-batch-workspace.js?v=3"></script>

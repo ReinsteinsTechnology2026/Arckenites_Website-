@@ -27,7 +27,7 @@ assert.doesNotMatch(studentJs, /comment|reply/i);
 
 assert.match(admin, /id="jobForm"/);
 assert.match(admin, /id="adminJobsList"/);
-assert.match(admin, /js\/admin-job-applications\.js\?v=1/);
+assert.match(admin, /js\/admin-job-applications\.js\?v=2/);
 assert.match(authJs, /'admin-job-applications\.html': 'placement\.view'/);
 assert.match(authJs, /'admin-settings\.html': \['settings\.view', 'job_applications\.section_manage'\]/);
 assert.match(settings, /id="jobSectionEnabled"/);

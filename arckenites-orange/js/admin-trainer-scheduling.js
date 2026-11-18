@@ -13,19 +13,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('adminAvatarInitials').textContent = initials;
   document.getElementById('adminProfileName').textContent = user.full_name;
   document.getElementById('adminProfileRole').textContent = user.role;
-  document.querySelectorAll('.admin-sidebar-group-header').forEach((header) => header.addEventListener('click', () => {
-    const open = header.closest('.admin-sidebar-group').classList.toggle('is-open');
-    header.setAttribute('aria-expanded', String(open));
-  }));
-  const sidebar = document.getElementById('adminSidebar');
-  document.getElementById('adminSidebarCollapseBtn').addEventListener('click', () => sidebar.classList.toggle('is-collapsed'));
-  const backdrop = document.getElementById('adminSidebarBackdrop');
-  document.getElementById('adminMobileToggle').addEventListener('click', () => { sidebar.classList.add('is-mobile-open'); backdrop.classList.add('is-visible'); });
-  const closeSide = () => { sidebar.classList.remove('is-mobile-open'); backdrop.classList.remove('is-visible'); };
-  backdrop.addEventListener('click', closeSide);
-  const profilePanel = document.getElementById('adminProfilePanel');
-  document.getElementById('adminProfileTrigger').addEventListener('click', (e) => { e.stopPropagation(); profilePanel.classList.toggle('is-open'); });
-  document.addEventListener('click', () => profilePanel.classList.remove('is-open'));
   document.getElementById('adminSidebarLogout').addEventListener('click', () => ArckAuth.logout());
   document.getElementById('adminProfileLogout').addEventListener('click', () => ArckAuth.logout());
 

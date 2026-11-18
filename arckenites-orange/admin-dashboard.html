@@ -14,10 +14,10 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=24">
+<link rel="stylesheet" href="css/style.css?v=25">
 
 </head>
-<body>
+<body class="portal-page">
 
 <div class="admin-auth-loader" id="adminAuthLoader"><div class="loader-mark"><img src="assets/logo.png" alt="Arckenites"></div></div>
 
@@ -110,7 +110,7 @@
     <div class="admin-sidebar-logout">
       <div class="admin-dropdown admin-sidebar-account">
         <button type="button" class="admin-profile-trigger" id="adminProfileTrigger">
-          <span class="label">Organizational Settings</span>
+          <i class="fa-solid fa-gear admin-account-icon" aria-hidden="true"></i><span class="label">Organizational Settings</span>
           <i class="fa-solid fa-chevron-up"></i>
         </button>
         <div class="admin-dropdown-panel" id="adminProfilePanel">
@@ -186,26 +186,34 @@
         <div class="admin-kpi-card" id="kpiFailedCard"><i class="fa-solid fa-triangle-exclamation"></i><h3 id="kpiFailedToday">—</h3><p>Failed Logins Today</p></div>
       </div>
 
-      <div class="admin-dashboard-grid">
-      <div class="admin-panel" id="systemHealthPanel">
-        <div class="admin-panel-header"><h2>System Health</h2></div>
-        <div id="dashboardSystemHealth" style="padding:18px 20px; display:flex; gap:24px; flex-wrap:wrap;" class="admin-panel-empty">Loading&hellip;</div>
-      </div>
+      <p class="admin-inline-error" id="kpiError" role="alert" hidden>
+        <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+        <span>Couldn't load the summary figures.</span>
+        <button type="button" class="btn btn-primary-outline btn-sm" id="kpiRetry">Try again</button>
+      </p>
 
-      <div class="admin-panel" id="activityLog">
-        <div class="admin-panel-header" style="display:flex; align-items:center; justify-content:space-between; gap:16px;">
-          <h2>Recent Activity</h2>
-          <a href="admin-activity-logs.html" class="btn btn-primary-outline" style="padding:6px 14px; font-size:.8rem;">View All <i class="fa-solid fa-arrow-right"></i></a>
+      <div class="admin-dashboard-grid">
+        <div class="admin-panel" id="activityLog">
+          <div class="admin-panel-header admin-panel-header--split">
+            <h2>Recent Activity</h2>
+            <a href="admin-activity-logs.html" class="btn btn-primary-outline btn-sm">View All <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+          </div>
+          <div class="table-scroll">
+            <table class="admin-activity-table">
+              <thead>
+                <tr><th>User</th><th>Action</th><th>Date / Time</th></tr>
+              </thead>
+              <tbody id="adminActivityBody">
+                <tr><td colspan="3" class="admin-panel-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <table class="admin-activity-table">
-          <thead>
-            <tr><th>User</th><th>Action</th><th>Date / Time</th></tr>
-          </thead>
-          <tbody id="adminActivityBody">
-            <tr><td colspan="3" class="admin-panel-empty">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
+
+        <div class="admin-panel" id="systemHealthPanel">
+          <div class="admin-panel-header"><h2>System Health</h2></div>
+          <div id="dashboardSystemHealth" class="health-list admin-panel-empty">Loading&hellip;</div>
+        </div>
       </div>
     </main>
   </div>
@@ -240,9 +248,10 @@
 
 <script src="js/api.js?v=2"></script>
 <script src="js/portal-files.js?v=1"></script>
-<script src="js/auth.js?v=9"></script>
+<script src="js/auth.js?v=10"></script>
 <script src="js/theme.js?v=1"></script>
-<script src="js/admin-dashboard.js?v=3"></script>
+<script src="js/portal-shell.js?v=1"></script>
+<script src="js/admin-dashboard.js?v=4"></script>
 <script src="js/chat.js?v=2"></script>
 
 </body>

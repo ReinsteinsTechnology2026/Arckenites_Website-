@@ -14,10 +14,10 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=24">
+<link rel="stylesheet" href="css/style.css?v=25">
 
 </head>
-<body>
+<body class="portal-page">
 
 <div class="admin-auth-loader" id="adminAuthLoader"><div class="loader-mark"><img src="assets/logo.png" alt="Arckenites"></div></div>
 
@@ -110,7 +110,7 @@
     <div class="admin-sidebar-logout">
       <div class="admin-dropdown admin-sidebar-account">
         <button type="button" class="admin-profile-trigger" id="adminProfileTrigger">
-          <span class="label">Organizational Settings</span>
+          <i class="fa-solid fa-gear admin-account-icon" aria-hidden="true"></i><span class="label">Organizational Settings</span>
           <i class="fa-solid fa-chevron-up"></i>
         </button>
         <div class="admin-dropdown-panel" id="adminProfilePanel">
@@ -225,7 +225,8 @@
 
       <div class="admin-panel">
         <div class="admin-panel-header"><h2>Log Entries</h2></div>
-        <table class="admin-activity-table">
+        <div class="table-scroll">
+<table class="admin-activity-table">
           <thead>
             <tr><th>Date &amp; Time</th><th>User</th><th>Role</th><th>Action</th><th>Module</th><th>Target</th><th>Status</th><th>IP Address</th><th>Details</th></tr>
           </thead>
@@ -233,6 +234,7 @@
             <tr><td colspan="9" class="admin-panel-empty">Loading&hellip;</td></tr>
           </tbody>
         </table>
+</div>
         <div id="logsPagination" style="display:flex; justify-content:center; gap:10px; padding:16px;"></div>
       </div>
     </main>
@@ -268,9 +270,10 @@
 
 <script src="js/api.js?v=2"></script>
 <script src="js/portal-files.js?v=1"></script>
-<script src="js/auth.js?v=9"></script>
+<script src="js/auth.js?v=10"></script>
 <script src="js/theme.js?v=1"></script>
-<script src="js/admin-activity-logs.js?v=1"></script>
+<script src="js/portal-shell.js?v=1"></script>
+<script src="js/admin-activity-logs.js?v=2"></script>
 <script src="js/chat.js?v=2"></script>
 
 </body>

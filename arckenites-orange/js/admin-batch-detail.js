@@ -31,35 +31,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('adminProfileName').textContent = user.full_name;
   document.getElementById('adminProfileRole').textContent = user.role;
 
-  /* ---------- Sidebar: collapsible groups ---------- */
-  document.querySelectorAll('.admin-sidebar-group-header').forEach((header) => {
-    header.addEventListener('click', () => {
-      const group = header.closest('.admin-sidebar-group');
-      const isOpen = group.classList.toggle('is-open');
-      header.setAttribute('aria-expanded', String(isOpen));
-    });
-  });
-
-  /* ---------- Sidebar: desktop collapse ---------- */
-  const sidebar = document.getElementById('adminSidebar');
-  document.getElementById('adminSidebarCollapseBtn').addEventListener('click', () => {
-    sidebar.classList.toggle('is-collapsed');
-  });
-
-  /* ---------- Sidebar: mobile off-canvas ---------- */
-  const backdrop = document.getElementById('adminSidebarBackdrop');
-  const openMobileSidebar = () => { sidebar.classList.add('is-mobile-open'); backdrop.classList.add('is-visible'); };
-  const closeMobileSidebar = () => { sidebar.classList.remove('is-mobile-open'); backdrop.classList.remove('is-visible'); };
-  document.getElementById('adminMobileToggle').addEventListener('click', openMobileSidebar);
-  backdrop.addEventListener('click', closeMobileSidebar);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMobileSidebar(); });
-
-  /* ---------- Profile dropdown ---------- */
-  const profileTrigger = document.getElementById('adminProfileTrigger');
-  const profilePanel = document.getElementById('adminProfilePanel');
-  profileTrigger.addEventListener('click', (e) => { e.stopPropagation(); profilePanel.classList.toggle('is-open'); });
-  document.addEventListener('click', () => profilePanel.classList.remove('is-open'));
-
   /* ---------- Logout ---------- */
   document.getElementById('adminSidebarLogout').addEventListener('click', () => ArckAuth.logout());
   document.getElementById('adminProfileLogout').addEventListener('click', () => ArckAuth.logout());

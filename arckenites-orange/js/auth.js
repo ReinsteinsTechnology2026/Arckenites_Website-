@@ -146,6 +146,42 @@ ArckAPI.onUnauthorized = () => {
   window.location.href = 'login.html';
 };
 
+/**
+ * Visible, accessible failure state for "could not verify the session".
+ * Keeps the (permission-filtered) shell hidden, removes the endless loader,
+ * and offers Retry (re-runs the page's normal startup) plus a way back to
+ * the sign-in page. Does not touch the stored session.
+ */
+function showPortalLoadError(err) {
+  const root = document.documentElement;
+  root.classList.add('auth-error');
+  let box = document.getElementById('portalLoadError');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'portalLoadError';
+    box.className = 'portal-load-error';
+    box.setAttribute('role', 'alert');
+    box.innerHTML = `
+      <div class="portal-load-error-card">
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+        <h1 id="portalLoadErrorTitle">We couldn't load this page</h1>
+        <p id="portalLoadErrorMsg"></p>
+        <div class="portal-load-error-actions">
+          <button type="button" class="btn btn-accent" id="portalLoadRetry">Try again</button>
+          <a class="btn btn-primary-outline" href="login.html">Back to sign in</a>
+        </div>
+      </div>`;
+    document.body.appendChild(box);
+    box.querySelector('#portalLoadRetry').addEventListener('click', () => window.location.reload());
+  }
+  const unreachable = !err || err.status === 0;
+  box.querySelector('#portalLoadErrorMsg').textContent = unreachable
+    ? 'Cannot reach the Arckenites server. Check your connection, then try again.'
+    : 'The server returned an unexpected response' + (err && err.status ? ` (error ${err.status})` : '') + '. Please try again in a moment.';
+  const retry = box.querySelector('#portalLoadRetry');
+  if (retry) retry.focus();
+}
+
 const ArckAuth = {
   async login(username, password, portal = null) {
     const data = await ArckAPI.request('/auth/login', {
@@ -192,8 +228,13 @@ const ArckAuth = {
     let user;
     try {
       user = await this.getCurrentUser();
-    } catch (_) {
-      return null; // onUnauthorized already redirected
+    } catch (err) {
+      // 401: onUnauthorized already redirected to the sign-in page.
+      // Anything else (server down, timeout, 5xx) must not leave an endless
+      // spinner or a blank page: show a clear message with a retry control.
+      // The shell stays hidden, so no protected UI is revealed on failure.
+      if (!err || err.status !== 401) showPortalLoadError(err);
+      return null;
     }
 
     // Refresh the cached session with this fresh /auth/me response — without

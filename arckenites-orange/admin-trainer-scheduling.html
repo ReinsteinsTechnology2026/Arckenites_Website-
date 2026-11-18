@@ -14,11 +14,11 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=24">
+<link rel="stylesheet" href="css/style.css?v=25">
 <link rel="stylesheet" href="css/scheduling.css?v=1">
 
 </head>
-<body>
+<body class="portal-page">
 
 <div class="admin-auth-loader" id="adminAuthLoader"><div class="loader-mark"><img src="assets/logo.png" alt="Arckenites"></div></div>
 
@@ -111,7 +111,7 @@
     <div class="admin-sidebar-logout">
       <div class="admin-dropdown admin-sidebar-account">
         <button type="button" class="admin-profile-trigger" id="adminProfileTrigger">
-          <span class="label">Organizational Settings</span>
+          <i class="fa-solid fa-gear admin-account-icon" aria-hidden="true"></i><span class="label">Organizational Settings</span>
           <i class="fa-solid fa-chevron-up"></i>
         </button>
         <div class="admin-dropdown-panel" id="adminProfilePanel">
@@ -263,10 +263,12 @@
             <h2 id="histTitle">Assignment history</h2>
             <span style="font-size:.82rem;color:var(--muted);">Full audit records: <a href="admin-activity-logs.html">Activity Logs</a> (module “scheduling”)</span>
           </div>
-          <table class="admin-activity-table">
+          <div class="table-scroll">
+<table class="admin-activity-table">
             <thead><tr><th>When</th><th>Batch</th><th>Change</th><th>By</th><th>Override</th></tr></thead>
             <tbody id="histBody"><tr><td colspan="5" class="admin-panel-empty">Loading…</td></tr></tbody>
           </table>
+</div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-top:1px solid var(--border-c);font-size:.82rem;">
             <button type="button" class="sched-btn" id="hPrev">Previous</button><span id="hPage"></span><button type="button" class="sched-btn" id="hNext">Next</button>
           </div>
@@ -305,11 +307,12 @@
 
 <script src="js/api.js?v=4"></script>
 <script src="js/portal-files.js?v=1"></script>
-<script src="js/auth.js?v=9"></script>
+<script src="js/auth.js?v=10"></script>
 <script src="js/theme.js?v=1"></script>
+<script src="js/portal-shell.js?v=1"></script>
 <script src="js/scheduling-ui.js?v=1"></script>
 <script src="js/scheduling-calendar.js?v=1"></script>
-<script src="js/admin-trainer-scheduling.js?v=1"></script>
+<script src="js/admin-trainer-scheduling.js?v=2"></script>
 <script src="js/chat.js?v=2"></script>
 
 <div id="toasts" class="sched-toast" role="status" aria-live="polite"></div>

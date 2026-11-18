@@ -33,51 +33,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('adminProfileName').textContent = user.full_name;
   document.getElementById('adminProfileRole').textContent = user.role;
 
-  /* ---------- Sidebar: collapsible groups ---------- */
-  document.querySelectorAll('.admin-sidebar-group-header').forEach((header) => {
-    header.addEventListener('click', () => {
-      const group = header.closest('.admin-sidebar-group');
-      const isOpen = group.classList.toggle('is-open');
-      header.setAttribute('aria-expanded', String(isOpen));
-    });
-  });
-
-  /* ---------- Sidebar: desktop collapse ---------- */
-  const sidebar = document.getElementById('adminSidebar');
-  document.getElementById('adminSidebarCollapseBtn').addEventListener('click', () => {
-    sidebar.classList.toggle('is-collapsed');
-  });
-
-  /* ---------- Sidebar: mobile off-canvas ---------- */
-  const backdrop = document.getElementById('adminSidebarBackdrop');
-  const openMobileSidebar = () => {
-    sidebar.classList.add('is-mobile-open');
-    backdrop.classList.add('is-visible');
-  };
-  const closeMobileSidebar = () => {
-    sidebar.classList.remove('is-mobile-open');
-    backdrop.classList.remove('is-visible');
-  };
-  document.getElementById('adminMobileToggle').addEventListener('click', openMobileSidebar);
-  backdrop.addEventListener('click', closeMobileSidebar);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMobileSidebar(); });
-
-  /* ---------- Dropdowns (notifications + profile) ---------- */
-  const dropdowns = [
-    { trigger: document.getElementById('adminNotifTrigger'), panel: document.getElementById('adminNotifPanel') },
-    { trigger: document.getElementById('adminProfileTrigger'), panel: document.getElementById('adminProfilePanel') },
-  ];
-  const closeAllDropdowns = () => dropdowns.forEach((d) => d.panel.classList.remove('is-open'));
-  dropdowns.forEach(({ trigger, panel }) => {
-    trigger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const willOpen = !panel.classList.contains('is-open');
-      closeAllDropdowns();
-      if (willOpen) panel.classList.add('is-open');
-    });
-  });
-  document.addEventListener('click', closeAllDropdowns);
-
   /* ---------- Logout (sidebar + profile menu) ---------- */
   document.getElementById('adminSidebarLogout').addEventListener('click', () => ArckAuth.logout());
   document.getElementById('adminProfileLogout').addEventListener('click', () => ArckAuth.logout());
@@ -114,6 +69,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
   const SECURITY_EVENTS = new Set(['login_failure', 'account_locked', 'rate_limited']);
 
+  document.getElementById('kpiRetry').addEventListener('click', () => window.location.reload());
+
   const loadStats = ArckAPI.request('/dashboard/stats').then((stats) => {
     document.getElementById('kpiTotalUsers').textContent = stats.total_users.toLocaleString();
     const byRole = Object.fromEntries(stats.users_by_role.map((r) => [r.role, r.count]));
@@ -135,6 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }).catch((err) => {
     if (err.status === 0) showServerBanner();
     document.getElementById('kpiFailedCard').closest('.admin-kpi-grid').querySelectorAll('h3').forEach((el) => { el.textContent = '—'; });
+    document.getElementById('kpiError').hidden = false;
     return null;
   });
 

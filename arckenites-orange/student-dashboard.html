@@ -14,10 +14,10 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=24">
+<link rel="stylesheet" href="css/style.css?v=25">
 
 </head>
-<body>
+<body class="portal-page">
 
 <!-- Simple layout: shown to any student without a program-specific dashboard yet -->
 <div id="simpleLayout" style="display:none;">
@@ -91,7 +91,7 @@
     <main class="admin-main">
 
       <section data-panel="overview">
-        <div class="admin-page-header command-hero">
+        <div class="command-hero">
           <div>
             <span class="command-hero-eyebrow">Arckenites / Learning Hub</span>
             <h1 id="overviewGreeting">Welcome back</h1>
@@ -128,12 +128,12 @@
           </div>
         </div>
 
-        <div class="admin-panel" style="margin-top:20px;">
+        <div class="admin-panel">
           <div class="admin-panel-header"><h2><i class="fa-solid fa-graduation-cap"></i> My Learning Progress</h2></div>
           <div id="learningProgressBody" style="padding:20px;" class="admin-panel-empty">Loading&hellip;</div>
         </div>
 
-        <div class="overview-grid-2" style="margin-top:20px;">
+        <div class="overview-grid-2">
           <div class="admin-panel">
             <div class="admin-panel-header"><h2><i class="fa-solid fa-bullhorn"></i> Announcements</h2></div>
             <div id="announcementsBody" class="admin-panel-empty">No announcements yet.</div>
@@ -144,17 +144,17 @@
           </div>
         </div>
 
-        <div class="admin-panel" style="margin-top:20px;">
+        <div class="admin-panel">
           <div class="admin-panel-header"><h2><i class="fa-solid fa-bolt"></i> Quick Actions</h2></div>
           <div id="quickActionsBody" style="padding:20px; display:flex; flex-wrap:wrap; gap:12px;"></div>
         </div>
 
-        <div class="admin-panel" style="margin-top:20px;">
+        <div class="admin-panel">
           <div class="admin-panel-header"><h2><i class="fa-solid fa-trophy"></i> Achievements</h2></div>
           <div id="achievementsBody" class="admin-panel-empty">Complete your training to unlock your certificate.</div>
         </div>
 
-        <div class="overview-grid-2" style="margin-top:20px;">
+        <div class="overview-grid-2">
           <div class="admin-panel">
             <div class="admin-panel-header"><h2><i class="fa-solid fa-chalkboard-user"></i> Trainer</h2></div>
             <div id="batchTrainerBody" class="admin-panel-empty" style="padding:20px;">Loading&hellip;</div>
@@ -209,7 +209,7 @@
             <button type="button" data-settings-detail="deactivate-account"><i class="fa-solid fa-user-slash"></i><span><strong>Deactivate Account</strong><small>Read account lifecycle options</small></span></button>
           </div>
         </nav>
-        <div class="admin-panel" id="personal-info" data-settings-view="detail:personal-info" style="max-width:620px;" hidden>
+        <div class="admin-panel settings-detail" id="personal-info" data-settings-view="detail:personal-info" hidden>
           <div class="admin-panel-header"><h2>Personal Information</h2></div>
           <div style="padding:24px;">
             <form id="profileEditForm">
@@ -229,7 +229,7 @@
             </form>
           </div>
         </div>
-        <div class="admin-panel" id="profile-photo" data-settings-view="detail:profile-photo" style="max-width:620px;" hidden>
+        <div class="admin-panel settings-detail" id="profile-photo" data-settings-view="detail:profile-photo" hidden>
           <div class="admin-panel-header"><h2>Profile Photo</h2></div>
           <p id="profilePhotoStatus" role="status" class="student-account-status"></p>
           <div style="padding:20px; text-align:center;">
@@ -239,45 +239,45 @@
           </div>
         </div>
 
-        <div class="admin-panel" data-settings-view="detail:personal-info" style="max-width:620px; margin-top:20px;" hidden>
+        <div class="admin-panel settings-detail" data-settings-view="detail:personal-info" hidden>
           <div class="admin-panel-header"><h2><i class="fa-solid fa-circle-info"></i> Account Details</h2></div>
           <div id="profileAccountDetailsBody" class="detail-list" style="padding:20px;"></div>
         </div>
 
-        <div class="admin-panel" id="contact-details" data-settings-view="contact" style="max-width:620px;" hidden>
+        <div class="admin-panel settings-detail" id="contact-details" data-settings-view="contact" hidden>
           <div class="admin-panel-header"><h2>Email &amp; Phone</h2></div>
           <div id="contactDetailsBody" class="detail-list" style="padding:20px;">Loading contact details&hellip;</div>
           <p class="student-account-status">Contact changes require a verified support process. Your email and phone are currently view only.</p>
           <button type="button" class="btn btn-primary-outline" data-goto-panel="support" style="margin:0 20px 20px;">Contact Support</button>
         </div>
-        <div class="admin-panel" id="student-id-card" data-settings-view="detail:student-id-card" style="max-width:620px;" hidden>
+        <div class="admin-panel settings-detail" id="student-id-card" data-settings-view="detail:student-id-card" hidden>
           <div class="admin-panel-header"><h2>Student ID Card</h2></div>
           <div id="studentIdCardBody" style="padding:20px;">Loading card&hellip;</div>
         </div>
-        <div class="admin-panel" id="my-enrollments" data-settings-view="detail:my-enrollments" style="max-width:620px;" hidden>
+        <div class="admin-panel settings-detail" id="my-enrollments" data-settings-view="detail:my-enrollments" hidden>
           <div class="admin-panel-header"><h2>My Enrollments</h2></div>
           <div id="accountEnrollmentsBody" style="padding:20px;">Loading enrollments&hellip;</div>
         </div>
-        <div class="admin-panel" id="my-certificates" data-settings-view="detail:my-certificates" style="max-width:620px;" hidden>
+        <div class="admin-panel settings-detail" id="my-certificates" data-settings-view="detail:my-certificates" hidden>
           <div class="admin-panel-header"><h2>Certificates &amp; Achievements</h2></div>
           <p class="student-account-status">Certificate issuance and achievement records are not available in this portal yet. Contact support for an issued certificate.</p>
         </div>
-        <div class="admin-panel" id="mfa-settings" data-settings-view="detail:mfa-settings" style="max-width:620px;" hidden>
+        <div class="admin-panel settings-detail" id="mfa-settings" data-settings-view="detail:mfa-settings" hidden>
           <div class="admin-panel-header"><h2>Two-Factor Authentication</h2></div>
           <div id="mfaControls" style="padding:20px;">Loading MFA settings&hellip;</div>
         </div>
-        <div class="admin-panel" id="active-sessions" data-settings-view="detail:active-sessions" style="max-width:620px;" hidden>
+        <div class="admin-panel settings-detail" id="active-sessions" data-settings-view="detail:active-sessions" hidden>
           <div class="admin-panel-header"><h2>Active Devices &amp; Sessions</h2></div>
           <div style="padding:20px 20px 0;"><label class="form-label" for="sessionReauthPassword">Current password to end another session</label><input type="password" class="form-control" id="sessionReauthPassword" autocomplete="current-password"></div>
           <div id="accountSessionsBody" style="padding:20px;">Loading sessions&hellip;</div>
           <p id="accountSessionsStatus" role="status" class="student-account-status"></p>
         </div>
-        <div class="admin-panel" id="login-history" data-settings-view="detail:login-history" style="max-width:620px;" hidden>
+        <div class="admin-panel settings-detail" id="login-history" data-settings-view="detail:login-history" hidden>
           <div class="admin-panel-header"><h2>Login History</h2></div>
           <div id="accountLoginHistoryBody" style="padding:20px;">Loading history&hellip;</div>
           <button type="button" class="btn btn-primary-outline" id="loginHistoryMoreBtn" style="display:none; margin:0 20px 20px;">Load more</button>
         </div>
-        <div class="admin-panel" id="privacy-settings" data-settings-view="detail:privacy-settings" style="max-width:620px;" hidden>
+        <div class="admin-panel settings-detail" id="privacy-settings" data-settings-view="detail:privacy-settings" hidden>
           <div class="admin-panel-header"><h2>Privacy Settings</h2></div>
           <div style="padding:20px;">
             <div class="settings-toggle-row">
@@ -294,13 +294,13 @@
           <p id="privacyStatus" role="status" class="student-account-status"></p>
           <p class="student-account-status">For details about personal data use, read the <a href="privacy-policy.html">privacy policy</a>. Your password and MFA settings are managed in this account section.</p>
         </div>
-        <div class="admin-panel" id="data-export" data-settings-view="detail:data-export" style="max-width:620px;" hidden>
+        <div class="admin-panel settings-detail" id="data-export" data-settings-view="detail:data-export" hidden>
           <div class="admin-panel-header"><h2>Download My Data</h2></div>
           <p class="student-account-status">Download your profile and enrollment records as JSON. Secrets and other users' records are excluded.</p>
           <button type="button" class="btn btn-primary-outline" id="downloadMyDataBtn" style="margin:0 20px 20px;">Download JSON</button>
           <p id="dataExportStatus" role="status" class="student-account-status"></p>
         </div>
-        <div class="admin-panel" id="deactivate-account" data-settings-view="detail:deactivate-account" style="max-width:620px;" hidden>
+        <div class="admin-panel settings-detail" id="deactivate-account" data-settings-view="detail:deactivate-account" hidden>
           <div class="admin-panel-header"><h2>Deactivate Account</h2></div>
           <p class="student-account-status">Self-service deactivation is unavailable until an account recovery process is approved. Deactivation would suspend sign-in; it would not delete enrollments or certificates. Contact support to request a review.</p>
           <button type="button" class="btn btn-primary-outline" data-goto-panel="support" style="margin:0 20px 20px;">Open Support</button>
@@ -320,7 +320,8 @@
         </div>
 
         <div class="admin-panel">
-          <table class="admin-activity-table">
+          <div class="table-scroll">
+<table class="admin-activity-table">
             <thead>
               <tr><th>Title</th><th>Batch</th><th>Date</th><th>Time</th><th>Meeting Link</th><th>Video Call</th><th>Notes</th></tr>
             </thead>
@@ -328,13 +329,15 @@
               <tr><td colspan="7" class="admin-panel-empty">Loading&hellip;</td></tr>
             </tbody>
           </table>
+</div>
         </div>
       </section>
 
       <section data-panel="videos" style="display:none;">
         <div class="admin-page-header"><div><h1>Class Videos</h1></div></div>
         <div class="admin-panel">
-          <table class="admin-activity-table">
+          <div class="table-scroll">
+<table class="admin-activity-table">
             <thead>
               <tr><th>Batch</th><th>Title</th><th>Link</th><th>Description</th><th>Uploaded</th></tr>
             </thead>
@@ -342,13 +345,15 @@
               <tr><td colspan="5" class="admin-panel-empty">Loading&hellip;</td></tr>
             </tbody>
           </table>
+</div>
         </div>
       </section>
 
       <section data-panel="materials" style="display:none;">
         <div class="admin-page-header"><div><h1>Study Materials</h1></div></div>
         <div class="admin-panel">
-          <table class="admin-activity-table">
+          <div class="table-scroll">
+<table class="admin-activity-table">
             <thead>
               <tr><th>Batch</th><th>Title</th><th>Link</th><th>Description</th><th>Uploaded</th></tr>
             </thead>
@@ -356,16 +361,19 @@
               <tr><td colspan="5" class="admin-panel-empty">Loading&hellip;</td></tr>
             </tbody>
           </table>
+</div>
         </div>
       </section>
 
       <section data-panel="meetings" style="display:none;">
         <div class="admin-page-header"><div><h1>Meetings</h1></div></div>
         <div class="admin-panel">
-          <table class="admin-activity-table">
+          <div class="table-scroll">
+<table class="admin-activity-table">
             <thead><tr><th>Meeting</th><th>Host</th><th>Date</th><th>Time</th><th>Status</th><th></th></tr></thead>
             <tbody id="myMeetingsBody"><tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
           </table>
+</div>
         </div>
       </section>
 
@@ -384,7 +392,8 @@
             </div>
           </div>
           <div class="admin-panel">
-            <table class="admin-activity-table">
+            <div class="table-scroll">
+<table class="admin-activity-table">
               <thead>
                 <tr><th>Ticket ID</th><th>Subject</th><th>Category</th><th>Priority</th><th>Status</th><th>Last Updated</th></tr>
               </thead>
@@ -392,6 +401,7 @@
                 <tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr>
               </tbody>
             </table>
+</div>
           </div>
         </div>
 
@@ -544,11 +554,12 @@
 
 <script src="js/api.js?v=3"></script>
 <script src="js/portal-files.js?v=1"></script>
-<script src="js/auth.js?v=7"></script>
+<script src="js/auth.js?v=10"></script>
 <script src="js/theme.js?v=1"></script>
+<script src="js/portal-shell.js?v=1"></script>
 <script src="js/video-conference.js?v=1"></script>
 <script src="js/student-settings-nav.js?v=1"></script>
-<script src="js/student-dashboard.js?v=23"></script>
+<script src="js/student-dashboard.js?v=24"></script>
 <script src="js/student-job-applications.js?v=2"></script>
 <script src="js/student-account.js?v=1"></script>
 <script src="js/mfa-controls.js?v=2"></script>

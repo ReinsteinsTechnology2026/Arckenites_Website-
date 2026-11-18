@@ -14,10 +14,10 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=21">
+<link rel="stylesheet" href="css/style.css?v=25">
 
 </head>
-<body>
+<body class="portal-page">
 
 <div class="admin-auth-loader" id="adminAuthLoader"><div class="loader-mark"><img src="assets/logo.png" alt="Arckenites"></div></div>
 
@@ -110,7 +110,7 @@
     <div class="admin-sidebar-logout">
       <div class="admin-dropdown admin-sidebar-account">
         <button type="button" class="admin-profile-trigger" id="adminProfileTrigger">
-          <span class="label">Organizational Settings</span>
+          <i class="fa-solid fa-gear admin-account-icon" aria-hidden="true"></i><span class="label">Organizational Settings</span>
           <i class="fa-solid fa-chevron-up"></i>
         </button>
         <div class="admin-dropdown-panel" id="adminProfilePanel">
@@ -241,7 +241,8 @@
 
         <div class="admin-panel">
           <div class="admin-panel-header"><h2>All Meetings</h2></div>
-          <table class="admin-activity-table">
+          <div class="table-scroll">
+<table class="admin-activity-table">
             <thead>
               <tr><th>Meeting Name</th><th>Meeting ID</th><th>Host</th><th>Date</th><th>Start Time</th><th>Duration</th><th>Status</th><th>Participants</th><th>Recording</th><th>Actions</th></tr>
             </thead>
@@ -249,6 +250,7 @@
               <tr><td colspan="10" class="admin-panel-empty">Loading&hellip;</td></tr>
             </tbody>
           </table>
+</div>
         </div>
       </div>
 
@@ -280,10 +282,12 @@
             <input type="text" class="form-control" id="detailParticipantSearch" placeholder="Search users by name or username&hellip;" autocomplete="off" style="max-width:400px;">
             <div class="batch-student-picker" id="detailParticipantResults"></div>
           </div>
-          <table class="admin-activity-table">
+          <div class="table-scroll">
+<table class="admin-activity-table">
             <thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Joined</th><th>Left</th><th></th></tr></thead>
             <tbody id="detailParticipantsBody"><tr><td colspan="6" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
           </table>
+</div>
         </div>
 
         <div class="admin-panel" data-tab-panel="chat" style="display:none;">
@@ -295,10 +299,12 @@
         </div>
 
         <div class="admin-panel" data-tab-panel="recordings" style="display:none;">
-          <table class="admin-activity-table">
+          <div class="table-scroll">
+<table class="admin-activity-table">
             <thead><tr><th>Started</th><th>Duration</th><th>Size</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="detailRecordingsBody"><tr><td colspan="5" class="admin-panel-empty">Loading&hellip;</td></tr></tbody>
           </table>
+</div>
         </div>
       </div>
     </main>
@@ -306,9 +312,10 @@
 </div>
 
 <script src="js/api.js?v=2"></script>
-<script src="js/auth.js?v=9"></script>
+<script src="js/auth.js?v=10"></script>
 <script src="js/theme.js?v=1"></script>
-<script src="js/admin-meetings.js?v=2"></script>
+<script src="js/portal-shell.js?v=1"></script>
+<script src="js/admin-meetings.js?v=3"></script>
 
 </body>
 </html>

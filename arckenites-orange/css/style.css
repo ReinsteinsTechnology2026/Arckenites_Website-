@@ -19,6 +19,11 @@
   --danger: #FF7D79;
   --info: #79B9FF;
   --white: #FFFFFF;
+  --danger-text: #FF8A80;
+  --success-text: #69DB7C;
+  --warning-text: #FFC107;
+  --section-gap: 24px;
+  --card-pad: 20px;
   --ink: #F5F7FA;
   --muted: #A7AFBA;
   --muted-2: #94A0AD;
@@ -48,6 +53,9 @@
   --muted-2: #68625D;
   --muted-3: #706A64;
   --bg-soft: #F1EEEA;
+  --danger-text: #B42318;
+  --success-text: #067647;
+  --warning-text: #8A5A00;
   --shadow-soft: 0 10px 28px rgba(24, 28, 35, .07);
   --shadow-hover: 0 18px 38px rgba(24, 28, 35, .13);
 }
@@ -664,7 +672,7 @@ button, input, select, textarea{ font:inherit; }
   padding:22px; box-shadow:var(--shadow-soft); min-width:0;
 }
 .admin-stat-card i, .dashboard-stat-card i, .admin-kpi-card i{ font-size:1.4rem; color:var(--primary); margin-bottom:14px; display:block; }
-.admin-stat-card h3, .dashboard-stat-card h3, .admin-kpi-card h3{ font-size:1.7rem; margin-bottom:4px; }
+.admin-stat-card h3, .dashboard-stat-card h3, .admin-kpi-card h3{ font-size:1.7rem; margin:0 0 4px; }
 .admin-stat-card p, .dashboard-stat-card p, .admin-kpi-card p{ margin:0; font-size:.85rem; color:var(--muted); }
 .admin-kpi-card.is-warning{ border-color:rgba(217,45,32,.35); }
 .admin-kpi-card.is-warning i{ color:#d92d20; }
@@ -696,8 +704,6 @@ button, input, select, textarea{ font:inherit; }
 .command-hero p{ color:var(--muted); margin:0; max-width:620px; }
 .admin-dashboard-grid{ display:grid; grid-template-columns:minmax(0,1.65fr) minmax(270px,.85fr); gap:18px; align-items:start; }
 .admin-dashboard-grid .admin-panel{ margin:0; min-width:0; }
-.admin-dashboard-grid .admin-panel:first-child{ grid-column:2; grid-row:1; }
-.admin-dashboard-grid .admin-panel:last-child{ grid-column:1; grid-row:1; }
 .admin-page-header h1{ line-height:1.2; }
 .admin-kpi-card{ position:relative; overflow:hidden; }
 .admin-kpi-card::before{ content:""; position:absolute; inset:0 auto 0 0; width:2px; background:var(--primary); opacity:.75; }
@@ -720,7 +726,7 @@ button, input, select, textarea{ font:inherit; }
 :root[data-theme="light"] .ticket-message.is-admin,
 :root[data-theme="light"] .role-toggle-btn.is-active,
 :root[data-theme="light"] .calendar-day.is-today .calendar-day-number{ color:#fff; }
-@media (max-width:900px){ .admin-dashboard-grid{ grid-template-columns:1fr; } .admin-dashboard-grid .admin-panel:first-child,.admin-dashboard-grid .admin-panel:last-child{ grid-column:auto; grid-row:auto; } }
+@media (max-width:900px){ .admin-dashboard-grid{ grid-template-columns:minmax(0,1fr); } }
 @media (max-width:600px){
   .command-hero{ min-height:160px; padding:22px; }
   .command-hero::before{ right:-270px; }
@@ -776,8 +782,8 @@ html.auth-pending .admin-shell{ display:none; }
    its own flex:1 + overflow-y:auto instead). */
 .admin-sidebar{
   width:260px; flex-shrink:0; background:var(--sidebar-bg); border-right:1px solid var(--border-c);
-  display:flex; flex-direction:column; transition:var(--transition);
-  position:sticky; top:0; height:100vh;
+  display:flex; flex-direction:column; transition:var(--transition), width .2s ease;
+  position:sticky; top:0; height:100vh; height:100dvh;
 }
 .admin-sidebar-brand{ display:flex; align-items:center; gap:10px; padding:20px; border-bottom:1px solid var(--border-c); }
 .admin-sidebar-brand img{ height:32px; flex-shrink:0; }
@@ -811,14 +817,25 @@ html.auth-pending .admin-shell{ display:none; }
 .admin-sidebar-group-list li{ margin:0; }
 .admin-sidebar-logout{ border-top:1px solid var(--border-c); padding:12px; }
 
-/* Collapsed (desktop icon rail) */
-.admin-sidebar.is-collapsed{ width:76px; }
-.admin-sidebar.is-collapsed .admin-sidebar-brand span,
-.admin-sidebar.is-collapsed .admin-sidebar-link span.label,
-.admin-sidebar.is-collapsed .admin-sidebar-link .soon-badge,
-.admin-sidebar.is-collapsed .admin-sidebar-group-header span,
-.admin-sidebar.is-collapsed .admin-sidebar-group-header i,
-.admin-sidebar.is-collapsed .admin-sidebar-group-list{ display:none; }
+/* Collapsed icon rail — DESKTOP ONLY (>= 992px). Below that the sidebar is an
+   off-canvas drawer that is always expanded, so a stale .is-collapsed class
+   can never produce a label-less drawer. Every nav item stays reachable in
+   the rail: group headings become thin dividers and group lists stay open. */
+@media (min-width:992px){
+  .admin-sidebar.is-collapsed{ width:76px; }
+  .admin-sidebar.is-collapsed .admin-sidebar-brand{ justify-content:center; padding-inline:8px; }
+  .admin-sidebar.is-collapsed .admin-sidebar-brand span,
+  .admin-sidebar.is-collapsed .admin-sidebar-link span.label,
+  .admin-sidebar.is-collapsed .admin-sidebar-link .soon-badge,
+  .admin-sidebar.is-collapsed .admin-sidebar-group-header span,
+  .admin-sidebar.is-collapsed .admin-sidebar-group-header i{ display:none; }
+  .admin-sidebar.is-collapsed .admin-sidebar-brand img.admin-brand-wordmark{ height:30px; max-width:30px; object-fit:cover; object-position:left center; }
+  .admin-sidebar.is-collapsed .admin-sidebar-nav{ padding-inline:10px; }
+  .admin-sidebar.is-collapsed .admin-sidebar-link{ justify-content:center; padding-inline:0; }
+  .admin-sidebar.is-collapsed .admin-sidebar-link i{ width:auto; }
+  .admin-sidebar.is-collapsed .admin-sidebar-group-header{ height:1px; padding:0; margin:8px 6px; background:var(--border-c); pointer-events:none; }
+  .admin-sidebar.is-collapsed .admin-sidebar-group-list{ max-height:none; overflow:visible; }
+}
 
 /* Backdrop (mobile off-canvas) */
 .admin-sidebar-backdrop{
@@ -882,7 +899,7 @@ html.auth-pending .admin-shell{ display:none; }
 
 /* Main content */
 .admin-server-banner{
-  display:none; background:rgba(217,45,32,.1); border:1px solid rgba(217,45,32,.3); color:#ff8a80;
+  display:none; background:rgba(217,45,32,.1); border:1px solid rgba(217,45,32,.3); color:var(--danger-text);
   border-radius:var(--radius-md); padding:14px 20px; font-size:.88rem; margin-bottom:24px;
 }
 .admin-server-banner.is-visible{ display:block; }
@@ -927,7 +944,6 @@ html.auth-pending .admin-shell{ display:none; }
 body.is-database-view .col-database{ display:table-cell; }
 .admin-activity-table tbody tr:hover td{ background:var(--surface-raised); }
 .admin-activity-table tbody tr:focus-within td{ background:color-mix(in srgb, var(--primary) 7%, var(--surface)); }
-.admin-panel:has(.admin-activity-table){ overflow-x:auto; }
 .admin-activity-badge{
   display:inline-flex; align-items:center; padding:3px 10px; border-radius:999px; font-size:.72rem; font-weight:600;
 }
@@ -942,8 +958,8 @@ body.is-database-view .col-database{ display:table-cell; }
   display:flex; align-items:center; gap:10px; padding:14px 18px; border-radius:var(--radius-md);
   font-size:.92rem; font-weight:600; margin-bottom:20px; border:1px solid var(--border-c); background:var(--surface);
 }
-.lab-access-banner.is-locked{ background:rgba(217,45,32,.1); border-color:rgba(217,45,32,.3); color:#ff8a80; }
-.lab-access-banner.is-unlocked{ background:rgba(76,175,80,.1); border-color:rgba(76,175,80,.3); color:#69db7c; }
+.lab-access-banner.is-locked{ background:rgba(217,45,32,.1); border-color:rgba(217,45,32,.3); color:var(--danger-text); }
+.lab-access-banner.is-unlocked{ background:rgba(76,175,80,.1); border-color:rgba(76,175,80,.3); color:var(--success-text); }
 .lab-access-banner p{ margin:2px 0 0; font-weight:400; font-size:.85rem; color:var(--muted); }
 
 /* Lab environment (RDP) credentials */
@@ -965,7 +981,7 @@ body.is-database-view .col-database{ display:table-cell; }
 .lab-env-field-value button:hover{ color:var(--primary); }
 .lab-env-notes{ margin-top:12px; font-size:.82rem; color:var(--muted); }
 .lab-env-locked{ display:flex; align-items:center; gap:10px; color:var(--muted); font-size:.88rem; padding:10px 0; }
-.lab-env-locked i{ color:#ff8a80; }
+.lab-env-locked i{ color:var(--danger-text); }
 
 /* Lab slot booking */
 .lab-week-summary{
@@ -1007,7 +1023,7 @@ body.is-database-view .col-database{ display:table-cell; }
 .lab-slot-card .lab-slot-time{ font-weight:700; font-size:.92rem; }
 .lab-slot-card .lab-slot-status{
   display:inline-flex; align-items:center; gap:5px; font-size:.74rem; font-weight:600; padding:3px 10px;
-  border-radius:999px; background:rgba(76,175,80,.14); color:#69db7c;
+  border-radius:999px; background:rgba(76,175,80,.14); color:var(--success-text);
 }
 .lab-slot-card.is-booked{ border-color:var(--primary); background:rgba(255,106,0,.1); }
 .lab-slot-card.is-booked .lab-slot-icon{ background:var(--primary); color:#17100B; }
@@ -1109,7 +1125,7 @@ body.is-database-view .col-database{ display:table-cell; }
 .batch-day-chip.is-selected{ background:var(--primary); border-color:var(--primary); color:#17100B; }
 
 .batch-student-picker{
-  max-height:220px; overflow-y:auto; border:1px solid var(--border-c); border-radius:var(--radius);
+  max-height:220px; overflow-y:auto; border:1px solid var(--border-c); border-radius:var(--radius-md);
   margin-top:8px;
 }
 .batch-student-picker:empty{ display:none; }
@@ -1160,8 +1176,8 @@ body.is-database-view .col-database{ display:table-cell; }
   border-radius:var(--radius-md); box-shadow:var(--shadow-hover); padding:8px; z-index:1200;
 }
 .row-action-menu.is-open{ display:block; }
-.row-action-menu .admin-dropdown-link.is-danger{ color:#ff8a80; }
-.row-action-menu .admin-dropdown-link.is-danger:hover{ background:rgba(217,45,32,.14); color:#ff8a80; }
+.row-action-menu .admin-dropdown-link.is-danger{ color:var(--danger-text); }
+.row-action-menu .admin-dropdown-link.is-danger:hover{ background:rgba(217,45,32,.14); color:var(--danger-text); }
 .row-action-menu-divider{ height:1px; background:var(--border-c); margin:6px 4px; }
 
 /* Generic modal system (Trainers section: view / edit / reset / permissions / confirm) */
@@ -1278,14 +1294,14 @@ body.is-database-view .col-database{ display:table-cell; }
 .ticket-message.is-admin{ align-self:flex-end; background:var(--primary); color:#17100B; border-bottom-right-radius:4px; }
 .ticket-message.is-internal{ align-self:stretch; max-width:100%; background:rgba(255,193,7,.12); border:1px dashed rgba(255,193,7,.5); color:var(--ink); border-radius:10px; }
 .ticket-message-meta{ font-size:.72rem; opacity:.75; margin-bottom:5px; display:flex; align-items:center; gap:6px; }
-.ticket-message-internal-label{ display:inline-flex; align-items:center; gap:4px; font-weight:700; color:#ffc107; text-transform:uppercase; font-size:.68rem; letter-spacing:.03em; }
+.ticket-message-internal-label{ display:inline-flex; align-items:center; gap:4px; font-weight:700; color:var(--warning-text); text-transform:uppercase; font-size:.68rem; letter-spacing:.03em; }
 .ticket-message-attachments{ margin-top:8px; display:flex; flex-direction:column; gap:4px; }
 .ticket-message-attachments a{ font-size:.78rem; display:inline-flex; align-items:center; gap:6px; }
 
 /* Role toggle (complete-profile.html) */
 .role-toggle{ display:flex; gap:12px; }
 .role-toggle-btn{
-  flex:1; padding:12px 16px; border-radius:10px; border:1px solid rgba(0,0,0,.1);
+  flex:1; padding:12px 16px; border-radius:10px; border:1px solid var(--border-c);
   background:var(--surface); color:var(--muted); font-weight:600; font-size:.92rem; cursor:pointer;
   transition:var(--transition);
 }
@@ -1329,7 +1345,7 @@ body.is-database-view .col-database{ display:table-cell; }
   background:var(--surface); border:1px solid var(--border-c); border-radius:50px;
   font-size:.75rem; font-weight:600; color:var(--muted); padding:5px 12px;
 }
-.program-promo-actions{ flex:0 0 auto; }
+.program-promo-actions{ flex:0 1 auto; max-width:100%; }
 
 /* Success stories / packages */
 .package-card{
@@ -1674,3 +1690,266 @@ body.is-database-view .col-database{ display:table-cell; }
 /* The hidden attribute must win over the display rules above, so students and
    other read-only viewers do not see upload controls they cannot use. */
 .portal-file-box [hidden]{ display:none !important; }
+/* ================= RESPONSIVE FIXES (public site) =================
+   Appended last so it wins over the earlier, device-specific rules.
+   Desktop (>= 1200px) rendering is intentionally unchanged.        */
+
+/* Media never wider than its container; long words/URLs wrap instead of
+   pushing the page sideways (e.g. e-mail addresses at high zoom). */
+img, video, svg{ max-width:100%; }
+body{ overflow-wrap:break-word; }
+/* Flex children may shrink below their content width so text wraps instead of overflowing. */
+.d-flex > *, .bk-steps li > *, .bk-why > *, .bk-lab-list li > *, .bk-platform, .bk-feature, .bk-perk, .bk-valueitem > *, .snapshot-row, .info-item > *{ min-width:0; }
+
+/* --- Navbar --------------------------------------------------- */
+#mainNavbar .navbar-brand{ flex-shrink:0; }
+#mainNavbar .brand-mark--wordmark{ max-width:none; flex-shrink:0; }
+#mainNavbar .btn, #mainNavbar .nav-link{ white-space:nowrap; }
+#mainNavbar .navbar-collapse{ min-width:0; }
+
+/* 992-1199px: the desktop bar is shown but the container is only 960-1140px
+   wide, so tighten spacing instead of letting items wrap or squash the logo. */
+@media (min-width:992px) and (max-width:1199.98px){
+  #mainNavbar .nav-link{ margin:0 4px; font-size:.92rem; }
+  .nav-actions{ margin-left:8px; }
+  #mainNavbar .nav-actions .btn{ padding:9px 14px; font-size:.9rem; }
+  #mainNavbar .brand-mark--wordmark, #mainNavbar.scrolled .brand-mark--wordmark{ height:46px; }
+}
+
+/* Collapsed (tablet / phone) menu: stay inside the viewport and scroll if tall. */
+@media (max-width:991.98px){
+  #mainNavbar .navbar-collapse{ max-height:calc(100vh - 96px); max-height:calc(100dvh - 96px); overflow-y:auto; padding-bottom:8px; }
+  #mainNavbar .nav-link{ margin:0; padding:10px 4px; }
+  .mega-dropdown .dropdown-menu{ padding:14px 16px; margin-top:4px; min-width:0; width:100%; box-shadow:none; border:1px solid var(--border-c); }
+  .nav-actions{ flex-wrap:wrap; gap:10px; }
+  #mainNavbar .brand-mark--wordmark, #mainNavbar.scrolled .brand-mark--wordmark{ height:46px; }
+}
+@media (max-width:575.98px){
+  #mainNavbar .nav-actions .btn{ flex:1 1 auto; }
+}
+
+/* --- Hero ------------------------------------------------------ */
+.hero-title{ font-size:clamp(2.3rem, 1.4rem + 3.6vw, 3.4rem); }
+.page-hero h1{ font-size:clamp(1.9rem, 1.2rem + 2.6vw, 2.6rem); }
+.hero-sub{ max-width:min(480px, 100%); }
+/* On tablet/phone the hero copy stacks above the photo. The desktop -70px
+   pull-up tucks the logo ring under the fixed navbar there, so drop it and
+   clear the navbar height instead. */
+/* Desktop: the -70px pull-up leaves the logo ring ~3px under the navbar; add breathing room. */
+@media (min-width:992px){
+  .hero{ padding-top:clamp(176px, 14vw, 200px); }
+}
+@media (max-width:991.98px){
+  .hero{ padding-top:128px; }
+  .hero-content-block{ margin-top:0; }
+}
+@media (max-width:575.98px){
+  .hero{ padding-bottom:56px; }
+  .page-hero{ padding-top:124px; }
+}
+
+/* --- Gutters: Bootstrap's g-5/gx-5 (3rem) is wider than the 12px container
+   padding on phones, so rows stuck out 12px each side (corporate-training,
+   it360-max, certification). Match the gutter to the padding. */
+@media (max-width:575.98px){
+  .row.g-5, .row.gx-5{ --bs-gutter-x:1.5rem; }
+}
+
+/* --- Section rhythm: one fluid padding instead of fixed 100px everywhere -- */
+.courses-section, .why-section{ padding-block:clamp(56px, 8vw, 100px); }
+.bk-section{ padding-block:clamp(56px, 7vw, 84px); }
+
+/* --- Cards: equal height, call-to-action pinned to the bottom ------ */
+.course-card{ display:flex; flex-direction:column; align-items:flex-start; padding:clamp(20px, 3vw, 30px); }
+.course-card > :last-child{ margin-top:auto; }
+/* The link is an inline <a>; once the card is a flex column it would be blockified to width:100%, so keep its original auto width. */
+.course-card .btn-primary-outline{ width:auto; }
+
+/* --- Forms / footer / misc rigid widths --------------------------- */
+.newsletter-form{ width:100%; }
+.newsletter-form input{ min-width:0; flex:1 1 220px; }
+.map-wrap iframe{ height:clamp(260px, 45vw, 340px); }
+
+/* Avoid one-word orphans in the hero tagline / intro on mid-width screens. */
+.bk-tagline, .pg-hero-tag, .hero-sub, .bk-head h2, .page-hero h1{ text-wrap:balance; }
+
+/* --- Focus rings vs. overflow clipping ------------------------------
+   The closed search bar (max-height:0) kept its input/button in the tab order
+   and its ring was cut off; hide it until opened. Rings inside rounded
+   overflow:hidden wrappers (map iframe) are drawn inset so they stay visible. */
+.search-bar{ visibility:hidden; transition: max-height .35s ease, visibility 0s .35s; }
+.search-bar.open{ visibility:visible; transition: max-height .35s ease, visibility 0s; }
+.map-wrap iframe:focus-visible{ outline-offset:-3px; }
+.accordion-item :focus-visible{ outline-offset:-3px; }
+
+/* ============================================================
+   PORTAL CONSISTENCY LAYER (admin / student / staff / community)
+   Appended last. Everything here is scoped to portal pages
+   (<body class="portal-page"> or portal-only classes), so the
+   public marketing pages — which load Bootstrap's own reset —
+   are not affected.
+
+   Breakpoints are chosen per component rather than forced into one
+   set (CSS custom properties cannot be used inside @media):
+      992px  sidebar becomes an off-canvas drawer (matches js/portal-shell.js)
+      900px  two-column content / ticket grids stack
+      700px  KPI grids go from 2 to 3 columns
+      600px  phone refinements (dropdowns, forms, topbar)
+     1100px  4-card KPI rows go from 2x2 to a single row
+   ============================================================ */
+
+/* ---- Scoped reset (portal pages only) -------------------------------- */
+body.portal-page{ margin:0; }
+:where(.portal-page) :where(h1,h2,h3,h4,h5,h6){ margin-block:0 .5em; }
+:where(.portal-page) :where(p,ul,ol,dl,figure){ margin-block-start:0; }
+.portal-page [hidden]{ display:none !important; }
+:where(.portal-page) :focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
+.admin-shell{ min-height:100vh; min-height:100dvh; }
+
+/* ---- Content area: one gutter, room for the floating chat button ------ */
+.portal-page .admin-main,
+.portal-page .dashboard-main{ padding-bottom:104px; }
+.portal-page .admin-page-header{ margin-bottom:var(--section-gap); }
+.portal-page .admin-panel-header{ padding:16px var(--card-pad); }
+.portal-page .admin-panel-header--split{ display:flex; align-items:center; justify-content:space-between; gap:12px 16px; flex-wrap:wrap; }
+.portal-page .btn-sm{ padding:6px 14px; font-size:.8rem; }
+.portal-page .admin-form-actions{ flex-wrap:wrap; }
+
+/* Student panels: ONE vertical rhythm (replaces 20/22/24px inline mixes). */
+.portal-page .admin-main > section[data-panel] > *{ margin-top:0; margin-bottom:0; }
+.portal-page .admin-main > section[data-panel] > * + *{ margin-top:var(--section-gap); }
+.student-settings-routebar:not(:has(> :not([hidden]))){ display:none; }
+
+/* ---- Hero ------------------------------------------------------------- */
+.portal-page .command-hero{ padding:clamp(20px,3vw,36px); margin-bottom:var(--section-gap); align-items:center; }
+.portal-page .command-hero > div{ min-width:0; }
+.portal-page .command-hero h1{ overflow-wrap:anywhere; }
+
+/* ---- KPI grids: explicit columns, no orphans -------------------------- */
+.portal-page .admin-kpi-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-bottom:var(--section-gap); }
+.admin-kpi-card i{ margin-bottom:12px; }
+.admin-kpi-card h3{ overflow-wrap:anywhere; line-height:1.2; }
+@media (min-width:700px){
+  .portal-page .admin-kpi-grid{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .portal-page .admin-kpi-grid:has(> :nth-child(4):last-child){ grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (min-width:1100px){
+  .portal-page .admin-kpi-grid:has(> :nth-child(4):last-child){ grid-template-columns:repeat(4,minmax(0,1fr)); }
+}
+@media (max-width:600px){
+  .portal-page .admin-kpi-grid{ gap:12px; }
+}
+
+/* ---- Card pairs: equal height, consistent gap ------------------------- */
+.portal-page .overview-grid-2{ gap:var(--section-gap); align-items:stretch; margin-bottom:0; }
+.portal-page .overview-grid-2 > .admin-panel{ margin:0; display:flex; flex-direction:column; min-width:0; }
+.portal-page .overview-grid-2 > .admin-panel > :last-child{ flex:1; }
+.portal-page .admin-dashboard-grid{ gap:var(--section-gap); align-items:start; }
+.portal-page .admin-dashboard-grid > .admin-panel{ margin:0; }
+@media (max-width:900px){ .portal-page .overview-grid-2{ grid-template-columns:minmax(0,1fr); } }
+
+.health-list{ display:flex; flex-wrap:wrap; align-items:center; gap:12px 24px; padding:var(--card-pad); }
+.health-list.admin-panel-empty{ text-align:left; justify-content:flex-start; }
+.health-list > span{ display:inline-flex; align-items:center; gap:8px; color:var(--ink); font-size:.9rem; }
+
+.admin-inline-error{
+  display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; margin:0 0 var(--section-gap); padding:12px 16px;
+  border:1px solid rgba(217,45,32,.35); background:rgba(217,45,32,.08); color:var(--danger-text);
+  border-radius:var(--radius-md); font-size:.88rem;
+}
+.admin-inline-error span{ flex:1 1 200px; }
+
+/* ---- Tables: scroll INSIDE their own wrapper -------------------------- */
+.table-scroll{ max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; }
+.table-scroll--spaced{ margin-top:var(--section-gap); }
+.admin-activity-table td{ overflow-wrap:anywhere; }
+.admin-activity-table th{ white-space:nowrap; }
+.admin-activity-table:has(> thead th:nth-child(5)){ min-width:680px; }
+.admin-activity-table:has(> thead th:nth-child(7)){ min-width:860px; }
+.admin-activity-table:has(> thead th:nth-child(9)){ min-width:1040px; }
+.admin-activity-table:has(> thead th:nth-child(11)){ min-width:1240px; }
+
+/* ---- Student settings: one column width, one left edge ---------------- */
+#studentSettingsSection{ max-width:880px; }
+.settings-detail{ max-width:none; }
+.portal-page .detail-row{ flex-wrap:wrap; }
+.portal-page .detail-row dd, .portal-page .detail-row > span:last-child{ overflow-wrap:anywhere; }
+.student-account-links button, .student-account-links a{ min-width:0; }
+.student-account-links span{ min-width:0; overflow-wrap:anywhere; }
+
+/* ---- Support ticket detail: 2/1 columns that stack on phones ---------- */
+.ticket-detail-grid{ display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr); gap:20px; align-items:start; }
+.ticket-detail-grid > *{ min-width:0; }
+@media (max-width:900px){ .ticket-detail-grid{ grid-template-columns:minmax(0,1fr); } }
+
+/* ---- Topbar + dropdowns ---------------------------------------------- */
+.portal-page .admin-dropdown-panel{ max-width:min(320px, calc(100vw - 24px)); }
+.admin-sidebar-account .admin-dropdown-panel{ min-width:0; width:100%; max-width:none; }
+.admin-account-icon{ margin-left:0 !important; width:18px; text-align:center; flex-shrink:0; }
+.admin-sidebar-account .admin-profile-trigger .label{ flex:1; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.portal-page .admin-sidebar-account .admin-profile-trigger{ gap:8px; padding-inline:10px; font-size:.86rem; }
+@media (max-width:600px){
+  .portal-page .admin-topbar{ padding-block:10px; }
+  /* Anchor to the viewport, not to a button that is not at the screen edge. */
+  .portal-page .admin-topbar-actions .admin-dropdown-panel{
+    position:fixed; top:68px; left:12px; right:12px; width:auto; min-width:0; max-width:none;
+    max-height:calc(100vh - 84px); max-height:calc(100dvh - 84px); overflow-y:auto;
+  }
+  .portal-page .dashboard-topbar{ flex-wrap:wrap; row-gap:10px; }
+  .portal-page .dashboard-topbar-user{ flex-wrap:wrap; justify-content:flex-end; gap:10px; }
+  .portal-page #simpleWelcome{ overflow-wrap:anywhere; }
+  .portal-page .admin-form-actions .btn{ flex:1 1 auto; }
+  .portal-page .admin-page-header-actions{ width:100%; }
+  .chat-panel.chat-panel--floating{ right:12px; width:calc(100vw - 24px); max-width:none; bottom:88px; }
+}
+
+/* ---- Sidebar: desktop rail extras ------------------------------------ */
+@media (min-width:992px){
+  /* Sidebar must paint above the main column so the rail's flyout panel is not covered. */
+  .portal-page .admin-sidebar{ z-index:30; }
+  .admin-sidebar.is-collapsed .admin-sidebar-account .admin-profile-trigger{ justify-content:center; padding-inline:0; }
+  .admin-sidebar.is-collapsed .admin-sidebar-account .admin-profile-trigger .label,
+  .admin-sidebar.is-collapsed .admin-sidebar-account .admin-profile-trigger .fa-chevron-up{ display:none; }
+  .admin-sidebar.is-collapsed .admin-sidebar-account .admin-dropdown-panel{ left:calc(100% + 8px); bottom:0; width:240px; min-width:240px; }
+}
+
+/* ---- Sidebar: off-canvas drawer below 992px --------------------------- */
+@media (max-width:991.98px){
+  .portal-page .admin-sidebar{
+    position:fixed; top:0; left:0; bottom:0; z-index:1000;
+    width:min(320px, calc(100vw - 56px)); height:100vh; height:100dvh;
+    transform:translateX(-100%); visibility:hidden; box-shadow:none;
+    transition:transform .25s ease, visibility 0s linear .25s;
+  }
+  .portal-page .admin-sidebar.is-mobile-open{
+    transform:none; visibility:visible; box-shadow:var(--shadow-hover);
+    transition:transform .25s ease, visibility 0s;
+  }
+  .portal-page .admin-sidebar-link,
+  .portal-page .admin-sidebar-group-header{ min-height:44px; }
+  html.drawer-open body{ overflow:hidden; }
+  .portal-page .admin-sidebar-nav{ overscroll-behavior:contain; }
+}
+@media (prefers-reduced-motion: reduce){
+  .portal-page .admin-sidebar, .portal-page .admin-sidebar.is-mobile-open{ transition:none; }
+}
+@media (pointer:coarse){
+  .table-action-btn{ width:40px; height:40px; }
+  .portal-page .icon-btn{ width:44px; height:44px; }
+}
+
+/* ---- Load-failure state (js/auth.js showPortalLoadError) -------------- */
+html.auth-error .admin-auth-loader{ display:none; }
+.portal-load-error{
+  position:fixed; inset:0; z-index:10000; display:flex; align-items:center; justify-content:center;
+  padding:24px; background:var(--primary-darker); overflow-y:auto;
+}
+.portal-load-error-card{
+  width:100%; max-width:440px; text-align:center; background:var(--surface); color:var(--muted);
+  border:1px solid var(--border-c); border-radius:var(--radius-lg); padding:32px 28px; box-shadow:var(--shadow-soft);
+}
+.portal-load-error-card > i{ font-size:2rem; color:var(--danger-text); }
+.portal-load-error-card h1{ font-size:1.35rem; margin:14px 0 8px; }
+.portal-load-error-card p{ margin:0 0 22px; }
+.portal-load-error-actions{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+.portal-load-error-actions .btn{ text-align:center; }

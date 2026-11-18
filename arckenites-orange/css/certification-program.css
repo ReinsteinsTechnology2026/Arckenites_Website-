@@ -152,3 +152,8 @@
   .flow-arrow{ transform: rotate(90deg); width: 100%; height: 30px; }
   .flow-step{ max-width: 260px; width: 100%; height: auto; min-height: 120px; }
 }
+
+/* Collapsed tiers must not stay keyboard-focusable, and focus rings inside the
+   overflow:hidden body are drawn inside the edge so they are never clipped. */
+.roadmap-tier:not(.open) .roadmap-tier__body{ visibility:hidden; transition: max-height .4s ease, visibility 0s .4s; }
+.roadmap-tier__body :focus-visible{ outline-offset:-2px; }
