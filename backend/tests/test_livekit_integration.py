@@ -332,11 +332,15 @@ class WebhookTests(Harness):
         self.post(self.ev("participant_left", identity=self.trainer))
         grace = self.jobs("run.grace_expiry")[0]
         self.assertEqual(self.run_row(self.run_id).state, "LIVE")
+        # One timestamp for both the run and the job: they are the same departure. (Two separate
+        # utcnow() calls differ by microseconds on Linux, and the job would rightly be ignored
+        # as belonging to a different departure.)
+        left_at = utcnow() - timedelta(seconds=61)
         with self.sf() as db:  # the grace period elapses without a rejoin
             db.get(BackgroundJob, grace.id).run_at = utcnow() - timedelta(seconds=1)
             payload = json.loads(db.get(BackgroundJob, grace.id).payload)
-            payload["left_at"] = (utcnow() - timedelta(seconds=61)).isoformat()
-            db.get(ClassSessionRun, self.run_id).trainer_left_at = utcnow() - timedelta(seconds=61)
+            payload["left_at"] = left_at.isoformat()
+            db.get(ClassSessionRun, self.run_id).trainer_left_at = left_at
             db.get(BackgroundJob, grace.id).payload = json.dumps(payload)
             db.commit()
         worker.drain(self.sf, "w1")
@@ -344,6 +348,24 @@ class WebhookTests(Harness):
         self.assertEqual((row.state, row.end_reason, row.recording_state), ("ENDED", "TRAINER_ABSENT_TIMEOUT", "STOPPING"))
         self.assertEqual(self.media.stopped, ["EG_LIVE"])        # the recording was stopped
         self.assertEqual(self.media.deleted, [self.room])        # and everyone removed from the room
+
+    def test_a_grace_job_for_an_older_departure_never_ends_the_class(self):
+        """The job only acts if its departure is the one the run currently records, even by a
+        microsecond: a newer drop owns the termination, so a stale job cannot end the class."""
+        self.post(self.ev("participant_joined", identity=self.trainer, at=utcnow() - timedelta(seconds=90)))
+        self.post(self.ev("participant_left", identity=self.trainer))
+        grace = self.jobs("run.grace_expiry")[0]
+        left_at = utcnow() - timedelta(seconds=120)
+        with self.sf() as db:
+            db.get(BackgroundJob, grace.id).run_at = utcnow() - timedelta(seconds=1)
+            payload = json.loads(db.get(BackgroundJob, grace.id).payload)
+            payload["left_at"] = left_at.isoformat()
+            db.get(ClassSessionRun, self.run_id).trainer_left_at = left_at + timedelta(microseconds=1)
+            db.get(BackgroundJob, grace.id).payload = json.dumps(payload)
+            db.commit()
+        worker.drain(self.sf, "w1")
+        row = self.run_row(self.run_id)
+        self.assertEqual((row.state, row.end_reason), ("LIVE", None))
 
     def test_rejoin_inside_the_grace_period_keeps_the_class_and_recording(self):
         self.post(self.ev("participant_joined", identity=self.trainer, at=utcnow() - timedelta(seconds=40)))
