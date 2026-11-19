@@ -1,0 +1,51 @@
+# Self-hosted LiveKit for LOCAL DEVELOPMENT and the end-to-end recording test.
+# Nothing here is exposed beyond this machine (ports bind to 127.0.0.1) and no
+# secret is stored in this file: copy .env.example to .env and generate keys.
+#
+# STATUS: written from LiveKit's documented configuration and NOT YET RUN
+# (Docker was unavailable when this was authored). Treat every setting as
+# unverified until `docker compose up` has actually produced a working recording.
+#
+# Versions pinned to the stable tags current on 2026-10-28.
+name: arckenites-livekit
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+
+  livekit:
+    image: livekit/livekit-server:v1.13.11
+    restart: unless-stopped
+    depends_on: [redis]
+    command: ["--config", "/etc/livekit.yaml"]
+    environment:
+      # "key: secret" - read from .env, never written into a tracked file.
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}"
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml:ro
+    ports:
+      - "127.0.0.1:7880:7880"        # signalling (ws) + HTTP API
+      - "127.0.0.1:7881:7881"        # RTC over TCP fallback
+      - "127.0.0.1:50000-50100:50000-50100/udp"  # RTC media
+
+  egress:
+    image: livekit/egress:v1.15.0
+    restart: unless-stopped
+    depends_on: [redis, livekit]
+    # Chrome needs this inside the container to render the recording layout.
+    cap_add: [SYS_ADMIN]
+    environment:
+      EGRESS_CONFIG_BODY: |
+        log_level: info
+        api_key: ${LIVEKIT_API_KEY}
+        api_secret: ${LIVEKIT_API_SECRET}
+        ws_url: ws://livekit:7880
+        redis:
+          address: redis:6379
+        health_port: 8081
+    volumes:
+      # The host folder that is also the backend's RECORDING_STAGING_DIR. It must
+      # live on persistent storage OUTSIDE the application checkout.
+      - ${RECORDING_STAGING_DIR}:/out

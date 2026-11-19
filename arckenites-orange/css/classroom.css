@@ -1,0 +1,61 @@
+/* Classroom (LiveKit) video stage - reuses the meeting-room shell classes. */
+.cls-stage{
+  position:absolute; inset:0; padding:12px; display:grid; gap:10px; overflow:auto;
+  grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); grid-auto-rows:minmax(160px, 1fr);
+}
+.cls-stage.has-screen{ grid-template-columns:1fr 220px; grid-auto-rows:auto; }
+.cls-stage.has-screen .cls-tile.is-screen{ grid-row:1 / span 8; min-height:0; }
+.cls-tile{
+  position:relative; background:#0b0f19; border:2px solid transparent; border-radius:var(--radius-md);
+  overflow:hidden; display:flex; align-items:center; justify-content:center; min-height:140px;
+}
+.cls-tile.is-speaking{ border-color:var(--primary); }
+.cls-tile video{ width:100%; height:100%; object-fit:cover; background:#000; }
+.cls-tile.is-screen video{ object-fit:contain; }
+.cls-tile.is-local video.cls-cam{ transform:scaleX(-1); }
+.cls-avatar{
+  width:64px; height:64px; border-radius:50%; background:var(--primary); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:700;
+}
+.cls-nameplate{
+  position:absolute; left:8px; bottom:8px; max-width:calc(100% - 16px); padding:3px 9px; border-radius:8px;
+  background:rgba(0,0,0,.6); color:#fff; font-size:.78rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cls-nameplate .fa-microphone-slash{ color:#ff8a80; margin-left:6px; }
+.cls-role{ color:var(--primary); margin-left:6px; font-size:.7rem; text-transform:uppercase; letter-spacing:.04em; }
+.cls-toast{
+  position:absolute; left:50%; bottom:14px; transform:translateX(-50%); padding:8px 14px; border-radius:10px;
+  background:rgba(20,24,36,.95); color:#fff; font-size:.85rem; display:none; max-width:90%;
+}
+.cls-toast.is-visible{ display:block; }
+@media (max-width: 860px){
+  .cls-stage.has-screen{ grid-template-columns:1fr; }
+  .cls-stage.has-screen .cls-tile.is-screen{ grid-row:auto; min-height:220px; }
+}
+
+/* Recording approval dialog (trainer only) */
+.cls-modal{ position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.6); padding:20px; }
+.cls-modal-card{ position:relative; background:var(--surface); border:1px solid var(--border-c); border-radius:var(--radius-md); max-width:480px; width:100%; padding:28px; }
+.cls-modal-card h2{ margin:0 0 12px; font-size:1.15rem; }
+.cls-modal-card p{ color:var(--muted); font-size:.9rem; margin:0 0 10px; }
+.cls-modal-note{ font-size:.8rem !important; }
+.cls-modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:16px; flex-wrap:wrap; }
+.cls-modal-close{ position:absolute; top:10px; right:10px; }
+.cls-review-btn{ padding:4px 12px; font-size:.8rem; }
+
+/* Chat + private notes panels */
+.cls-badge{ background:var(--primary); color:#fff; border-radius:10px; padding:0 6px; font-size:.68rem; margin-left:4px; }
+.cls-conn{ padding:6px 12px; font-size:.78rem; background:rgba(255,90,31,.12); color:var(--ink); }
+.cls-conn button{ margin-left:8px; }
+.cls-inline-error{ margin:6px 12px; }
+.cls-private{ font-size:.74rem; color:var(--muted); }
+.meet-chat-msg.is-mine strong{ color:var(--primary); }
+
+/* Raise hand + trainer moderation */
+.cls-hand{ color:#ffb020; margin-left:6px; }
+.meet-participant-row.has-hand{ background:rgba(255,176,32,.12); }
+.cls-mod{ display:flex; gap:4px; margin-left:6px; }
+.cls-mod .icon-btn{ width:24px; height:24px; }
+
+/* End class (trainer only) */
+.cls-end-btn{ width:auto; padding:0 14px; gap:6px; display:inline-flex; align-items:center; font-size:.82rem; }

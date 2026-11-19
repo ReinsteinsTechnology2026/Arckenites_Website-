@@ -2,13 +2,12 @@ import json
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import FileResponse
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
-from app.core.deps import require_permission
+from app.core.deps import get_current_user, require_permission
+from app.core.meetings import refuse_general_meeting_recording
 from app.core.security import hash_password
-from app.core.uploads import delete_recording, get_recording_path
 from app.crud.audit import write_audit_event
 from app.database import get_db
 from app.models.audit_log import AuthEventType
@@ -141,6 +140,9 @@ def create_meeting(
     if host is None or host.role not in (RoleEnum.admin, RoleEnum.staff):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Host must be an existing admin or staff account.")
 
+    if payload.recording_enabled:
+        refuse_general_meeting_recording()
+
     meeting = Meeting(
         title=payload.title, description=payload.description, host_id=payload.host_id,
         password_hash=hash_password(payload.password) if payload.password else None,
@@ -149,7 +151,8 @@ def create_meeting(
         mic_enabled=payload.mic_enabled, camera_enabled=payload.camera_enabled,
         screen_share_enabled=payload.screen_share_enabled, chat_enabled=payload.chat_enabled,
         notes_enabled=payload.notes_enabled, participant_notes_enabled=payload.participant_notes_enabled,
-        recording_enabled=payload.recording_enabled, waiting_room_enabled=payload.waiting_room_enabled,
+        recording_enabled=False,  # general meetings are never recorded
+        waiting_room_enabled=payload.waiting_room_enabled,
         require_approval=payload.require_approval,
     )
     db.add(meeting)
@@ -207,6 +210,8 @@ def update_meeting(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Can't edit a completed or cancelled meeting.")
 
     data = payload.model_dump(exclude_unset=True, exclude={"password", "clear_password"})
+    if data.pop("recording_enabled", None):
+        refuse_general_meeting_recording()
     if payload.host_id is not None:
         host = db.get(User, payload.host_id)
         if host is None or host.role not in (RoleEnum.admin, RoleEnum.staff):
@@ -291,10 +296,11 @@ def delete_meeting(meeting_id: int, db: Session = Depends(get_db), actor: User =
     if meeting.status == MeetingStatus.LIVE:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="End the meeting before deleting it.")
 
-    for rec in db.scalars(select(MeetingRecording).where(MeetingRecording.meeting_id == meeting.id)).all():
-        if rec.file_path:
-            delete_recording(rec.file_path)
-        db.delete(rec)
+    # Recording records (and their audit trail) are never deleted - not even
+    # with the meeting. A meeting that has any is kept.
+    if db.scalar(select(func.count()).select_from(MeetingRecording).where(MeetingRecording.meeting_id == meeting.id)):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="This meeting has recording records, which are kept and can't be deleted.")
     db.query(MeetingMessage).filter(MeetingMessage.meeting_id == meeting.id).delete()
     db.query(MeetingNote).filter(MeetingNote.meeting_id == meeting.id).delete()
     db.query(MeetingParticipant).filter(MeetingParticipant.meeting_id == meeting.id).delete()
@@ -358,72 +364,28 @@ def admin_meeting_notes(meeting_id: int, db: Session = Depends(get_db), _actor: 
 def admin_meeting_recordings(meeting_id: int, db: Session = Depends(get_db), _actor: User = Depends(require_permission("meetings.view"))):
     _get_meeting_or_404(db, meeting_id)
     rows = db.scalars(select(MeetingRecording).where(MeetingRecording.meeting_id == meeting_id).order_by(MeetingRecording.started_at.desc())).all()
-    return [RecordingOut(id=r.id, status=r.status.value, file_path=r.file_path, duration_seconds=r.duration_seconds, file_size_bytes=r.file_size_bytes, started_at=r.started_at, completed_at=r.completed_at) for r in rows]
+    return [RecordingOut(id=r.id, status=r.status.value, file_path=None, duration_seconds=r.duration_seconds, file_size_bytes=r.file_size_bytes, started_at=r.started_at, completed_at=r.completed_at) for r in rows]
 
 
-@router.post("/{meeting_id}/recordings/start", response_model=RecordingOut, status_code=status.HTTP_201_CREATED)
-def start_recording(meeting_id: int, request: Request, db: Session = Depends(get_db), actor: User = Depends(require_permission("meetings.manage"))):
-    meeting = _get_meeting_or_404(db, meeting_id)
-    if meeting.status != MeetingStatus.LIVE:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Meeting isn't live.")
-    if not meeting.recording_enabled:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Recording wasn't enabled for this meeting.")
-    existing = db.scalar(select(MeetingRecording).where(MeetingRecording.meeting_id == meeting_id, MeetingRecording.status == RecordingStatus.RECORDING))
-    if existing:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="A recording is already in progress.")
-
-    recording = MeetingRecording(meeting_id=meeting_id, status=RecordingStatus.RECORDING)
-    db.add(recording)
-    db.add(MeetingMessage(meeting_id=meeting_id, user_id=None, message=f"{actor.full_name} started recording.", is_system=True))
-    db.commit()
-
-    ip, ua = _client_meta(request)
-    write_audit_event(db, AuthEventType.meeting_recording_started, ip, ua, user=actor, detail=f"Recording started: {meeting.title}", module="meetings", target=meeting.meeting_token, status="success")
-    return RecordingOut(id=recording.id, status=recording.status.value, file_path=None, duration_seconds=None, file_size_bytes=None, started_at=recording.started_at, completed_at=None)
+# General meetings are never recorded and no administrator can start, stop,
+# download or delete a recording. These legacy routes are kept only so a stale
+# client gets a clear refusal; they do nothing for any caller (even a Super
+# Admin) and never touch a recording row or file.
+@router.post("/{meeting_id}/recordings/start")
+def start_recording(meeting_id: int, actor: User = Depends(get_current_user)):
+    refuse_general_meeting_recording()
 
 
-@router.post("/{meeting_id}/recordings/{recording_id}/stop", response_model=RecordingOut)
-def stop_recording(meeting_id: int, recording_id: int, request: Request, db: Session = Depends(get_db), actor: User = Depends(require_permission("meetings.manage"))):
-    """Marks the recording pass as stopped. Without a deployed Jibri
-    pipeline (see backend/MEETINGS_DEPLOYMENT.md) no file was actually
-    captured, so this honestly reports FAILED rather than pretending a
-    file exists — once Jibri is deployed, its completion webhook should
-    call the (separate, to-be-added) completion endpoint with the real
-    file_path/duration/size before this status is reached."""
-    recording = db.get(MeetingRecording, recording_id)
-    if recording is None or recording.meeting_id != meeting_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recording not found")
-    if recording.status != RecordingStatus.RECORDING:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Recording isn't in progress.")
-
-    recording.status = RecordingStatus.FAILED
-    recording.completed_at = datetime.now(timezone.utc)
-    db.add(recording)
-    meeting = _get_meeting_or_404(db, meeting_id)
-    db.add(MeetingMessage(meeting_id=meeting_id, user_id=None, message=f"{actor.full_name} stopped recording. No capture pipeline is deployed yet — see deployment docs.", is_system=True))
-    db.commit()
-
-    ip, ua = _client_meta(request)
-    write_audit_event(db, AuthEventType.meeting_recording_stopped, ip, ua, user=actor, detail=f"Recording stopped: {meeting.title}", module="meetings", target=meeting.meeting_token, status="success")
-    return RecordingOut(id=recording.id, status=recording.status.value, file_path=recording.file_path, duration_seconds=recording.duration_seconds, file_size_bytes=recording.file_size_bytes, started_at=recording.started_at, completed_at=recording.completed_at)
+@router.post("/{meeting_id}/recordings/{recording_id}/stop")
+def stop_recording(meeting_id: int, recording_id: int, actor: User = Depends(get_current_user)):
+    refuse_general_meeting_recording()
 
 
 @router.get("/{meeting_id}/recordings/{recording_id}/download")
-def download_recording(meeting_id: int, recording_id: int, db: Session = Depends(get_db), _actor: User = Depends(require_permission("meetings.view"))):
-    recording = db.get(MeetingRecording, recording_id)
-    if recording is None or recording.meeting_id != meeting_id or not recording.file_path:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recording file not available")
-    path = get_recording_path(recording.file_path)
-    return FileResponse(path, media_type="video/mp4", filename=f"meeting-{meeting_id}-recording-{recording_id}.mp4")
+def download_recording(meeting_id: int, recording_id: int, actor: User = Depends(get_current_user)):
+    refuse_general_meeting_recording()
 
 
-@router.delete("/{meeting_id}/recordings/{recording_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_meeting_recording(meeting_id: int, recording_id: int, db: Session = Depends(get_db), actor: User = Depends(require_permission("meetings.delete"))):
-    recording = db.get(MeetingRecording, recording_id)
-    if recording is None or recording.meeting_id != meeting_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recording not found")
-    if recording.file_path:
-        delete_recording(recording.file_path)
-    db.delete(recording)
-    db.commit()
-    return None
+@router.delete("/{meeting_id}/recordings/{recording_id}")
+def delete_meeting_recording(meeting_id: int, recording_id: int, actor: User = Depends(get_current_user)):
+    refuse_general_meeting_recording()

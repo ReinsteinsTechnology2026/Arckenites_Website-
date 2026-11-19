@@ -5,6 +5,8 @@ from app.models.batch import Batch, BatchEnrollment, BatchStatusEnum, BatchTypeE
 from app.models.batch_chat import BatchChatReadState, BatchMessage
 from app.models.batch_resources import ClassVideo, StudyMaterial
 from app.models.chat import Conversation, DirectMessage
+from app.models.class_run import BackgroundJob, ClassRecording, ClassSessionRun, MediaWebhookEvent, RecordingEvent
+from app.models.class_note import ClassPrivateNote
 from app.models.class_session import ClassSession
 from app.models.community import CommunityProfile, CommunityRegistration, CommunityRegistrationStatus
 from app.models.community_post import (
@@ -84,7 +86,13 @@ __all__ = [
     "Conversation",
     "DirectMessage",
     "SystemSettings",
+    "ClassPrivateNote",
     "ClassSession",
+    "ClassSessionRun",
+    "ClassRecording",
+    "RecordingEvent",
+    "BackgroundJob",
+    "MediaWebhookEvent",
     "ContactEnquiry",
     "BatchMessage",
     "BatchChatReadState",

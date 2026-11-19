@@ -237,9 +237,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     editPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
-  document.getElementById('joinBatchVideoBtn').addEventListener('click', () => {
-    window.location.href = `meeting-room.html?batch=${batchId}`;
-  });
+  // Admins have no seat in a class session: only the batch's trainer and its enrolled students join.
+  document.getElementById('joinBatchVideoBtn').style.display = 'none';
 
   document.getElementById('editBatchBtn').addEventListener('click', openEditPanel);
   document.getElementById('cancelEditBatchBtn').addEventListener('click', () => { editPanel.style.display = 'none'; });
@@ -403,7 +402,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <td>${escapeHtml(s.title)}</td>
             <td>${formatDate(s.session_date)}</td>
             <td>${(s.start_time && s.end_time) ? `${formatTime(s.start_time)} – ${formatTime(s.end_time)}` : '—'}</td>
-            <td><a class="btn btn-accent" style="padding:4px 12px;" href="meeting-room.html?batch=${batchId}"><i class="fa-solid fa-video"></i> Join</a></td>
+            <td><span class="muted" title="Admins do not join class sessions">Trainer &amp; students</span></td>
             <td>${s.notes ? escapeHtml(s.notes) : '—'}</td>
             <td>
               <button type="button" class="table-action-btn is-danger" data-remove-session="${s.id}" title="Delete ${escapeHtml(s.title)}">
@@ -556,10 +555,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       video_url: document.getElementById('videoUrl').value.trim(),
       description: document.getElementById('videoDescription').value.trim() || null,
     }),
-    renderRow: (r) => `
+    renderRow: (r) => ArckClassVideos.isRecording(r) ? `
       <tr>
         <td>${escapeHtml(r.title)}</td>
-        <td><a href="${escapeHtml(r.video_url)}" target="_blank" rel="noopener">Watch</a></td>
+        <td>${ArckClassVideos.watchButtonHtml(r)}</td>
+        <td>Recorded class · ${ArckClassVideos.formatDuration(r.duration_seconds)}</td>
+        <td></td>
+      </tr>
+    ` : `
+      <tr>
+        <td>${escapeHtml(r.title)}</td>
+        <td>${ArckClassVideos.linkCellHtml(r, 'Watch')}</td>
         <td>${r.description ? escapeHtml(r.description) : '—'}</td>
         <td><button type="button" class="table-action-btn is-danger" data-remove-id="${r.id}" title="Delete"><i class="fa-solid fa-trash"></i></button></td>
       </tr>

@@ -3,13 +3,24 @@
 Run only after creating an isolated PostgreSQL cluster/database and applying
 Alembic migrations. This script refuses all nonlocal/non-QA targets and needs
 ARCK_QA_PREPARE=1 in addition to the integration-test opt-in variables.
+
+Alembic creates tables only. The baseline RBAC data (permission catalog and
+default role grants) comes from `seed.py --rbac-only`, the same production-safe
+mechanism deploy.sh uses, so this script applies exactly that - and nothing
+else (no bootstrap admin, no demo accounts) - to the marked database. Without
+it, integration tests that exercise real admin permissions get 403s because the
+plain Admin role has no grants: that is missing setup, not a permissions bug.
 """
 
 import os
+import sys
+from pathlib import Path
 
 from sqlalchemy import create_engine, text
 
 from postgres_safety import qa_target_from_environment
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # backend/, for seed.py
 
 
 def main() -> None:
@@ -35,6 +46,14 @@ def main() -> None:
     finally:
         engine.dispose()
     print(f"QA marker prepared for {url.database} on localhost port {url.port}")
+
+    # DATABASE_URL (already verified above as the marked QA target) is what the app's SessionLocal uses.
+    import seed
+    from app.database import SessionLocal
+    with SessionLocal() as db:
+        seed.seed_rbac(db)
+        db.commit()
+    print("RBAC baseline (permission catalog + default role grants) seeded")
 
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ from app.core import scheduling_service as svc
 from app.core.deps import get_current_user
 from app.database import engine, get_db
 from app.main import app
-from app.models.admin_role import AdminRole, SUPER_ADMIN_SLUG
+from app.models.admin_role import AdminRole, AdminRolePermission, SUPER_ADMIN_SLUG
 from app.models.audit_log import AuthAuditLog, AuthEventType
 from app.models.batch import Batch, BatchStatusEnum, BatchTypeEnum
 from app.models.program import Program
@@ -47,6 +47,13 @@ class TrainerSchedulingIntegrationTests(unittest.TestCase):
             plain = db.scalar(select(AdminRole).where(AdminRole.slug == "admin"))
             support = db.scalar(select(AdminRole).where(AdminRole.slug == "support_admin"))
             self.program_id = db.scalar(select(Program.id).order_by(Program.id))
+            # Alembic creates tables only; role grants come from `seed.py --rbac-only` (applied by
+            # tests/prepare_postgres_qa.py). Say so plainly instead of failing later with confusing 403s.
+            baseline = set(db.scalars(select(AdminRolePermission.permission_key).where(
+                AdminRolePermission.admin_role_id == plain.id)))
+            if "batches.edit" not in baseline:
+                self.fail("RBAC baseline data is missing from this database: run tests/prepare_postgres_qa.py "
+                          "(or `python seed.py --rbac-only`) against the marked QA database first.")
             self.super_admin = self._user(db, "super", RoleEnum.admin, sup.id)
             self.admin = self._user(db, "admin", RoleEnum.admin, plain.id)
             self.viewer = self._user(db, "viewer", RoleEnum.admin, support.id)

@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.core.deps import get_current_user
-from app.core.meetings import get_participant_row, meeting_member_user_ids, require_member, room_name_for
+from app.core.meetings import (get_participant_row, livekit_join_fields, meeting_member_user_ids,
+                               refuse_general_meeting_recording, require_member, room_name_for)
 from app.core.notify import notify_batch_update
 from app.core.security import verify_password
 from app.core.ws_manager import manager
@@ -93,7 +94,10 @@ def join_batch_meeting(batch_id: int, db: Session = Depends(get_db), user: User 
     if batch is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Batch not found")
 
-    is_host = user.role == RoleEnum.admin or batch.trainer_id == user.id
+    # Admins have no seat in a class session (they cannot join, host or control it).
+    if user.role == RoleEnum.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admins can't join class sessions.")
+    is_host = batch.trainer_id == user.id
     is_enrolled = db.scalar(select(BatchEnrollment).where(
         BatchEnrollment.batch_id == batch_id, BatchEnrollment.student_id == user.id
     )) is not None
@@ -217,6 +221,7 @@ def join_meeting(
         mic_enabled=meeting.mic_enabled, camera_enabled=meeting.camera_enabled,
         screen_share_enabled=meeting.screen_share_enabled, chat_enabled=meeting.chat_enabled,
         notes_enabled=meeting.notes_enabled,
+        **livekit_join_fields(meeting, user, is_moderator),
     )
 
 
@@ -304,6 +309,14 @@ def host_remove_participant(meeting_id: int, participant_id: int, db: Session = 
     participant.left_at = datetime.now(timezone.utc)
     db.add(participant)
     db.commit()
+    # Also disconnect them from the live LiveKit room (best-effort: the DB status already blocks rejoining).
+    if settings.livekit_configured and participant.user_id is not None:
+        try:
+            from app.core.media_events import identity_for_user
+            from app.core.media_server import MediaServerUnavailable, get_media_server, meeting_room_name
+            get_media_server().remove_participant(meeting_room_name(meeting_id), identity_for_user(participant.user_id))
+        except Exception:  # noqa: BLE001 - never fail the removal because the media server is unreachable
+            pass
     return None
 
 
@@ -474,43 +487,14 @@ def host_end_meeting(meeting_id: int, db: Session = Depends(get_db), user: User 
     return None
 
 
-@router.post("/{meeting_id}/recordings/start", response_model=RecordingOut, status_code=status.HTTP_201_CREATED)
-def host_start_recording(meeting_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    meeting = db.get(Meeting, meeting_id)
-    if meeting is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Meeting not found")
-    _require_moderator(db, meeting, user)
-    if meeting.status != MeetingStatus.LIVE:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Meeting isn't live.")
-    if not meeting.recording_enabled:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Recording wasn't enabled for this meeting.")
-    existing = db.scalar(select(MeetingRecording).where(MeetingRecording.meeting_id == meeting_id, MeetingRecording.status == RecordingStatus.RECORDING))
-    if existing:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="A recording is already in progress.")
-
-    recording = MeetingRecording(meeting_id=meeting_id, status=RecordingStatus.RECORDING)
-    db.add(recording)
-    db.add(MeetingMessage(meeting_id=meeting_id, user_id=None, message=f"{user.full_name} started recording.", is_system=True))
-    db.commit()
-    return RecordingOut(id=recording.id, status=recording.status.value, file_path=None, duration_seconds=None, file_size_bytes=None, started_at=recording.started_at, completed_at=None)
+# General meetings are never recorded. These two legacy host endpoints are kept
+# only so a stale client gets a clear refusal instead of a 404; they do nothing
+# for any caller. Class recording lives in /class-runs/{run_id}/recording/*.
+@router.post("/{meeting_id}/recordings/start")
+def host_start_recording(meeting_id: int, user: User = Depends(get_current_user)):
+    refuse_general_meeting_recording()
 
 
-@router.post("/{meeting_id}/recordings/{recording_id}/stop", response_model=RecordingOut)
-def host_stop_recording(meeting_id: int, recording_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    meeting = db.get(Meeting, meeting_id)
-    if meeting is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Meeting not found")
-    _require_moderator(db, meeting, user)
-
-    recording = db.get(MeetingRecording, recording_id)
-    if recording is None or recording.meeting_id != meeting_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recording not found")
-    if recording.status != RecordingStatus.RECORDING:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Recording isn't in progress.")
-
-    recording.status = RecordingStatus.FAILED  # honest default until a real Jibri pipeline posts a completion
-    recording.completed_at = datetime.now(timezone.utc)
-    db.add(recording)
-    db.add(MeetingMessage(meeting_id=meeting_id, user_id=None, message=f"{user.full_name} stopped recording.", is_system=True))
-    db.commit()
-    return RecordingOut(id=recording.id, status=recording.status.value, file_path=recording.file_path, duration_seconds=recording.duration_seconds, file_size_bytes=recording.file_size_bytes, started_at=recording.started_at, completed_at=recording.completed_at)
+@router.post("/{meeting_id}/recordings/{recording_id}/stop")
+def host_stop_recording(meeting_id: int, recording_id: int, user: User = Depends(get_current_user)):
+    refuse_general_meeting_recording()

@@ -19,6 +19,7 @@ OWNED = {
     "batch_enrollments": "student_id", "interview_schedules": "student_id",
     "lab_slot_bookings": "student_id", "lab_access_overrides": "student_id",
     "lab_vm_access": "student_id", "batch_chat_read_state": "user_id",
+    "class_private_notes": "user_id",  # a student's private class notes: owned by, and removed with, the student
     "community_post_email_deliveries": "user_id",
     "trainer_availability_rules": "trainer_id", "trainer_availability_entries": "trainer_id",
     "trainer_expertise": "trainer_id", "scheduling_notices": "trainer_id",
@@ -29,8 +30,13 @@ OWNED = {
 # cloud-retention/worker plan. Never automatically discard those references.
 # batch_trainer_assignments is shared batch history (trainer, admin actor, batch). Whether it is
 # kept or removed with a deleted trainer/batch is an unresolved retention decision, so it is held.
+# class_session_runs / class_recordings / recording_events / background_jobs hold class occurrences,
+# recording approvals and recording metadata. Recordings are retained until a retention policy is
+# approved, so none of these is ever proposed for deletion by a reset.
 MANUAL = {"batches", "class_sessions", "study_materials", "class_videos", "leads",
-          "batch_trainer_assignments", "portal_files"}
+          "batch_trainer_assignments", "class_session_runs", "class_recordings",
+          "recording_events", "background_jobs", "media_webhook_events",
+          "portal_files"}
 ALL_TABLES = PRESERVE | AUDIT | set(OWNED) | MANUAL | {
     "users", "community_registrations", "contact_enquiries", "community_posts",
     "conversations", "direct_messages", "batch_messages", "support_tickets",

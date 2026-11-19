@@ -21,6 +21,11 @@ from app.api.routes_admin_leads import router as admin_leads_router
 from app.api.routes_admin_interviews import router as admin_interviews_router
 from app.api.routes_lab_vm_agent import router as lab_vm_agent_router
 from app.api.routes_admin_meetings import router as admin_meetings_router
+from app.api.routes_class_actions import router as class_actions_router
+from app.api.routes_class_notes import router as class_notes_router
+from app.api.routes_class_runs import router as class_runs_router
+from app.api.routes_media_webhooks import router as media_webhooks_router
+from app.api.routes_recordings import router as recordings_router
 from app.api.routes_meetings import router as meetings_router
 from app.api.routes_admin_programs import router as admin_programs_router
 from app.api.routes_admin_staff import router as admin_staff_router
@@ -146,6 +151,15 @@ app.include_router(admin_interviews_router, prefix="/api")
 app.include_router(lab_vm_agent_router, prefix="/api")
 app.include_router(admin_meetings_router, prefix="/api")
 app.include_router(meetings_router, prefix="/api")
+# The new LiveKit class flow stays unavailable in production until recording
+# infrastructure and its end-to-end tests are approved. Existing Jitsi meeting
+# routes above are separate and retain their current behavior.
+if settings.env != "production" or settings.recording_enabled:
+    app.include_router(class_runs_router, prefix="/api")
+    app.include_router(class_notes_router, prefix="/api")
+    app.include_router(class_actions_router, prefix="/api")
+    app.include_router(media_webhooks_router, prefix="/api")
+    app.include_router(recordings_router, prefix="/api")
 app.include_router(admin_programs_router, prefix="/api")
 app.include_router(admin_contact_enquiries_router, prefix="/api")
 app.include_router(admin_leads_router, prefix="/api")

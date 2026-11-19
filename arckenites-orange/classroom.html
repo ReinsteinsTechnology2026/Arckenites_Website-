@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classroom | Arckenites</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="icon" href="assets/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="css/style.css?v=21">
+<link rel="stylesheet" href="css/meeting-room.css?v=4">
+<link rel="stylesheet" href="css/classroom.css?v=1">
+</head>
+<body class="meeting-room-body">
+
+<!-- ===================== PRE-JOIN ===================== -->
+<div class="meet-prejoin" id="clsPrejoin">
+  <div class="meet-prejoin-card">
+    <img src="assets/logo-wordmark.png" alt="Arckenites" class="meet-prejoin-logo">
+    <div id="clsPrejoinBody">
+      <p class="meet-prejoin-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading classroom&hellip;</p>
+    </div>
+    <a href="#" id="clsBackLink" class="btn btn-primary-outline" style="margin-top:14px; width:100%; display:none;">
+      <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+</div>
+
+<!-- ===================== LIVE CLASSROOM ===================== -->
+<div class="meet-room" id="clsRoom" style="display:none;">
+  <header class="meet-topbar">
+    <div class="meet-topbar-title">
+      <strong id="clsTitle">Classroom</strong>
+      <span id="clsRecordingBadge" class="meet-recording-badge" style="display:none;" role="status"><i class="fa-solid fa-circle"></i> <span id="clsRecordingLabel">Recording</span></span>
+    </div>
+    <div class="meet-topbar-actions">
+      <button type="button" class="btn btn-primary-outline cls-review-btn" id="clsReviewRecording" style="display:none;"><i class="fa-solid fa-circle-dot"></i> Recording decision</button>
+      <span id="clsStatus" class="meet-connection-status"><i class="fa-solid fa-circle-notch fa-spin"></i> Connecting&hellip;</span>
+    </div>
+  </header>
+
+  <div class="meet-body">
+    <div class="meet-video-wrap">
+      <div class="cls-stage" id="clsStage" aria-live="polite"></div>
+      <div class="cls-toast" id="clsToast" role="status"></div>
+    </div>
+
+    <aside class="meet-sidepanel" id="clsSidepanel">
+      <div class="meet-sidepanel-tabs">
+        <button type="button" class="meet-sidepanel-tab is-active" data-panel="participants"><i class="fa-solid fa-users"></i> People <span id="clsCount"></span></button>
+        <button type="button" class="meet-sidepanel-tab" data-panel="chat"><i class="fa-solid fa-comment"></i> Chat <span id="clsChatBadge" class="cls-badge" style="display:none;"></span></button>
+        <button type="button" class="meet-sidepanel-tab" data-panel="notes" id="clsNotesTab" style="display:none;"><i class="fa-solid fa-note-sticky"></i> My notes</button>
+        <button type="button" class="icon-btn meet-sidepanel-close" id="clsSidepanelClose" aria-label="Close panel"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="meet-panel-body" data-panel-body="participants" style="display:flex;">
+        <ul class="meet-participant-list" id="clsParticipantList"></ul>
+      </div>
+
+      <div class="meet-panel-body" data-panel-body="chat" style="display:none;">
+        <div class="cls-conn" id="clsChatConn" role="status" style="display:none;"></div>
+        <div class="meet-chat-messages" id="clsChatMessages" aria-live="polite"></div>
+        <div class="meet-prejoin-error cls-inline-error" id="clsChatError" style="display:none;"></div>
+        <form class="meet-chat-form" id="clsChatForm">
+          <input type="text" id="clsChatInput" placeholder="Message the class&hellip;" autocomplete="off" maxlength="2000">
+          <button type="submit" class="icon-btn" id="clsChatSend" aria-label="Send"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+      </div>
+
+      <div class="meet-panel-body" data-panel-body="notes" style="display:none;">
+        <div class="meet-notes-toolbar">
+          <span class="cls-private"><i class="fa-solid fa-lock"></i> Only you can see these notes</span>
+          <span id="clsNotesStatus" class="meet-notes-save-status" role="status">Loading&hellip;</span>
+        </div>
+        <textarea id="clsNotesContent" placeholder="Write your private notes here. They save automatically." disabled></textarea>
+        <div class="meet-prejoin-error cls-inline-error" id="clsNotesError" style="display:none;"></div>
+        <button type="button" class="btn btn-primary-outline" id="clsNotesRetry" style="display:none; margin:8px 12px;">Try again</button>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="meet-toolbar">
+    <button type="button" class="meet-tool-btn is-off" id="clsToolMic" title="Mute/unmute microphone" aria-pressed="false"><i class="fa-solid fa-microphone-slash"></i></button>
+    <button type="button" class="meet-tool-btn is-off" id="clsToolCamera" title="Turn camera on/off" aria-pressed="false"><i class="fa-solid fa-video-slash"></i></button>
+    <button type="button" class="meet-tool-btn" id="clsToolShare" title="Share your screen" aria-pressed="false"><i class="fa-solid fa-display"></i></button>
+    <button type="button" class="meet-tool-btn is-off" id="clsToolHand" title="Raise/lower your hand" aria-pressed="false" style="display:none;"><i class="fa-solid fa-hand"></i></button>
+    <button type="button" class="meet-tool-btn" id="clsToolChat" title="Chat"><i class="fa-solid fa-comment"></i></button>
+    <button type="button" class="meet-tool-btn" id="clsToolParticipants" title="Participants"><i class="fa-solid fa-users"></i></button>
+    <button type="button" class="meet-tool-btn is-leave cls-end-btn" id="clsToolEnd" title="End class for everyone" style="display:none;"><i class="fa-solid fa-circle-stop"></i> <span>End class</span></button>
+    <button type="button" class="meet-tool-btn is-leave" id="clsToolLeave" title="Leave classroom"><i class="fa-solid fa-phone-slash"></i></button>
+  </footer>
+</div>
+
+<!-- Recording approval: rendered for everyone but only ever opened for the assigned trainer. -->
+<div class="cls-modal" id="clsConsent" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="clsConsentTitle">
+  <div class="cls-modal-card">
+    <h2 id="clsConsentTitle"><i class="fa-solid fa-circle-dot" style="color:var(--primary);"></i> Record this class?</h2>
+    <p id="clsConsentText"></p>
+    <p class="cls-modal-note">Recording starts automatically once you approve. Students will see a recording indicator. Closing this window does not decline; you can decide later from the top bar.</p>
+    <div class="meet-prejoin-error" id="clsConsentError" style="display:none;"></div>
+    <div class="cls-modal-actions">
+      <button type="button" class="btn btn-primary-outline" id="clsDeclineBtn">Don't record</button>
+      <button type="button" class="btn btn-accent" id="clsApproveBtn">Approve &amp; start recording</button>
+    </div>
+    <button type="button" class="icon-btn cls-modal-close" id="clsConsentClose" aria-label="Decide later"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+</div>
+
+<!-- ===================== LEFT ===================== -->
+<div class="meet-prejoin" id="clsEnded" style="display:none;">
+  <div class="meet-prejoin-card">
+    <img src="assets/logo-wordmark.png" alt="Arckenites" class="meet-prejoin-logo">
+    <h2><i class="fa-solid fa-circle-check" style="color:var(--primary);"></i> You left the classroom</h2>
+    <p id="clsEndedText">Thanks for joining.</p>
+    <a href="#" id="clsEndedLink" class="btn btn-accent" style="margin-top:16px;">Back to Dashboard</a>
+  </div>
+</div>
+
+<!-- Pinned LiveKit client; loaded only when the page is opened. -->
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.5.7/dist/livekit-client.umd.min.js"></script>
+<script src="js/api.js?v=2"></script>
+<script src="js/auth.js?v=7"></script>
+<script src="js/classroom-media.js?v=1"></script>
+<script src="js/classroom-stage.js?v=1"></script>
+<script src="js/classroom-actions.js?v=1"></script>
+<script src="js/classroom-recording.js?v=1"></script>
+<script src="js/classroom-chat.js?v=1"></script>
+<script src="js/classroom-notes.js?v=1"></script>
+<script src="js/classroom.js?v=1"></script>
+</body>
+</html>

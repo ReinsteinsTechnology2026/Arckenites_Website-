@@ -28,6 +28,7 @@ OWNED = {
     "auth_sessions": "user_id", "user_google_identities": "user_id",
     "google_login_tickets": "user_id", "program_enrollments": "student_id",
     "batch_enrollments": "student_id", "batch_chat_read_state": "user_id",
+    "class_private_notes": "user_id",  # private to the student: deleted with the account
     "interview_schedules": "student_id", "lab_access_overrides": "student_id",
     "lab_slot_bookings": "student_id", "lab_vm_access": "student_id",
     "community_post_email_deliveries": "user_id",
@@ -57,6 +58,11 @@ DETACH = {
     "system_settings": ("updated_by_id",),
     "batches": ("trainer_id",),
     "trainer_availability_entries": ("created_by_id",),
+    # Class occurrences and recordings are retained (no recording is deleted
+    # automatically); only the deleted person's identity is detached from them.
+    "class_session_runs": ("trainer_id", "approval_decided_by"),
+    "class_recordings": ("revoked_by", "deleted_by"),
+    "recording_events": ("actor_user_id",),
     # Notices about the trainer are deleted via OWNED (trainer_id); these detach first.
     "scheduling_notices": ("recipient_id", "created_by_id"),
 }

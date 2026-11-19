@@ -13,6 +13,7 @@ from app.crud.audit import write_audit_event
 from app.database import get_db
 from app.models.audit_log import AuthEventType
 from app.models.batch import Batch, BatchEnrollment, BatchStatusEnum, BatchTypeEnum
+from app.core.class_videos import video_out, visible_videos_select
 from app.models.batch_resources import ClassVideo, StudyMaterial
 from app.models.class_session import ClassSession
 from app.models.program import Program
@@ -507,11 +508,8 @@ def delete_session(
 @router.get("/{batch_id}/videos", response_model=list[ClassVideoOut])
 def list_videos(batch_id: int, db: Session = Depends(get_db), _actor: User = Depends(require_permission("batches.view"))):
     batch = _get_batch_or_404(db, batch_id)
-    rows = db.scalars(select(ClassVideo).where(ClassVideo.batch_id == batch_id).order_by(ClassVideo.created_at.desc())).all()
-    return [ClassVideoOut(
-        id=r.id, batch_id=r.batch_id, batch_name=batch.name, title=r.title,
-        video_url=r.video_url, description=r.description, created_at=r.created_at,
-    ) for r in rows]
+    rows = db.scalars(visible_videos_select().where(ClassVideo.batch_id == batch_id).order_by(ClassVideo.created_at.desc())).all()
+    return [video_out(db, r, batch.name) for r in rows]
 
 
 @router.post("/{batch_id}/videos", response_model=ClassVideoOut, status_code=201)
@@ -537,6 +535,9 @@ def delete_video(
     entry = db.get(ClassVideo, video_id)
     if entry is None or entry.batch_id != batch_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video not found")
+    if entry.source == "RECORDING":
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="Class recordings are managed by Arckenites and can't be removed here.")
     db.delete(entry)
     db.commit()
     return None

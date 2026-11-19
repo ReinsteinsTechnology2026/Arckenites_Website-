@@ -1,0 +1,23 @@
+# LiveKit server configuration (no secrets: keys come from LIVEKIT_KEYS).
+port: 7880
+log_level: info
+rtc:
+  tcp_port: 7881
+  port_range_start: 50000
+  port_range_end: 50100
+  # Local development on one machine. For a real deployment set the node's
+  # public IP (use_external_ip: true or node_ip) and open the UDP range.
+  use_external_ip: false
+redis:
+  address: redis:6379
+# Signed webhooks to the Arckenites backend. The backend verifies the signature,
+# so this URL needs no secret. From inside Docker, the host is host.docker.internal.
+# NOTE: LiveKit does NOT expand ${VARIABLES} in this file - with one in this field the
+# server refuses to start ("api_key is required to use webhooks"). api_key is the public
+# key IDENTIFIER (never the secret) and must equal LIVEKIT_API_KEY in .env.
+webhook:
+  api_key: APIarckenites
+  urls:
+    - http://host.docker.internal:8000/api/media/webhooks/livekit
+room:
+  empty_timeout: 600
