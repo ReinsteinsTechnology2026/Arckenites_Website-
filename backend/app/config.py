@@ -175,6 +175,15 @@ class Settings(BaseSettings):
     def ms_graph_configured(self) -> bool:
         return bool(self.ms_graph_tenant_id and self.ms_graph_client_id and self.ms_graph_client_secret and self.ms_graph_sender_email)
 
+    @field_validator("livekit_api_secret")
+    @classmethod
+    def _livekit_secret_is_long_enough(cls, v: str) -> str:
+        # Blank means "media server not configured" (the default). A configured secret signs
+        # join tokens and webhooks, so a short guessable one is refused at startup.
+        if v and len(v) < 32:
+            raise ValueError("LIVEKIT_API_SECRET must be at least 32 characters (generate one with: python -c \"import secrets; print(secrets.token_urlsafe(48))\")")
+        return v
+
     @field_validator("database_url")
     @classmethod
     def _use_psycopg3_driver(cls, v: str) -> str:

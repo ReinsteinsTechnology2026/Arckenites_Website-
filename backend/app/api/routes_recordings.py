@@ -145,6 +145,7 @@ def _iter_file(path, start: int, end: int):
 
 
 @router.api_route("/{recording_id}/stream", methods=["GET", "HEAD"])
+@limiter.limit("300/minute")  # generous: a player issues many Range requests; this stops scraping/abuse
 def stream_recording(recording_id: str, request: Request, t: str = Query(min_length=10, max_length=2000),
                      db: Session = Depends(get_db)):
     rec = _load(db, recording_id)

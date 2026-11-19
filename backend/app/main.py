@@ -59,6 +59,9 @@ from app.models.audit_log import AuthEventType
 
 app = FastAPI(title="Arckenites Portal API")
 
+from app.core.log_redaction import install as _install_log_redaction
+_install_log_redaction()  # playback tokens travel in ?t=; never write them to access logs
+
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
@@ -101,6 +104,9 @@ async def mfa_unavailable_handler(request: Request, exc: MfaUnavailable):
                   "Contact an administrator; no changes were made."})
 
 
+_RECORDING_STREAM_PATH = re.compile(r"^/api/recordings/[^/]+/stream/?$")
+
+
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     # Best-effort: the request body may not be JSON (or may already be
@@ -114,6 +120,12 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 
     ip = request.client.host if request.client else "unknown"
     ua = request.headers.get("user-agent", "unknown")
+
+    if _RECORDING_STREAM_PATH.match(request.url.path):
+        # A high-volume media endpoint: refuse cheaply. A database write per refused request would let
+        # an abuser turn the limit into load, and this is not a login attempt. (Path only: never log ?t=.)
+        logging.getLogger("recordings").warning("recording stream rate limited ip=%s path=%s", ip, request.url.path)
+        return JSONResponse(status_code=429, content={"detail": "Too many requests. Please try again shortly."})
 
     db = SessionLocal()
     try:

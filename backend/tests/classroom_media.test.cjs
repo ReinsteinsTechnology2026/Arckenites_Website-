@@ -135,7 +135,8 @@ test('every element id used by classroom.js exists in classroom.html', () => {
 });
 
 test('the page pins the LiveKit client version and loads scripts in dependency order', () => {
-  assert.match(html, /livekit-client@\d+\.\d+\.\d+\/dist\/livekit-client\.umd\.min\.js/);
+  assert.match(html, /vendor\/livekit-client-\d+\.\d+\.\d+\.umd\.js" integrity="sha384-[A-Za-z0-9+\/=]+" crossorigin/); // self-hosted + SRI, no CDN
+  assert.doesNotMatch(html, /https?:\/\/[^"']*livekit-client/);
   const order = ['livekit-client', 'js/api.js', 'js/auth.js', 'js/classroom-media.js', 'js/classroom.js'].map((s) => html.indexOf(s));
   assert.ok(order.every((v, i) => v > -1 && (i === 0 || v > order[i - 1])), `bad script order ${order}`);
   assert.ok(fs.existsSync(path.join(root, 'css', 'classroom.css')));
@@ -159,7 +160,7 @@ test('participant names are escaped before being placed in HTML', () => {
 
 test('the general-meeting page uses LiveKit only as a media layer: no class-run code and no recording control', () => {
   const mr = fs.readFileSync(path.join(root, 'meeting-room.html'), 'utf8') + fs.readFileSync(path.join(root, 'js', 'meeting-room.js'), 'utf8');
-  assert.match(mr, /livekit-client@\d+\.\d+\.\d+/);
+  assert.match(mr, /vendor\/livekit-client-\d+\.\d+\.\d+\.umd\.js/);
   assert.doesNotMatch(mr, /class-runs|classroom-recording|classroom-notes|classroom-chat/);
   assert.doesNotMatch(mr, /meetToolRecord|meetRecordingBadge|recordings\/start/);
 });

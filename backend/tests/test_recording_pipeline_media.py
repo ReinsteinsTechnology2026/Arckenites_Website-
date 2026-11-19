@@ -562,6 +562,33 @@ class PlaybackTests(Harness):
     def stream(self, token, rid=None, **kw):
         return self.client.get(f"/api/recordings/{rid or self.rid}/stream", params={"t": token}, **kw)
 
+    def test_stream_rate_limit_spares_normal_seeking_and_refuses_abuse_without_a_database_write(self):
+        from app.core.rate_limit import limiter
+        from app.models.audit_log import AuthEventType
+        t = self.token("student").json()["stream_url"].split("?t=")[1]
+        enabled = limiter.enabled
+        limiter.enabled = True
+        limiter.reset()
+        try:
+            with self.sf() as db:
+                before = db.query(AuthAuditLog).filter(AuthAuditLog.event_type == AuthEventType.rate_limited).count()
+            seeks = [self.stream(t, headers={"Range": f"bytes={i}-{i}"}).status_code for i in range(150)]
+            self.assertEqual(set(seeks), {206}, "normal playback (many Range requests) must never be throttled")
+            codes = [self.stream(t).status_code for _ in range(160)]  # 310 in the minute, over the 300 cap
+            self.assertIn(429, codes)
+            self.assertEqual(codes[0], 200)
+            refused = self.stream(t)
+            self.assertEqual(refused.status_code, 429)
+            self.assertNotIn(t, refused.text)
+            with self.sf() as db:  # refused requests are cheap: no audit row per request
+                after = db.query(AuthAuditLog).filter(AuthAuditLog.event_type == AuthEventType.rate_limited).count()
+            self.assertEqual(after, before)
+            # throttling the stream does not stop an authorized viewer from asking for a fresh link
+            self.assertEqual(self.token("student").status_code, 200)
+        finally:
+            limiter.reset()
+            limiter.enabled = enabled
+
     def good_token(self, who="student"):
         return self.token(who).json()["stream_url"].split("t=")[1]
 
