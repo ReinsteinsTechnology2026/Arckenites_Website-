@@ -310,7 +310,7 @@ def host_remove_participant(meeting_id: int, participant_id: int, db: Session = 
     db.add(participant)
     db.commit()
     # Also disconnect them from the live LiveKit room (best-effort: the DB status already blocks rejoining).
-    if settings.livekit_configured and participant.user_id is not None:
+    if settings.meetings_on_livekit and participant.user_id is not None:
         try:
             from app.core.media_events import identity_for_user
             from app.core.media_server import MediaServerUnavailable, get_media_server, meeting_room_name

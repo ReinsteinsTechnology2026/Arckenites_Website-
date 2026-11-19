@@ -197,22 +197,25 @@ test('the classroom never contacts the media server or admin routes directly', (
 });
 
 /* ---------------- navigation ---------------- */
-test('student and trainer dashboards open batch classes in the classroom page, not the general-meeting page', () => {
+test('student and trainer dashboards let the server choose: LiveKit classroom only when enabled, the existing meeting room otherwise', () => {
   for (const f of ['student-dashboard.js', 'staff-batch-workspace.js']) {
     const code = read('js', f);
-    assert.doesNotMatch(code, /meeting-room\.html\?batch=/, f);
-    assert.match(code, /classroom\.html\?batch=/, f);
+    assert.match(code, /ArckClassroom\.goToClass\(ArckAPI, batchId\)/, f);               // the server-decided path
+    assert.match(code, /meeting-room\.html\?batch=\$\{encodeURIComponent\(batchId\)\}/, f);   // the Jitsi default/fallback
+    assert.doesNotMatch(code, /classroom\.html/, f);                                        // never hard-linked
   }
   assert.match(read('js', 'student-dashboard.js'), /meeting-room\.html\?token=/, 'general meetings still use the meeting page');
   assert.match(read('js', 'staff-dashboard.js'), /meeting-room\.html\?token=/);
 });
 
-test('admin pages offer no way to join a batch class', () => {
+test('admins keep their existing Jitsi Join until the LiveKit classroom is on, then the control is hidden (admins have no seat)', () => {
   for (const f of ['admin-batch-detail.js', 'admin-class-schedule.js']) {
     const code = read('js', f);
-    assert.doesNotMatch(code, /(meeting-room|classroom)\.html\?batch=/, f);
+    assert.doesNotMatch(code, /classroom\.html/, f);
+    assert.match(code, /meeting-room\.html\?batch=/, f);
+    assert.match(code, /hideAdminJoinWhenClassroomOn/, f);
   }
-  assert.match(read('js', 'admin-batch-detail.js'), /getElementById\('joinBatchVideoBtn'\)\.style\.display = 'none'/);
+  assert.match(read('js', 'admin-batch-detail.js'), /setAttribute\('data-admin-class-join'/);
   assert.match(read('js', 'admin-meetings.js'), /meeting-room\.html\?token=/, 'admins still host general meetings');
 });
 

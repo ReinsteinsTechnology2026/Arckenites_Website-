@@ -237,8 +237,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     editPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
-  // Admins have no seat in a class session: only the batch's trainer and its enrolled students join.
-  document.getElementById('joinBatchVideoBtn').style.display = 'none';
+  // Admins keep their existing Jitsi room while the LiveKit classroom is off. Once it is on, admins have no
+  // seat in a class session (only the batch's trainer and enrolled students join), so the control is hidden.
+  const joinBatchVideoBtn = document.getElementById('joinBatchVideoBtn');
+  joinBatchVideoBtn.setAttribute('data-admin-class-join', '');
+  joinBatchVideoBtn.addEventListener('click', () => {
+    window.location.href = `meeting-room.html?batch=${batchId}`;
+  });
+  if (typeof ArckClassroom !== 'undefined') ArckClassroom.hideAdminJoinWhenClassroomOn(ArckAPI);
 
   document.getElementById('editBatchBtn').addEventListener('click', openEditPanel);
   document.getElementById('cancelEditBatchBtn').addEventListener('click', () => { editPanel.style.display = 'none'; });
@@ -402,7 +408,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <td>${escapeHtml(s.title)}</td>
             <td>${formatDate(s.session_date)}</td>
             <td>${(s.start_time && s.end_time) ? `${formatTime(s.start_time)} – ${formatTime(s.end_time)}` : '—'}</td>
-            <td><span class="muted" title="Admins do not join class sessions">Trainer &amp; students</span></td>
+            <td><a class="btn btn-accent" style="padding:4px 12px;" href="meeting-room.html?batch=${batchId}" data-admin-class-join><i class="fa-solid fa-video"></i> Join</a></td>
             <td>${s.notes ? escapeHtml(s.notes) : '—'}</td>
             <td>
               <button type="button" class="table-action-btn is-danger" data-remove-session="${s.id}" title="Delete ${escapeHtml(s.title)}">
@@ -412,6 +418,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           </tr>
         `).join('')
       : '<tr><td colspan="6" class="admin-panel-empty">No class sessions scheduled yet.</td></tr>';
+    if (typeof ArckClassroom !== 'undefined') ArckClassroom.hideAdminJoinWhenClassroomOn(ArckAPI, sessionsTableBody);   // no-op unless the LiveKit classroom is on
   };
 
   const loadSessions = async () => {

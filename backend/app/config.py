@@ -33,6 +33,29 @@ class Settings(BaseSettings):
         return bool(self.livekit_url and self.livekit_api_key and self.livekit_api_secret)
 
     @property
+    def is_production(self) -> bool:
+        """ENV compared the same way everywhere: case and surrounding whitespace never
+        turn a production server into a non-production one."""
+        return (self.env or "").strip().lower() == "production"
+
+    @property
+    def classroom_routes_enabled(self) -> bool:
+        """Whether the LiveKit class routes exist at all. Production needs the explicit
+        classroom flag; RECORDING_ENABLED alone does not expose them (recording and
+        classroom availability are separate)."""
+        return (not self.is_production) or self.livekit_classroom_enabled
+
+    @property
+    def classroom_available(self) -> bool:
+        """What the browser is told: use the LiveKit classroom only when it is switched on,
+        its routes are registered and the media server is configured."""
+        return self.livekit_classroom_enabled and self.livekit_configured and self.classroom_routes_enabled
+
+    @property
+    def meetings_on_livekit(self) -> bool:
+        return self.livekit_meetings_enabled and self.livekit_configured
+
+    @property
     def livekit_server_api_url(self) -> str:
         if self.livekit_api_url:
             return self.livekit_api_url
@@ -90,6 +113,14 @@ class Settings(BaseSettings):
     livekit_api_key: str = ""
     livekit_api_secret: str = ""
     livekit_token_ttl_seconds: int = 900
+    # Three independent switches, ALL off by default so production keeps using Jitsi for
+    # batch classes and general meetings until each is deliberately turned on:
+    #   LIVEKIT_CLASSROOM_ENABLED  batch classrooms on LiveKit (class routes + "Join class" links)
+    #   LIVEKIT_MEETINGS_ENABLED   general meetings on LiveKit (never recorded)
+    #   RECORDING_ENABLED          trainer-approved recording inside a LiveKit classroom
+    # Having LiveKit configured (URL, key, secret) does not turn any of them on.
+    livekit_classroom_enabled: bool = False
+    livekit_meetings_enabled: bool = False
     # Egress writes to this path INSIDE the Egress container; it must be the
     # container-side mount of recording_staging_dir.
     livekit_egress_output_prefix: str = "/out"

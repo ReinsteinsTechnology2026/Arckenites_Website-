@@ -9,6 +9,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(location.search);
   const batchId = params.get('batch');
   const runId = params.get('run');
+  // The LiveKit classroom may be switched off (or its server unavailable): a link to this page
+  // must then land in the existing meeting room instead of an error.
+  if (batchId && !runId && (typeof ArckClassroom === 'undefined' || !(await ArckClassroom.isClassroomEnabled(ArckAPI)))) {
+    window.location.replace(`meeting-room.html?batch=${encodeURIComponent(batchId)}`);
+    return;
+  }
   const body = $('clsPrejoinBody');
 
   if (!/^\d+$/.test(batchId || runId || '')) {
@@ -64,6 +70,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Join with media off; people turn on what they want (and the browser asks permission on their click).
     } catch (err) {
       showError((err && err.detail) || (err && err.message) || 'Something went wrong.');
+      if (batchId && err && [404, 502, 503].includes(err.status)) {
+        // Classroom or media server unavailable: offer the existing meeting room (DOM-built; no HTML from the URL).
+        const el = $('clsPrejoinError');
+        const link = document.createElement('a');
+        link.href = `meeting-room.html?batch=${encodeURIComponent(batchId)}`;
+        link.textContent = 'Join the classic meeting room instead';
+        link.style.display = 'block';
+        link.style.marginTop = '8px';
+        el.appendChild(link);
+      }
       btn.disabled = false;
     }
   }

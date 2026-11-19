@@ -7,6 +7,14 @@ const BATCH_STATUS_LABEL = { upcoming: 'Upcoming', active: 'Active', paused: 'Pa
 
 const formatDateKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
+// "Join class": the server decides (LIVEKIT_CLASSROOM_ENABLED). The existing Jitsi meeting room is the default and the
+// fallback, including if the availability script did not load.
+function arckOpenBatchClass(batchId) {
+  if (typeof ArckClassroom !== 'undefined') return ArckClassroom.goToClass(ArckAPI, batchId);
+  window.location.href = `meeting-room.html?batch=${encodeURIComponent(batchId)}`;
+  return undefined;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
 
   const user = await ArckAuth.requireRole('staff');
@@ -316,7 +324,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ---------- Meeting ---------- */
   document.getElementById('joinBatchMeetingBtn').addEventListener('click', () => {
-    window.location.href = `classroom.html?batch=${batchId}`;
+    arckOpenBatchClass(batchId);
   });
 
   /* ---------- Class Details Updation: Study Materials ---------- */

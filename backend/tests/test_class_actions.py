@@ -3,6 +3,7 @@
 Isolated: temp SQLite and a fake media server; no network, no real credentials.
 """
 import unittest
+from unittest.mock import patch
 
 import jwt
 from sqlalchemy import select
@@ -230,6 +231,20 @@ class AdminExclusionTests(ActionBase):
 
 
 class GeneralMeetingLiveKitTests(ActionBase):
+    def setUp(self):
+        super().setUp()
+        # General meetings use LiveKit only behind their own switch (LIVEKIT_MEETINGS_ENABLED, default off).
+        patcher = patch.object(settings, "livekit_meetings_enabled", True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_meetings_stay_on_jitsi_when_livekit_is_configured_and_only_the_classroom_is_enabled(self):
+        with patch.object(settings, "livekit_meetings_enabled", False), patch.object(settings, "livekit_classroom_enabled", True):
+            body = self.join("host").json()
+        self.assertEqual(body["status"], "READY")
+        self.assertFalse(body.get("livekit_token"))
+        self.assertFalse(body.get("livekit_url"))
+
     def meeting_token(self):
         with QaSession(self.engine) as db:
             return db.get(Meeting, self.meeting_id).meeting_token

@@ -20,7 +20,7 @@ def livekit_join_fields(meeting: Meeting, user: User, is_moderator: bool) -> dic
     server is configured (the page then falls back to the legacy room). Called only
     after membership, password and waiting-room checks have passed."""
     from app.config import settings
-    if not settings.livekit_configured:
+    if not settings.meetings_on_livekit:     # LiveKit being configured for classrooms must not move meetings off Jitsi
         return {}
     from app.core.livekit_media import meeting_join_token
     from app.core.media_events import identity_for_user

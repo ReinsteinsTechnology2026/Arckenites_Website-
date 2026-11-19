@@ -31,6 +31,14 @@ const PROGRAM_LABELS = {
   college_projects: 'College Projects Program',
 };
 
+// "Join class": the server decides (LIVEKIT_CLASSROOM_ENABLED). The existing Jitsi meeting room is the default and the
+// fallback, including if the availability script did not load.
+function arckOpenBatchClass(batchId) {
+  if (typeof ArckClassroom !== 'undefined') return ArckClassroom.goToClass(ArckAPI, batchId);
+  window.location.href = `meeting-room.html?batch=${encodeURIComponent(batchId)}`;
+  return undefined;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
 
   const user = await ArckAuth.requireRole('student');
@@ -575,7 +583,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   batchMeetingsList.addEventListener('click', (e) => {
     const joinBtn = e.target.closest('[data-join-batch]');
-    if (joinBtn) { window.location.href = `classroom.html?batch=${joinBtn.dataset.joinBatch}`; return; }
+    if (joinBtn) { arckOpenBatchClass(joinBtn.dataset.joinBatch); return; }
     const chatBtn = e.target.closest('[data-chat-batch]');
     if (chatBtn) openBatchChat(Number(chatBtn.dataset.chatBatch), chatBtn.dataset.chatBatchName);
   });
@@ -677,7 +685,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   scheduleBody.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-join-batch]');
     if (!btn) return;
-    window.location.href = `classroom.html?batch=${btn.dataset.joinBatch}`;
+    arckOpenBatchClass(btn.dataset.joinBatch);
   });
 
   /* ---------- Study Materials ---------- */
@@ -771,7 +779,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
     const joinBtn = e.target.closest('[data-join-next-class]');
-    if (joinBtn) window.location.href = `classroom.html?batch=${joinBtn.dataset.joinNextClass}`;
+    if (joinBtn) arckOpenBatchClass(joinBtn.dataset.joinNextClass);
   });
 
   const loadOverview = async () => {
