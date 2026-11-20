@@ -8,7 +8,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core import class_lifecycle as lifecycle
-from app.core import job_queue, recording_finalize, recording_pipeline, recording_publish, recording_watchdog
+from app.core import job_queue, recording_finalize, recording_pipeline, recording_publish, recording_retention, recording_watchdog
+from app.config import settings
 from app.core.class_runs import utcnow
 from app.core.job_queue import RetryLater, register
 from app.core.media_server import (MediaServerNotConfigured, MediaServerUnavailable, get_media_server,
@@ -112,3 +113,10 @@ def _reconcile(db: Session, job: BackgroundJob) -> None:
     except Exception:  # noqa: BLE001
         db.rollback()
         logger.exception("recording watchdog sweep failed")
+    # Off by default (RECORDING_RETENTION_ENABLED); a no-op unless an operator approved it.
+    if settings.recording_retention_enabled:
+        try:
+            recording_retention.run_retention(db)
+        except Exception:  # noqa: BLE001
+            db.rollback()
+            logger.exception("recording retention pass failed")

@@ -105,6 +105,18 @@ class Settings(BaseSettings):
     # staging so playback can be exercised before OneDrive access exists.
     # Ignored unless ENV is development/test; entries are labelled LOCAL_STAGING.
     recording_publish_from_staging: bool = False
+    # Local-copy retention (app/core/recording_retention.py). It only ever
+    # removes the LOCAL staging copy of a recording whose OneDrive copy has been
+    # re-verified byte-for-byte; it never deletes remote files, database rows or
+    # anything else. OFF until explicitly approved, and even when enabled it
+    # only REPORTS (dry run) until dry_run is switched off as a second step.
+    recording_retention_enabled: bool = False
+    recording_retention_dry_run: bool = True
+    # Keep the local copy at least this long after the remote copy was
+    # verified. Values below RETENTION_MIN_DAYS are raised to that floor.
+    recording_retention_local_days: int = 30
+    # Most files examined per run (bounds hashing work and blast radius).
+    recording_retention_batch_limit: int = 10
     # Self-hosted LiveKit. Blank = media server not configured. The API key and
     # secret are server-side only and are never sent to a browser; browsers get
     # short-lived, room-scoped join tokens instead.

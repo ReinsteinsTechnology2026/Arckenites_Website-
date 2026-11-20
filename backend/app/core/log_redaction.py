@@ -28,7 +28,14 @@ class RedactTokensFilter(logging.Filter):
 
 
 def install() -> None:
-    """Idempotent. Attaches to the loggers that print request URLs."""
+    """Idempotent. Attaches to the loggers that print request URLs.
+
+    httpx/httpcore log every outbound URL at INFO, including Microsoft Graph's
+    pre-authenticated upload/download URLs. Those are credentials, so these two
+    loggers are held at WARNING regardless of the process-wide log level.
+    """
+    for name in ("httpx", "httpcore"):
+        logging.getLogger(name).setLevel(logging.WARNING)
     for name in ("uvicorn.access", "uvicorn.error", "uvicorn", "httpx", "httpcore"):
         logger = logging.getLogger(name)
         if not any(isinstance(f, RedactTokensFilter) for f in logger.filters):

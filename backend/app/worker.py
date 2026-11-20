@@ -74,6 +74,8 @@ async def run_worker(session_factory=SessionLocal, worker_id: str | None = None,
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    from app.core.log_redaction import install as install_log_redaction
+    install_log_redaction()  # never log Graph's pre-authenticated URLs (httpx logs URLs at INFO)
     stop = asyncio.Event()
 
     async def _run() -> None:

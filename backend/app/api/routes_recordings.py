@@ -7,6 +7,10 @@
   allowed to watch on EVERY request (including each byte-range request), so
   removing a student from a batch stops their playback within the token's life
   and blocks any new token immediately.
+* When the local staging copy is gone (e.g. after retention cleanup) the same
+  endpoint streams the verified OneDrive copy THROUGH this server: the browser
+  only ever sees an Arckenites URL; Graph credentials, OneDrive item ids and
+  Microsoft download URLs stay server-side. Authorization is identical.
 * Nothing exposes a filesystem path or storage URL. Responses are private and
   uncacheable. There is no download endpoint or button; as with any web
   video, this controls access, it cannot make capture impossible.
@@ -24,6 +28,7 @@ from app.config import settings
 from app.core import class_runs
 from app.core.deps import get_current_user
 from app.core.rate_limit import limiter
+from app.core.onedrive_store import OneDriveStore
 from app.core.recording_storage import StagingStore, StorageError
 from app.crud.audit import write_audit_event
 from app.database import get_db
@@ -144,6 +149,30 @@ def _iter_file(path, start: int, end: int):
             yield data
 
 
+def _new_store() -> OneDriveStore:
+    return OneDriveStore()
+
+
+def _remote_source(rec: ClassRecording) -> OneDriveStore | None:
+    """The OneDrive store to read from, only if this recording has a recorded,
+    verified remote copy of known size and the store can currently be read."""
+    if (rec.storage_provider != OneDriveStore.provider or not rec.remote_item_id or rec.remote_verified_at is None
+            or not rec.size_bytes):
+        return None
+    store = _new_store()
+    ready, _ = store.read_readiness()
+    return store if ready else None
+
+
+def _stream_remote(store: OneDriveStore, rec: ClassRecording, size: int, byte_range, headers: dict):
+    from app.core.portal_storage import remote_response  # shared, already-hardened Graph streaming
+    upstream = remote_response(store, rec.remote_item_id, size=size, media_type="video/mp4",
+                               byte_range=byte_range, head=False)
+    # Our own headers (no-store, nosniff, inline, ...) win; upstream's body/length are verified by remote_response.
+    upstream.headers.update({k: v for k, v in headers.items()})
+    return upstream
+
+
 @router.api_route("/{recording_id}/stream", methods=["GET", "HEAD"])
 @limiter.limit("300/minute")  # generous: a player issues many Range requests; this stops scraping/abuse
 def stream_recording(recording_id: str, request: Request, t: str = Query(min_length=10, max_length=2000),
@@ -154,15 +183,20 @@ def stream_recording(recording_id: str, request: Request, t: str = Query(min_len
         raise _not_found()
 
     store = StagingStore()
+    path = None
     try:
-        path = store.path_for(rec.staging_key or "")
+        candidate = store.path_for(rec.staging_key or "")
+        if candidate.is_file() and (rec.size_bytes is None or candidate.stat().st_size == rec.size_bytes):
+            path = candidate
     except StorageError:
-        raise _not_found()
-    if not path.is_file() or (rec.size_bytes is not None and path.stat().st_size != rec.size_bytes):
-        # The verified local copy is missing or changed. Serving from the
-        # OneDrive copy is not implemented yet; fail honestly, never guess.
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="This recording is temporarily unavailable")
-    size = path.stat().st_size
+        pass
+    remote = None
+    if path is None:
+        remote = _remote_source(rec)
+        if remote is None:
+            # Neither a matching local copy nor a verified remote copy we can read: fail honestly, never guess.
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="This recording is temporarily unavailable")
+    size = rec.size_bytes if path is None else path.stat().st_size
 
     headers = {
         "Accept-Ranges": "bytes", "Content-Type": "video/mp4", "Content-Disposition": "inline",
@@ -180,4 +214,6 @@ def stream_recording(recording_id: str, request: Request, t: str = Query(min_len
     headers["Content-Length"] = str(end - start + 1)
     if request.method == "HEAD":
         return Response(status_code=code, headers=headers)
+    if remote is not None:
+        return _stream_remote(remote, rec, size, None if window is None else (start, end), headers)
     return StreamingResponse(_iter_file(path, start, end), status_code=code, headers=headers)
