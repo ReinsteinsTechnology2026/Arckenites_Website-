@@ -46,6 +46,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   let notesSaveTimer = null;
   let actionItems = [];
   let myJitsiId = null;
+  let lkMedia = null;   // LiveKit mode (set when the server hands out a LiveKit token)
+  let lkStage = null;
   const jitsiNames = new Map();
 
   /* ---------- Join flow ---------- */
@@ -136,7 +138,56 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.head.appendChild(script);
   });
 
+  /* LiveKit mode: same Arckenites toolbar, chat, notes and participant list; only the media layer differs.
+   * General meetings are never recorded and expose no recording control. */
+  async function enterLiveKitRoom(joinInfo) {
+    const lk = window.LivekitClient;
+    lkMedia = new ArckClassroomMedia.ClassroomMedia(lk);
+    try {
+      await lkMedia.connect(joinInfo.livekit_url, joinInfo.livekit_token);
+    } catch (err) {
+      lkMedia = null;
+      renderError('Could not connect to the meeting server. Please try again.');
+      return;
+    }
+    document.getElementById('meetPrejoin').style.display = 'none';
+    document.getElementById('meetRoom').style.display = 'flex';
+    document.getElementById('meetTitle').textContent = joinInfo.title;
+    document.getElementById('meetToolNotes').style.display = notesEnabled ? '' : 'none';
+    document.getElementById('meetToolChat').style.display = chatEnabled ? '' : 'none';
+    document.getElementById('meetToolRaiseHand').style.display = 'none';   // hand-raise is a classroom feature
+    const area = document.getElementById('meetVideoArea');
+    area.style.position = 'relative';
+    const stageEl = document.createElement('div');
+    stageEl.className = 'cls-stage';
+    area.appendChild(stageEl);
+    lkStage = new ArckClassroomStage.ClassroomStage({ doc: document, stageEl, media: lkMedia, source: lk.Track.Source });
+    const connStatus = document.getElementById('meetConnectionStatus');
+    const applyState = (st) => {
+      if (!lkMedia) return;   // already leaving
+      lkStage.render(st);
+      setToolActive('meetToolMic', st.micOn);
+      setToolActive('meetToolCamera', st.cameraOn);
+      setToolActive('meetToolShare', st.screenOn);
+      connStatus.innerHTML = !st.connected ? '<i class="fa-solid fa-circle" style="color:#ff5a5a; font-size:.55rem;"></i> Disconnected'
+        : st.reconnecting ? '<i class="fa-solid fa-circle-notch fa-spin"></i> Reconnecting&hellip;'
+          : '<i class="fa-solid fa-circle" style="color:#4caf50; font-size:.55rem;"></i> Connected';
+      if (!st.connected && meetingId) leaveAndShowEnded();
+      else refreshParticipants();
+    };
+    lkMedia.subscribe(applyState);
+    applyState(lkMedia.state());   // show the current state now: the room may already be connected and quiet
+    setToolActive('meetToolMic', false);
+    setToolActive('meetToolCamera', false);
+    connectChatSocket();
+    await loadChatHistory();
+    await refreshParticipants();
+    if (notesEnabled) await loadNotes();
+    if (isModerator) pollWaitingRoom();
+  }
+
   async function enterRoom(joinInfo) {
+    if (joinInfo.livekit_token && window.LivekitClient) { await enterLiveKitRoom(joinInfo); return; }
     try {
       await loadJitsiScript(jitsiDomain);
     } catch (err) {
@@ -149,7 +200,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('meetTitle').textContent = joinInfo.title;
     document.getElementById('meetToolNotes').style.display = notesEnabled ? '' : 'none';
     document.getElementById('meetToolChat').style.display = chatEnabled ? '' : 'none';
-    if (!isModerator) document.getElementById('meetToolRecord').style.display = 'none';
 
     jitsiApi = new window.JitsiMeetExternalAPI(jitsiDomain, {
       roomName: joinInfo.room_name,
@@ -208,6 +258,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (isModerator) pollWaitingRoom();
   }
 
+  // Device problems (blocked camera, no microphone...) are reported once, after the button press that caused them.
+  async function lkMediaAction(promise) {
+    await promise;
+    const error = lkMedia && lkMedia.state().error;
+    if (error) window.alert(error);
+  }
+
   function setToolActive(id, active) {
     document.getElementById(id).classList.toggle('is-active', active);
     document.getElementById(id).classList.toggle('is-off', !active);
@@ -216,15 +273,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   /* ---------- Toolbar ---------- */
   document.getElementById('meetToolMic').addEventListener('click', () => {
     if (!isModerator && !micAllowed) { window.alert('The host has disabled microphones for this meeting.'); return; }
-    jitsiApi?.executeCommand('toggleAudio');
+    if (lkMedia) lkMediaAction(lkMedia.toggleMicrophone()); else jitsiApi?.executeCommand('toggleAudio');
   });
   document.getElementById('meetToolCamera').addEventListener('click', () => {
     if (!isModerator && !cameraAllowed) { window.alert('The host has disabled cameras for this meeting.'); return; }
-    jitsiApi?.executeCommand('toggleVideo');
+    if (lkMedia) lkMediaAction(lkMedia.toggleCamera()); else jitsiApi?.executeCommand('toggleVideo');
   });
   document.getElementById('meetToolShare').addEventListener('click', () => {
     if (!isModerator && !screenShareEnabled) { window.alert('The host has disabled screen sharing for this meeting.'); return; }
-    jitsiApi?.executeCommand('toggleShareScreen');
+    if (lkMedia) lkMediaAction(lkMedia.toggleScreenShare()); else jitsiApi?.executeCommand('toggleShareScreen');
   });
   document.getElementById('meetToolRaiseHand').addEventListener('click', () => {
     jitsiApi?.executeCommand('toggleRaiseHand');
@@ -241,9 +298,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     handRaiseToastTimer = setTimeout(() => toast.classList.remove('is-visible'), 5000);
   }
   document.getElementById('meetToolLeave').addEventListener('click', () => {
-    if (window.confirm('Leave this meeting?')) jitsiApi?.executeCommand('hangup');
+    if (window.confirm('Leave this meeting?')) { if (lkMedia) leaveAndShowEnded(); else jitsiApi?.executeCommand('hangup'); }
   });
-  document.getElementById('meetToolRecord').addEventListener('click', toggleRecording);
 
   const sidepanel = document.getElementById('meetSidepanel');
   const openPanel = (name) => {
@@ -415,33 +471,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  /* ---------- Recording ---------- */
-  let activeRecordingId = null;
-  async function toggleRecording() {
-    const btn = document.getElementById('meetToolRecord');
-    btn.disabled = true;
-    try {
-      if (activeRecordingId) {
-        await ArckAPI.request(`/meetings/${meetingId}/recordings/${activeRecordingId}/stop`, { method: 'POST' });
-        activeRecordingId = null;
-        btn.classList.remove('is-recording');
-        document.getElementById('meetRecordingBadge').style.display = 'none';
-        window.alert('Recording stopped. Note: actual video capture requires the Jibri recording service to be deployed on the server — see the deployment docs. This session\'s recording metadata was saved, but no video file was produced yet.');
-      } else {
-        const rec = await ArckAPI.request(`/meetings/${meetingId}/recordings/start`, { method: 'POST', body: {} });
-        activeRecordingId = rec.id;
-        btn.classList.add('is-recording');
-        document.getElementById('meetRecordingBadge').style.display = 'inline-flex';
-      }
-    } catch (err) {
-      window.alert(err.detail || 'Recording action failed.');
-    } finally {
-      btn.disabled = false;
-    }
-  }
+  /* General meetings are never recorded: there is intentionally no recording control here. */
 
   /* ---------- Leaving ---------- */
   async function leaveAndShowEnded() {
+    if (lkMedia) { const m = lkMedia; lkMedia = null; m.disconnect(); if (lkStage) lkStage.destroy(); }
     if (ws) { ws.onclose = null; ws.close(); }
     try { if (meetingId) await ArckAPI.request(`/meetings/${meetingId}/leave`, { method: 'POST' }); } catch (_) { /* best-effort */ }
     document.getElementById('meetRoom').style.display = 'none';

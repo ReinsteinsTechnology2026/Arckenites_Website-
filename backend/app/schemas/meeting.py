@@ -130,6 +130,11 @@ class MeetingJoinOut(BaseModel):
     is_moderator: bool
     jitsi_domain: str | None = None
     room_name: str | None = None
+    # Present only for token-based GENERAL meetings when the LiveKit media server is
+    # configured. Short-lived and room-scoped; never log or store it. These rooms are
+    # never recordable (see media_server.require_class_room).
+    livekit_url: str | None = None
+    livekit_token: str | None = None
     mic_enabled: bool = True
     camera_enabled: bool = True
     screen_share_enabled: bool = True

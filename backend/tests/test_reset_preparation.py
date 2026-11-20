@@ -75,9 +75,9 @@ class ResetPreparationTests(unittest.TestCase):
         return result
 
     def test_current_schema_and_fk_inventory_fully_classified(self):
-        self.assertEqual(self.metadata["table_count"], 56)  # + portal file metadata (c6d8a2f4e107)
+        self.assertEqual(self.metadata["table_count"], 62)  # +1 class_private_notes (c4e8a1d7f3b6); +1 portal_files (c6d8a2f4e107); +5 class runs/recordings (d4e8a1b7c356)
         # c4e5f6a7b8c9 added two nullable batch audit FKs (commit a0cbca8).
-        self.assertEqual(len(self.metadata["foreign_keys"]), 84)
+        self.assertEqual(len(self.metadata["foreign_keys"]), 100)  # +2 class_private_notes (run_id, user_id); +13 from d4e8a1b7c356, +1 class_videos.recording_id (e5f9b2c8d471); +1 portal_files.uploader_id
         batch_audit_fks = {
             (fk["source_column"], fk["target_table"], fk["target_column"],
              fk["nullable"], fk["ondelete"])
@@ -92,11 +92,11 @@ class ResetPreparationTests(unittest.TestCase):
             ("interview_schedule_access_updated_by_id", "users", "id", True, "SET NULL"),
         })
         # Community scoping retains both old index names and adds this index.
-        self.assertEqual(len(self.metadata["model_indexes"]), 72)
+        self.assertEqual(len(self.metadata["model_indexes"]), 85)  # +2 class_private_notes; +1 ix_portal_files_scope
         self.assertIn({"table": "users", "name": "uq_users_legacy_username",
                        "unique": True, "columns": ["username"]}, self.metadata["model_indexes"])
         # Includes the two batch audit foreign-key constraints above.
-        self.assertEqual(len(self.metadata["model_constraints"]), 171)
+        self.assertEqual(len(self.metadata["model_constraints"]), 207)  # +4 class_private_notes (pk, 2 fk, unique); +2 portal_files (pk, fk)
         self.assertEqual(self.metadata["unclassified_model_tables"], [])
         self.assertFalse(self.metadata["production_schema_verified"])
         self.assertEqual(set(self.metadata["tables"]) | {"alembic_version"}, ALL_TABLES)

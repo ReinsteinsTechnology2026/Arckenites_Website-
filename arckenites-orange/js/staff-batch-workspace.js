@@ -7,6 +7,14 @@ const BATCH_STATUS_LABEL = { upcoming: 'Upcoming', active: 'Active', paused: 'Pa
 
 const formatDateKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
+// "Join class": the server decides (LIVEKIT_CLASSROOM_ENABLED). The existing Jitsi meeting room is the default and the
+// fallback, including if the availability script did not load.
+function arckOpenBatchClass(batchId) {
+  if (typeof ArckClassroom !== 'undefined') return ArckClassroom.goToClass(ArckAPI, batchId);
+  window.location.href = `meeting-room.html?batch=${encodeURIComponent(batchId)}`;
+  return undefined;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
 
   const user = await ArckAuth.requireRole('staff');
@@ -316,7 +324,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ---------- Meeting ---------- */
   document.getElementById('joinBatchMeetingBtn').addEventListener('click', () => {
-    window.location.href = `meeting-room.html?batch=${batchId}`;
+    arckOpenBatchClass(batchId);
   });
 
   /* ---------- Class Details Updation: Study Materials ---------- */
@@ -376,15 +384,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ---------- Class Details Updation: Class Videos ---------- */
   const videosBody = document.getElementById('videosTableBody');
-  const videoRowHtml = (v) => `
+  // Recordings are published and managed by Arckenites: the trainer can watch
+  // them but not delete them, and there is no link to open.
+  const videoRowHtml = (v) => {
+    const recording = ArckClassVideos.isRecording(v);
+    return `
     <tr>
       <td>${escapeHtml(v.title)}</td>
-      <td><a href="${escapeHtml(v.video_url)}" target="_blank" rel="noopener">Open</a></td>
-      <td>${v.description ? escapeHtml(v.description) : '—'}</td>
-      <td>${formatDate(v.created_at.slice(0, 10))}</td>
-      <td><button type="button" class="table-action-btn is-danger" data-delete-video="${v.id}" title="Delete"><i class="fa-solid fa-trash"></i></button></td>
-    </tr>
-  `;
+      <td>${recording ? ArckClassVideos.watchButtonHtml(v) : ArckClassVideos.linkCellHtml(v)}</td>
+      <td>${recording ? `Recorded class · ${ArckClassVideos.formatDuration(v.duration_seconds)}` : (v.description ? escapeHtml(v.description) : '—')}</td>
+      <td>${formatDate((recording && v.session_date ? v.session_date : v.created_at.slice(0, 10)))}</td>
+      <td>${recording ? '' : `<button type="button" class="table-action-btn is-danger" data-delete-video="${v.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>`}</td>
+    </tr>`;
+  };
   const loadVideos = async () => {
     try {
       const videos = await ArckAPI.request(`/staff/me/batches/${batchId}/videos`);

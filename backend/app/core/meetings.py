@@ -1,3 +1,5 @@
+from typing import NoReturn
+
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -11,6 +13,21 @@ def room_name_for(meeting: Meeting) -> str:
     token, so anyone who can reach the room already had a valid invite;
     no separate secret needs to be generated or stored."""
     return f"ArckMeeting-{meeting.meeting_token}"
+
+
+def livekit_join_fields(meeting: Meeting, user: User, is_moderator: bool) -> dict:
+    """LiveKit URL + a room-scoped token for a GENERAL meeting, or {} when no media
+    server is configured (the page then falls back to the legacy room). Called only
+    after membership, password and waiting-room checks have passed."""
+    from app.config import settings
+    if not settings.meetings_on_livekit:     # LiveKit being configured for classrooms must not move meetings off Jitsi
+        return {}
+    from app.core.livekit_media import meeting_join_token
+    from app.core.media_events import identity_for_user
+    from app.core.media_server import meeting_room_name
+    token = meeting_join_token(identity=identity_for_user(user.id), name=user.full_name,
+                               room=meeting_room_name(meeting.id), is_moderator=is_moderator)
+    return {"livekit_url": settings.livekit_url, "livekit_token": token}
 
 
 def get_participant_row(db: Session, meeting_id: int, user_id: int) -> MeetingParticipant | None:
@@ -46,3 +63,14 @@ def meeting_member_user_ids(db: Session, meeting: Meeting) -> list[int]:
     ids.discard(None)
     ids.add(meeting.host_id)
     return list(ids)
+
+
+GENERAL_MEETING_RECORDING_DETAIL = "Recording is not available for general meetings."
+
+
+def refuse_general_meeting_recording() -> NoReturn:
+    """General meetings are NEVER recorded. Only a Batch Class is recorded, and
+    only after its assigned trainer approves (app/api/routes_class_runs.py).
+    Every legacy meeting-recording endpoint ends here, for every caller
+    (host, participant, admin, super admin), whatever the meeting's settings."""
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=GENERAL_MEETING_RECORDING_DETAIL)

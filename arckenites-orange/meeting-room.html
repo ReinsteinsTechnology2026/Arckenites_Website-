@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="css/style.css?v=21">
 <link rel="stylesheet" href="css/meeting-room.css?v=4">
+<link rel="stylesheet" href="css/classroom.css?v=1">
 
 </head>
 <body class="meeting-room-body">
@@ -33,9 +34,7 @@
 <div class="meet-room" id="meetRoom" style="display:none;">
   <header class="meet-topbar">
     <div class="meet-topbar-title">
-      <strong id="meetTitle">Meeting</strong>
-      <span id="meetRecordingBadge" class="meet-recording-badge" style="display:none;"><i class="fa-solid fa-circle"></i> Recording</span>
-    </div>
+      <strong id="meetTitle">Meeting</strong>    </div>
     <div class="meet-topbar-actions">
       <span id="meetConnectionStatus" class="meet-connection-status"><i class="fa-solid fa-circle-notch fa-spin"></i> Connecting&hellip;</span>
     </div>
@@ -91,7 +90,6 @@
     <button type="button" class="meet-tool-btn" id="meetToolChat" title="Chat"><i class="fa-solid fa-comment"></i></button>
     <button type="button" class="meet-tool-btn" id="meetToolNotes" title="Notes"><i class="fa-solid fa-note-sticky"></i></button>
     <button type="button" class="meet-tool-btn" id="meetToolParticipants" title="Participants"><i class="fa-solid fa-users"></i></button>
-    <button type="button" class="meet-tool-btn" id="meetToolRecord" title="Start/stop recording" style="display:none;"><i class="fa-solid fa-circle"></i></button>
     <button type="button" class="meet-tool-btn is-leave" id="meetToolLeave" title="Leave meeting"><i class="fa-solid fa-phone-slash"></i></button>
   </footer>
 </div>
@@ -106,6 +104,10 @@
   </div>
 </div>
 
+<!-- LiveKit media layer for general meetings (used when the server issues a LiveKit token; never records). -->
+<script src="vendor/livekit-client-2.5.7.umd.js" integrity="sha384-Nn8hRY4mapKEjtZKs8p3AACPUmKVr1jI1RJTaR3JJqsq282C3yIhWjde9V6oLFms" crossorigin="anonymous"></script>
+<script src="js/classroom-media.js?v=1"></script>
+<script src="js/classroom-stage.js?v=1"></script>
 <script src="js/api.js?v=2"></script>
 <script src="js/auth.js?v=7"></script>
 <script src="js/meeting-room.js?v=6"></script>

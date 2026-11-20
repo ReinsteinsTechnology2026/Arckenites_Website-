@@ -80,6 +80,21 @@ class AuthEventType(str, enum.Enum):
     meeting_recording_stopped = "meeting_recording_stopped"
     meeting_recording_deleted = "meeting_recording_deleted"
 
+    # Self-hosted class recording: trainer approval and the recording pipeline
+    # (see core/class_runs.py). Never carries tokens, storage paths or URLs.
+    recording_approval_requested = "recording_approval_requested"
+    recording_approval_granted = "recording_approval_granted"
+    recording_approval_declined = "recording_approval_declined"
+    recording_started = "recording_started"
+    recording_stopped = "recording_stopped"
+    recording_processed = "recording_processed"
+    recording_failed = "recording_failed"
+    recording_published = "recording_published"
+    recording_playback = "recording_playback"
+    recording_revoked = "recording_revoked"
+    recording_deleted = "recording_deleted"
+    class_run_cancelled = "class_run_cancelled"
+
     # Trainer scheduling: availability edits and batch-trainer assignment.
     trainer_availability_changed = "trainer_availability_changed"
     batch_trainer_assigned = "batch_trainer_assigned"

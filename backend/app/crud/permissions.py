@@ -43,11 +43,19 @@ PERMISSION_CATALOG: list[dict] = [
     {"key": "lab_access.view", "module": "Lab Access", "action": "view", "description": "View per-student lab slot bookings and lock/unlock status."},
     {"key": "lab_access.manage", "module": "Lab Access", "action": "manage", "description": "Manually lock or unlock a student's lab access."},
 
-    {"key": "meetings.view", "module": "Meetings", "action": "view", "description": "View meetings, participants, chat, notes and recordings."},
+    {"key": "meetings.view", "module": "Meetings", "action": "view", "description": "View meetings, participants, chat and notes."},
     {"key": "meetings.create", "module": "Meetings", "action": "create", "description": "Schedule new meetings."},
     {"key": "meetings.edit", "module": "Meetings", "action": "edit", "description": "Edit meeting details and settings."},
-    {"key": "meetings.manage", "module": "Meetings", "action": "manage", "description": "Start, end, and manage a live meeting (participants, recording)."},
-    {"key": "meetings.delete", "module": "Meetings", "action": "delete", "description": "Cancel or delete meetings and recordings."},
+    {"key": "meetings.manage", "module": "Meetings", "action": "manage", "description": "Start, end, and manage a live meeting (participants)."},
+    {"key": "meetings.delete", "module": "Meetings", "action": "delete", "description": "Cancel or delete meetings."},
+    # Class recordings. Deliberately NOT in _OPERATIONAL_MODULES: a plain
+    # Admin does not get this by default (Super Admin always passes).
+    # READ-ONLY by design. There is intentionally no approve, start, stop,
+    # play, download, revoke or delete permission: only the class trainer
+    # controls a recording, and only the trainer and currently enrolled
+    # students can watch it. (recordings.manage and recordings.delete were
+    # removed; their grants are cleaned up by migration b8d3f6a2c915.)
+    {"key": "recordings.view", "module": "Recordings", "action": "view", "description": "View class recording status and non-sensitive metadata (never the recording itself)."},
 
     {"key": "placement.view", "module": "Placement", "action": "view", "description": "View placement interviews."},
     {"key": "placement.create", "module": "Placement", "action": "create", "description": "Schedule placement interviews."},

@@ -123,6 +123,16 @@ class OneDriveStore:
             return False, "Microsoft Graph isn't configured."
         return True, None
 
+    def read_readiness(self) -> tuple[bool, str | None]:
+        """Whether already-stored objects can be READ (playback, integrity
+        re-checks). Deliberately independent of the upload switch: turning
+        uploads off must never make existing recordings unplayable."""
+        if not self.drive_id:
+            return False, "No OneDrive destination drive is configured."
+        if self._token_provider is None and not settings.ms_graph_configured:
+            return False, "Microsoft Graph isn't configured."
+        return True, None
+
     # -- plumbing ----------------------------------------------------------
     def _client(self) -> httpx.Client:
         return self._http or httpx.Client(timeout=httpx.Timeout(60.0, connect=15.0))
@@ -229,3 +239,23 @@ class OneDriveStore:
                 return RemoteObject(item_id=body["id"], size=expected_size, quick_xor_hash=remote_hash)
             self._sleep(HASH_WAIT_SECONDS)  # OneDrive computes the hash shortly after upload completes
         raise OneDriveError("OneDrive has not reported a content hash to verify against.")
+
+    def verify_remote(self, item_id: str, local_path: Path) -> RemoteObject:
+        """Re-checks that an already-uploaded item still matches a local file
+        (size AND QuickXorHash). Read-only; raises OneDriveError otherwise.
+        Used before anything irreversible (e.g. retention cleanup)."""
+        ready, reason = self.read_readiness()
+        if not ready:
+            raise OneDriveNotReady(reason)
+        total = local_path.stat().st_size
+        if total <= 0:
+            raise OneDriveError("Refusing to verify against an empty file.")
+        expected_hash = quick_xor_hash_b64(local_path)
+        client = self._client()
+        try:
+            return self._verify(client, item_id, total, expected_hash)
+        except httpx.HTTPError as exc:
+            raise OneDriveError(f"Network error talking to OneDrive ({type(exc).__name__}).") from exc
+        finally:
+            if self._http is None:
+                client.close()
