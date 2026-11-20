@@ -129,6 +129,7 @@ def upload_recording(db: Session, recording_id: str | UUID) -> str:
     rec = db.get(ClassRecording, rid, with_for_update=True)
     rec.storage_provider = OneDriveStore.provider
     rec.remote_item_id = remote.item_id
+    rec.remote_drive_id = store.drive_id  # the drive this upload actually went to
     rec.remote_verified_at = utcnow()
     _event(db, rec, "uploaded_and_verified", f"{remote.size} bytes")
     job_queue.enqueue(db, "recording.publish", f"recording.publish:{rec.id}", {"recording_id": str(rec.id)})

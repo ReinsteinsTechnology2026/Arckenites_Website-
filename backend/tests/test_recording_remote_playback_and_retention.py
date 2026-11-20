@@ -39,7 +39,7 @@ class FakeDrive:
 
     def __init__(self, data: bytes, *, meta_status=200, content_status=None, hash_override=None, size_override=None,
                  content_length_lie=None):
-        self.data, self.requests = data, []
+        self.data, self.requests, self.only_drive = data, [], None
         self.meta_status, self.content_status = meta_status, content_status
         self.hash_override, self.size_override, self.lie = hash_override, size_override, content_length_lie
         self.client = httpx.Client(transport=httpx.MockTransport(self.handle))
@@ -55,6 +55,9 @@ class FakeDrive:
         url = str(request.url)
         if url.startswith(DOWNLOAD_HOST):
             return self._serve(request)
+        m = re.search(r"/drives/([^/]+)/", url)
+        if m and self.only_drive is not None and m.group(1) != self.only_drive:
+            return httpx.Response(404)  # the item lives in one drive only
         if "/items/" in url and "/content" in url:
             if self.content_status:
                 return httpx.Response(self.content_status)
@@ -83,6 +86,19 @@ class FakeDrive:
         return OneDriveStore(drive_id=drive_id, token_provider=lambda: BEARER, http=self.client, enabled=enabled,
                              sleep=lambda s: None)
 
+    def drives_used(self):
+        return {m.group(1) for r in self.requests if (m := re.search(r"/drives/([^/]+)/", str(r.url)))}
+
+    def store_class(self):
+        """OneDriveStore subclass wired to this fake Graph, so the REAL drive-selection code runs."""
+        drive = self
+
+        class Wired(OneDriveStore):
+            def __init__(self, **kw):
+                super().__init__(token_provider=lambda: BEARER, http=drive.client, enabled=True,
+                                 sleep=lambda s: None, **kw)
+        return Wired
+
     def graph_requests(self):
         return [r for r in self.requests if "graph.microsoft.com" in str(r.url)]
 
@@ -103,7 +119,7 @@ class Base(Harness):
                 run_id=self.run_id, batch_id=self.batch_id, capture_state="STORED", publication_state="PUBLISHED",
                 staging_key=self.key, size_bytes=len(self.data), sha256=self.sha, duration_seconds=3,
                 verified_at=utcnow(), published_at=utcnow(), storage_provider="ONEDRIVE", remote_item_id=ITEM,
-                remote_verified_at=utcnow() - timedelta(days=60))
+                remote_drive_id="DRIVE-1", remote_verified_at=utcnow() - timedelta(days=60))
             db.add(rec)
             sa = AdminRole(name="Super Admin", slug=SUPER_ADMIN_SLUG, is_system=True)
             db.add(sa)
@@ -117,7 +133,7 @@ class Base(Harness):
         self._patch_store(self.drive.store())
 
     def _patch_store(self, store):
-        p = patch("app.api.routes_recordings._new_store", lambda: store)
+        p = patch("app.api.routes_recordings._new_store", lambda drive_id=None: store)
         p.start()
         self.addCleanup(p.stop)
 
@@ -170,7 +186,7 @@ class RemotePlaybackTests(Base):
         for r in (self.stream(t), self.stream(t, headers={"Range": "bytes=0-9"})):
             self.assertIn(r.status_code, (200, 206))  # never a redirect to Microsoft
             blob = " ".join(f"{k}:{v}" for k, v in r.headers.items())
-            for secret in (BEARER, ITEM, PREAUTH, "graph.microsoft.com", "download.example.test", "SECRET-DOWNLOAD", self.key):
+            for secret in (BEARER, ITEM, PREAUTH, "graph.microsoft.com", "download.example.test", "SECRET-DOWNLOAD", self.key, "DRIVE-1"):
                 self.assertNotIn(secret, blob)
             self.assertNotIn("location", r.headers)
             self.assertIn("no-store", r.headers["cache-control"])
@@ -179,6 +195,7 @@ class RemotePlaybackTests(Base):
         url = self.stream_url()
         self.assertTrue(url.startswith(f"/api/recordings/{self.rid}/stream?t="))
         self.assertNotIn(ITEM, url)
+        self.assertNotIn("DRIVE-1", url)
 
     def test_the_bearer_goes_only_to_graph_never_to_the_pre_authenticated_download_host(self):
         t = self.tok()
@@ -305,7 +322,7 @@ class LogLeakTests(Base):
 
     def run_ret_logged(self):
         with self.sf() as db:
-            recording_retention.run_retention(db, store=self.drive.store(), enabled=True, dry_run=True)
+            recording_retention.run_retention(db, store_factory=lambda d: self.drive.store(), enabled=True, dry_run=True)
 
     def test_httpx_loggers_are_held_at_warning(self):
         import logging
@@ -319,7 +336,7 @@ class RemoteFailureTests(Base):
     def _expect_503(self, r):
         self.assertEqual(r.status_code, 503)
         blob = r.text + str(dict(r.headers))
-        for secret in (BEARER, ITEM, PREAUTH, "graph.microsoft.com", self.key, "Traceback"):
+        for secret in (BEARER, ITEM, PREAUTH, "graph.microsoft.com", self.key, "Traceback", "DRIVE-1"):
             self.assertNotIn(secret, blob)
 
     def test_missing_everywhere_fails_with_a_generic_503(self):
@@ -412,10 +429,11 @@ class UploadIntegrityGateTests(Harness):
                 row = db.get(ClassRecording, uuid.UUID(rid))
                 self.assertIsNone(row.remote_verified_at)
                 self.assertIsNone(row.remote_item_id)
+                self.assertIsNone(row.remote_drive_id)
             self.assertTrue(path.is_file())
             # and retention (even fully enabled and applying) keeps the file
             with self.sf() as db:
-                rep = recording_retention.run_retention(db, store=store, enabled=True, dry_run=False)
+                rep = recording_retention.run_retention(db, store_factory=lambda d: store, enabled=True, dry_run=False)
             self.assertEqual(rep["removed"], 0)
             self.assertTrue(path.is_file())
 
@@ -425,7 +443,7 @@ class RetentionTests(Base):
     def run_ret(self, *, drive=None, enabled=True, dry_run=False, **kw):
         store = (drive or self.drive).store()
         with self.sf() as db:
-            return recording_retention.run_retention(db, store=store, enabled=enabled, dry_run=dry_run, **kw)
+            return recording_retention.run_retention(db, store_factory=lambda d: store, enabled=enabled, dry_run=dry_run, **kw)
 
     # -- defaults ---------------------------------------------------------------------
     def test_cleanup_is_disabled_and_dry_run_by_default(self):
@@ -441,7 +459,7 @@ class RetentionTests(Base):
 
     def test_settings_default_path_does_nothing(self):
         with self.sf() as db:
-            rep = recording_retention.run_retention(db, store=self.drive.store())  # real defaults
+            rep = recording_retention.run_retention(db, store_factory=lambda d: self.drive.store())  # real defaults
         self.assertFalse(rep["enabled"])
         self.assertTrue(self.path.is_file())
 
@@ -505,7 +523,7 @@ class RetentionTests(Base):
     def test_unreadable_or_unconfigured_onedrive_keeps_the_local_copy(self):
         store = OneDriveStore(drive_id="", token_provider=lambda: "t", http=self.drive.client, enabled=True)
         with self.sf() as db:
-            rep = recording_retention.run_retention(db, store=store, enabled=True, dry_run=False)
+            rep = recording_retention.run_retention(db, store_factory=lambda d: store, enabled=True, dry_run=False)
         self.assertKept(rep, "remote_unverified")
 
     def test_an_unexpected_error_keeps_the_local_copy_and_does_not_abort_the_pass(self):
@@ -513,7 +531,7 @@ class RetentionTests(Base):
             def verify_remote(self, *a, **k):
                 raise RuntimeError("boom")
         with self.sf() as db:
-            rep = recording_retention.run_retention(db, store=Exploding(), enabled=True, dry_run=False)
+            rep = recording_retention.run_retention(db, store_factory=lambda d: Exploding(), enabled=True, dry_run=False)
         self.assertKept(rep, "error")
 
     def test_a_corrupt_or_changed_local_file_is_kept(self):
@@ -622,6 +640,223 @@ class RetentionTests(Base):
                 patch.object(job_handlers.recording_watchdog, "check_recordings", lambda db: {}), \
                 patch.object(settings, "recording_retention_enabled", True):
             job_handlers._reconcile(_DB(), None)  # must not raise
+
+
+# ---------------------------------------------------------------------------
+# Each recording remembers the drive it was uploaded to
+# ---------------------------------------------------------------------------
+class DriveIdTests(Base):
+    """Uses the REAL drive-selection code (a store subclass wired to the fake Graph),
+    so changing ONEDRIVE_DRIVE_ID after upload is exercised end to end."""
+
+    def setUp(self):
+        super().setUp()
+        self.drive.only_drive = "DRIVE-1"           # the item exists in that drive only
+        wired = self.drive.store_class()
+        for target in ("app.api.routes_recordings.OneDriveStore", "app.core.recording_retention.OneDriveStore"):
+            p = patch(target, wired)
+            p.start()
+            self.addCleanup(p.stop)
+        # un-patch the route's factory seam so the real _new_store runs against the wired class
+        p = patch("app.api.routes_recordings._new_store", lambda drive_id=None: wired(drive_id=drive_id or None))
+        p.start()
+        self.addCleanup(p.stop)
+
+    def ret(self, **kw):
+        with self.sf() as db:
+            return recording_retention.run_retention(db, enabled=True, dry_run=False, **kw)
+
+    def test_playback_uses_the_recorded_drive_after_the_configured_drive_changes(self):
+        t = self.tok()
+        self.remove_local()
+        with patch.object(settings, "onedrive_drive_id", "NEW-DRIVE"):
+            self.assertEqual(self.stream(t).content, self.data)
+            self.assertEqual(self.stream(t, headers={"Range": "bytes=5-20"}).content, self.data[5:21])
+        self.assertEqual(self.drive.drives_used(), {"DRIVE-1"})
+
+    def test_playback_works_even_if_no_drive_is_configured_any_more(self):
+        t = self.tok()
+        self.remove_local()
+        with patch.object(settings, "onedrive_drive_id", ""):
+            self.assertEqual(self.stream(t).content, self.data)
+
+    def test_a_recorded_drive_is_never_silently_swapped_for_the_configured_one(self):
+        self.set_rec(remote_drive_id="DRIVE-GONE")
+        t = self.tok()
+        self.remove_local()
+        with patch.object(settings, "onedrive_drive_id", "DRIVE-1"):   # configured drive DOES have the item
+            r = self.stream(t)
+        self.assertEqual(r.status_code, 503)
+        self.assertEqual(self.drive.drives_used(), {"DRIVE-GONE"})
+
+    def test_legacy_rows_without_a_recorded_drive_keep_using_the_configured_drive(self):
+        self.set_rec(remote_drive_id=None)
+        t = self.tok()
+        self.remove_local()
+        with patch.object(settings, "onedrive_drive_id", "DRIVE-1"):
+            self.assertEqual(self.stream(t).content, self.data)
+        with patch.object(settings, "onedrive_drive_id", "WRONG"):
+            self.assertEqual(self.stream(t).status_code, 503)           # same behaviour as before this column
+        with patch.object(settings, "onedrive_drive_id", ""):
+            self.assertEqual(self.stream(t).status_code, 503)
+        self.assertIsNone(self.rec().remote_drive_id)                   # reads never write the column (no backfill)
+
+    def test_access_rules_are_unchanged_for_recordings_with_a_recorded_drive(self):
+        self.remove_local()
+        for who in ("student", "trainer"):
+            self.assertEqual(self.stream(self.tok(who)).status_code, 200)
+        for who in ("boss", "outsider", "other-trainer"):
+            r = self.client.post(f"/api/recordings/{self.rid}/playback-token", headers=self.headers(who))
+            self.assertEqual(r.status_code, 404)
+            self.assertNotIn("DRIVE-1", r.text)
+
+    def test_retention_verifies_against_the_recorded_drive_after_a_config_change(self):
+        with patch.object(settings, "onedrive_drive_id", "NEW-DRIVE"):
+            rep = self.ret()
+        self.assertEqual(rep["removed"], 1)
+        self.assertEqual(self.drive.drives_used(), {"DRIVE-1"})
+
+    def test_retention_keeps_the_file_if_the_recorded_drive_no_longer_has_it(self):
+        self.set_rec(remote_drive_id="DRIVE-GONE")
+        with patch.object(settings, "onedrive_drive_id", "DRIVE-1"):    # must not fall back to the configured drive
+            rep = self.ret()
+        self.assertEqual(rep["removed"], 0)
+        self.assertTrue(self.path.is_file())
+        self.assertEqual(self.drive.drives_used(), {"DRIVE-GONE"})
+
+    def test_retention_on_legacy_rows_uses_the_configured_drive_and_fails_safe_if_it_changed(self):
+        self.set_rec(remote_drive_id=None)
+        with patch.object(settings, "onedrive_drive_id", "WRONG"):
+            self.assertEqual(self.ret()["removed"], 0)
+        self.assertTrue(self.path.is_file())
+        with patch.object(settings, "onedrive_drive_id", ""):
+            self.assertEqual(self.ret()["removed"], 0)
+        self.assertTrue(self.path.is_file())
+        with patch.object(settings, "onedrive_drive_id", "DRIVE-1"):
+            self.assertEqual(self.ret()["removed"], 1)
+
+    def test_nothing_ever_writes_remote_drive_id_except_a_verified_upload(self):
+        self.set_rec(remote_drive_id=None)
+        t = self.tok()
+        with patch.object(settings, "onedrive_drive_id", "DRIVE-1"):
+            self.stream(t)
+            self.remove_local()
+            self.stream(t)
+            self.ret()
+        self.assertIsNone(self.rec().remote_drive_id)
+
+
+class UploadRecordsTheDriveTests(Harness):
+    def _recording(self):
+        run_id = self.make_run(state="ENDED", approval="APPROVED", rec="PUBLISHED")
+        (self.storage / "incoming").mkdir(exist_ok=True)
+        key = f"incoming/{os.urandom(8).hex()}.mp4"
+        path = self.storage / key
+        make_mp4(path, 3)
+        with self.sf() as db:
+            rec = ClassRecording(run_id=run_id, batch_id=self.batch_id, capture_state="STORED",
+                                 publication_state="NOT_PUBLISHED", staging_key=key, size_bytes=path.stat().st_size,
+                                 sha256=hashlib.sha256(path.read_bytes()).hexdigest(), duration_seconds=3, verified_at=utcnow())
+            db.add(rec)
+            db.commit()
+            return str(rec.id)
+
+    def test_a_verified_upload_records_the_drive_it_went_to_and_later_config_changes_do_not_alter_it(self):
+        rid = self._recording()
+        graph = FakeGraph()
+
+        class Wired(OneDriveStore):
+            def __init__(self, **kw):
+                super().__init__(token_provider=lambda: "t", http=graph.client, enabled=True, sleep=lambda s: None,
+                                 drive_id="UPLOAD-DRIVE")
+        with patch.object(recording_publish, "OneDriveStore", Wired):
+            with self.sf() as db:
+                self.assertEqual(recording_publish.upload_recording(db, rid), "uploaded")
+        with self.sf() as db:
+            row = db.get(ClassRecording, uuid.UUID(rid))
+            self.assertEqual((row.remote_drive_id, row.storage_provider), ("UPLOAD-DRIVE", "ONEDRIVE"))
+            self.assertIsNotNone(row.remote_verified_at)
+        self.assertTrue(any("/drives/UPLOAD-DRIVE/" in str(r.url) for r in graph.requests))
+        with patch.object(settings, "onedrive_drive_id", "SOMETHING-ELSE"):
+            with self.sf() as db:
+                self.assertEqual(db.get(ClassRecording, uuid.UUID(rid)).remote_drive_id, "UPLOAD-DRIVE")
+
+
+# ---------------------------------------------------------------------------
+# Migration compatibility. SQLite here; the real Alembic chain is run on a
+# disposable PostgreSQL separately (see the verification report).
+# ---------------------------------------------------------------------------
+class MigrationCompatTests(unittest.TestCase):
+    REV = "f1a7c3d9b254"
+
+    def _load(self):
+        import importlib.util
+        path = Path(__file__).resolve().parents[1] / "alembic" / "versions" / f"{self.REV}_add_class_recordings_remote_drive_id.py"
+        spec = importlib.util.spec_from_file_location("mig_remote_drive", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_revision_follows_the_previous_head_and_is_the_only_head(self):
+        import ast
+        module = self._load()
+        self.assertEqual((module.revision, module.down_revision), (self.REV, "e9c5b1a8d236"))
+        versions = Path(__file__).resolve().parents[1] / "alembic" / "versions"
+        downs, revs = set(), set()
+        for f in versions.glob("*.py"):
+            for node in ast.parse(f.read_text(encoding="utf-8")).body:
+                t = node.targets[0] if isinstance(node, ast.Assign) else getattr(node, "target", None)
+                if isinstance(t, ast.Name) and t.id == "revision":
+                    revs.add(ast.literal_eval(node.value))
+                if isinstance(t, ast.Name) and t.id == "down_revision" and node.value is not None:
+                    v = ast.literal_eval(node.value)
+                    downs.update([] if v is None else [v] if isinstance(v, str) else v)
+        self.assertEqual(revs - downs, {self.REV})
+
+    def test_upgrade_adds_a_nullable_column_keeps_legacy_rows_null_and_downgrade_removes_only_it(self):
+        from alembic.migration import MigrationContext
+        from alembic.operations import Operations
+        from sqlalchemy import create_engine, inspect, text
+        from sqlalchemy.dialects.postgresql import JSONB
+        from sqlalchemy.ext.compiler import compiles
+        from app.database import Base
+        compiles(JSONB, "sqlite")(lambda t, c, **kw: "JSON")
+        module = self._load()
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
+            engine = create_engine(f"sqlite:///{Path(tmp) / 'm.sqlite'}")
+            Base.metadata.create_all(engine)
+            with engine.begin() as c:                      # recreate the PRE-migration shape
+                c.execute(text("ALTER TABLE class_recordings DROP COLUMN remote_drive_id"))
+
+            def cols():
+                return {col["name"] for col in inspect(engine).get_columns("class_recordings")}
+            self.assertNotIn("remote_drive_id", cols())
+            with engine.begin() as c:
+                c.execute(text("PRAGMA foreign_keys=OFF"))
+                c.execute(text("INSERT INTO class_recordings (id, run_id, batch_id, attempt_no, capture_state, publication_state,"
+                               " retry_count, storage_provider, remote_item_id) VALUES ('legacy-1', 1, 1, 1, 'STORED',"
+                               " 'PUBLISHED', 0, 'ONEDRIVE', 'OLD-ITEM')"))
+            with engine.begin() as c:
+                with Operations.context(MigrationContext.configure(c)):
+                    module.upgrade()
+            info = {col["name"]: col for col in inspect(engine).get_columns("class_recordings")}
+            self.assertTrue(info["remote_drive_id"]["nullable"])
+            self.assertIsNone(info["remote_drive_id"]["default"])
+            with engine.connect() as c:                     # nothing was backfilled
+                row = c.execute(text("SELECT remote_item_id, remote_drive_id FROM class_recordings WHERE id='legacy-1'")).one()
+            self.assertEqual(tuple(row), ("OLD-ITEM", None))
+            with engine.begin() as c:
+                with Operations.context(MigrationContext.configure(c)):
+                    module.downgrade()
+            self.assertNotIn("remote_drive_id", cols())
+            self.assertIn("remote_item_id", cols())          # only the new column was dropped
+            with engine.connect() as c:
+                self.assertEqual(c.execute(text("SELECT count(*) FROM class_recordings")).scalar(), 1)
+            with engine.begin() as c:                        # and it can be re-applied
+                with Operations.context(MigrationContext.configure(c)):
+                    module.upgrade()
+            self.assertIn("remote_drive_id", cols())
+            engine.dispose()
 
 
 # ---------------------------------------------------------------------------

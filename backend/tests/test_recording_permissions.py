@@ -52,7 +52,7 @@ from app.models.meeting import (Meeting, MeetingParticipant, MeetingRecording, M
                                 ParticipantStatus, RecordingStatus)
 
 BACKEND = Path(__file__).resolve().parents[1]
-SENSITIVE_KEYS = {"staging_key", "remote_item_id", "sha256", "egress_id", "file_path", "storage_provider", "stream_url"}
+SENSITIVE_KEYS = {"staging_key", "remote_item_id", "remote_drive_id", "sha256", "egress_id", "file_path", "storage_provider", "stream_url"}
 
 
 @compiles(JSONB, "sqlite")

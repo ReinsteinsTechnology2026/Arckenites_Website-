@@ -472,6 +472,13 @@ class MigrationMatchesModelsTests(unittest.TestCase):
         spec.loader.exec_module(module)
         return module
 
+    def _load_later(self, pattern):
+        path = next(Path(__file__).parents[1].glob(f"alembic/versions/{pattern}"))
+        spec = importlib.util.spec_from_file_location(path.stem, path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
     def test_upgrade_creates_the_model_schema_and_downgrade_removes_it(self):
         engine = create_engine("sqlite://")
         # Parent tables the new tables point at.
@@ -479,9 +486,13 @@ class MigrationMatchesModelsTests(unittest.TestCase):
                                                  ("users", "batches", "class_sessions", "meetings", "admin_roles")
                                                  if t in Base.metadata.tables])
         migration = self._load_migration()
+        # Later additive revisions that change these tables, applied in order after the original.
+        later = [self._load_later("f1a7c3d9b254_*.py")]
         with engine.begin() as conn:
             with Operations.context(MigrationContext.configure(conn)):
                 migration.upgrade()
+                for extra in later:
+                    extra.upgrade()
             inspector = inspect(conn)
             for table in self.TABLES:
                 with self.subTest(table):
@@ -496,6 +507,8 @@ class MigrationMatchesModelsTests(unittest.TestCase):
                              "ix_background_jobs_state_run_at"):
                 self.assertIn(expected, indexes)
             with Operations.context(MigrationContext.configure(conn)):
+                for extra in reversed(later):
+                    extra.downgrade()
                 migration.downgrade()
             self.assertFalse(set(self.TABLES) & set(inspect(conn).get_table_names()))
 

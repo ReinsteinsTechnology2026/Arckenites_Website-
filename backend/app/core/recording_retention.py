@@ -16,7 +16,8 @@ moment of removal rather than trusted from earlier state:
   * the remote copy was verified at least N days ago (floor RETENTION_MIN_DAYS);
   * the recorded size and sha256 are present and the local file still matches
     both (so exactly the verified file is the one removed);
-  * OneDrive is readable right now, and the remote item's size AND
+  * OneDrive is readable right now (in the drive the recording was uploaded
+    to; older rows with no recorded drive use the configured one), and the remote item's size AND
     QuickXorHash equal the local file's. Any error, mismatch or unreadable
     remote means "keep the local copy".
 After removal playback continues from OneDrive (see routes_recordings).
@@ -62,7 +63,7 @@ def _static_skip_reason(rec: ClassRecording, cutoff) -> str | None:
     return None
 
 
-def run_retention(db: Session, *, store: OneDriveStore | None = None, staging: StagingStore | None = None,
+def run_retention(db: Session, *, store_factory=None, staging: StagingStore | None = None,
                   now=None, enabled: bool | None = None, dry_run: bool | None = None) -> dict:
     """One bounded pass. Returns counters; never raises for a single file's problem."""
     enabled = settings.recording_retention_enabled if enabled is None else enabled
@@ -72,7 +73,8 @@ def run_retention(db: Session, *, store: OneDriveStore | None = None, staging: S
     reasons: dict[str, int] = {}
     if not enabled:
         return report
-    store = store or OneDriveStore()
+    # One store per recording, bound to the drive that recording was uploaded to.
+    store_factory = store_factory or (lambda drive_id: OneDriveStore(drive_id=drive_id or None))
     staging = staging or StagingStore()
     cutoff = (now or utcnow()) - timedelta(days=effective_days())
     limit = max(int(settings.recording_retention_batch_limit), 1)
@@ -83,7 +85,7 @@ def run_retention(db: Session, *, store: OneDriveStore | None = None, staging: S
         ClassRecording.remote_verified_at <= cutoff).order_by(ClassRecording.remote_verified_at).limit(limit)).all()
     for rid in candidates:
         report["examined"] += 1
-        outcome = _consider(db, rid, store, staging, cutoff, dry_run)
+        outcome = _consider(db, rid, store_factory, staging, cutoff, dry_run)
         if outcome in ("would_remove", "removed"):
             report[outcome] += 1
         else:
@@ -93,7 +95,7 @@ def run_retention(db: Session, *, store: OneDriveStore | None = None, staging: S
     return report
 
 
-def _consider(db: Session, rid: UUID, store: OneDriveStore, staging: StagingStore, cutoff, dry_run: bool) -> str:
+def _consider(db: Session, rid: UUID, store_factory, staging: StagingStore, cutoff, dry_run: bool) -> str:
     rec = db.get(ClassRecording, rid, with_for_update=True)
     try:
         if rec is None:
@@ -112,7 +114,7 @@ def _consider(db: Session, rid: UUID, store: OneDriveStore, staging: StagingStor
         if staging.sha256_of(path) != rec.sha256:
             return "local_hash_mismatch"
         try:
-            store.verify_remote(rec.remote_item_id, path)  # size + QuickXorHash, read-only, right now
+            store_factory(rec.remote_drive_id).verify_remote(rec.remote_item_id, path)  # size + QuickXorHash, read-only, right now
         except OneDriveError as exc:
             logger.warning("retention kept local copy: remote not verified recording=%s error=%s", rec.id, type(exc).__name__)
             _event(db, rec, "retention_kept_remote_unverified", str(exc))

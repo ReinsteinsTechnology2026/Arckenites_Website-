@@ -149,8 +149,9 @@ def _iter_file(path, start: int, end: int):
             yield data
 
 
-def _new_store() -> OneDriveStore:
-    return OneDriveStore()
+def _new_store(drive_id: str | None = None) -> OneDriveStore:
+    """The recording's own drive when known; NULL (older rows) uses the configured one."""
+    return OneDriveStore(drive_id=drive_id or None)
 
 
 def _remote_source(rec: ClassRecording) -> OneDriveStore | None:
@@ -159,7 +160,7 @@ def _remote_source(rec: ClassRecording) -> OneDriveStore | None:
     if (rec.storage_provider != OneDriveStore.provider or not rec.remote_item_id or rec.remote_verified_at is None
             or not rec.size_bytes):
         return None
-    store = _new_store()
+    store = _new_store(rec.remote_drive_id)
     ready, _ = store.read_readiness()
     return store if ready else None
 

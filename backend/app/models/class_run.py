@@ -218,6 +218,10 @@ class ClassRecording(Base):
     staging_key: Mapped[str | None] = mapped_column(String(300), nullable=True)
     storage_provider: Mapped[str | None] = mapped_column(String(24), nullable=True)
     remote_item_id: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    # The drive that holds remote_item_id, recorded at upload time. NULL for
+    # recordings uploaded before this column existed: those fall back to the
+    # configured ONEDRIVE_DRIVE_ID (never backfilled automatically).
+    remote_drive_id: Mapped[str | None] = mapped_column(String(300), nullable=True)
     remote_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     size_bytes: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
